@@ -14,9 +14,6 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Baby log</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#F3F5F8; --surface:#FFFFFF; --ink:#1C2230; --muted:#667085; --line:#DDE2EA;
@@ -50,11 +47,11 @@
 :root[data-theme="dark"]{color-scheme:dark}
 [hidden]{display:none!important}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:560px;margin:0 auto;padding:10px 14px 40px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px}
-h1{font-family:"Fraunces",Georgia,serif;font-weight:600;font-size:1.25rem;line-height:1.15;margin:0;letter-spacing:-.01em}
-.theme{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.85rem;color:var(--ink);white-space:nowrap;min-height:36px}
+h1{font-family:ui-serif,"New York",Georgia,serif;font-weight:600;font-size:1.25rem;line-height:1.15;margin:0;letter-spacing:-.01em}
+.theme{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px;min-width:36px;font-size:.85rem;color:var(--ink);white-space:nowrap;min-height:36px}
 h1 .amp{color:var(--muted);font-weight:400}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -78,7 +75,11 @@ button{cursor:pointer}
 .act .sub{color:var(--muted);font-size:.85rem}
 .act.wide{grid-column:span 2;flex-direction:row;align-items:center;gap:12px;min-height:0;padding:14px}
 
-.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);margin-left:-14px;margin-right:-14px;padding:0 14px}
+.stickctl{position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--tabsH,45px) - 14px);z-index:5;background:var(--bg);margin:-14px -14px 10px;padding:10px 14px 8px;border-bottom:1px solid var(--line)}
+.stickctl .daynav,.stickctl .regsum,.stickctl .addmiss{margin-bottom:8px}
+.stickctl > :last-child{margin-bottom:0}
+.stickctl .when{margin-bottom:0}
 .tabs button{border:0;background:none;padding:10px 12px;color:var(--muted);font-weight:700;border-bottom:3px solid transparent;margin-bottom:-1px}
 .tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--ink)}
 
@@ -120,7 +121,7 @@ tr+tr td{border-top:1px solid var(--line)}
 dialog{border:0;border-radius:22px;padding:0;background:var(--surface);color:var(--ink);width:min(420px,calc(100% - 24px));margin:16px auto auto;max-height:calc(100% - 32px);overflow:auto;-webkit-overflow-scrolling:touch}
 dialog::backdrop{background:rgba(10,12,20,.5)}
 .dlg{padding:20px;display:flex;flex-direction:column;gap:12px}
-.dlg h2{margin:0;font-family:"Fraunces",Georgia,serif;font-size:1.3rem}
+.dlg h2{margin:0;font-family:ui-serif,"New York",Georgia,serif;font-size:1.3rem}
 .dlg label{display:flex;flex-direction:column;gap:4px;font-size:.9rem;color:var(--muted)}
 .dlg input,.dlg select{border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:11px;color:var(--ink);font-size:1rem}
 .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
@@ -158,7 +159,7 @@ button{touch-action:manipulation}
 .regsum span{color:var(--muted)}
 .addmiss{width:100%;border:1px dashed var(--line);background:transparent;border-radius:12px;padding:12px;font-weight:700;color:var(--ink);margin-bottom:12px;min-height:48px}
 .reg{display:grid;grid-template-columns:3.1em 1fr 1fr;column-gap:6px;align-items:stretch}
-.reg .rh{font-size:.8rem;font-weight:700;padding:0 4px 6px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:1}
+.reg .rh{font-size:.8rem;font-weight:700;padding:6px 4px;position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--tabsH,45px) - 14px + var(--ctlH,0px));background:var(--bg);z-index:4}
 .reg .rt{font-variant-numeric:tabular-nums;font-weight:700;font-size:.9rem;padding:9px 0;border-top:1px solid var(--line)}
 .reg .rc{border-top:1px solid var(--line);padding:5px 0;display:flex;flex-direction:column;gap:4px;min-width:0}
 .ritem{display:flex;flex-wrap:wrap;gap:4px;align-items:center;border-left:3px solid var(--c);padding-left:5px}
@@ -201,6 +202,82 @@ button{touch-action:manipulation}
 #profBody fieldset{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:12px;padding:8px 12px 12px;margin:0 0 10px;display:flex;flex-direction:column;gap:8px}
 #profBody legend{font-weight:700;color:var(--c);padding:0 4px}
 #profBody .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+.topr{display:flex;gap:6px;align-items:center}
+.sync{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px 6px 22px;font-size:.78rem;color:var(--muted);white-space:nowrap;min-height:36px;position:relative}
+.sync::before{content:"";position:absolute;left:9px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--muted)}
+.sync.ok::before{background:var(--ok)}
+.sync.busy::before{background:var(--both);animation:pulse 1s ease-in-out infinite}
+.sync.off::before{background:var(--warn)}
+.sync.err::before{background:var(--danger)}
+@keyframes pulse{50%{opacity:.3}}
+.live .sides{display:flex;gap:4px;margin-top:4px}
+.live .sides button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;min-height:30px;min-width:40px;padding:0 8px;font-size:.8rem;font-weight:700}
+.live .sides button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.stopall{width:100%;border:0;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:700;min-height:40px;margin-bottom:8px}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
+.seg button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;min-height:42px;font-weight:700}
+.seg button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+
+.tabs button{padding:10px 8px}
+.gtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:10px}
+.gt{background:var(--bg);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;line-height:1.25}
+.gt .gl{font-size:.75rem;color:var(--muted)}
+.gt .gv{font-size:1.05rem;font-weight:700;font-variant-numeric:tabular-nums}
+.gt .gs{font-size:.75rem;color:var(--muted)}
+.growth .det{background:var(--bg);margin:10px 0 0}
+.growth table{margin-top:8px}
+tr.tap{cursor:pointer}
+.sect{background:var(--surface);border-radius:16px;padding:12px 14px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+.sect h3{margin:0;font-size:1rem}
+.sect .row2{margin:0;font-size:.95rem}
+.sect .row2 select{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:6px 8px;margin:0 4px}
+.sect .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sect .wide{width:100%}
+.sect .btn.del{padding-left:18px;margin-right:0}
+.kids{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.kids li{display:flex;gap:10px;align-items:flex-start}
+.kids li .sw{margin-top:6px}
+.kids small{display:block;color:var(--muted)}
+.sect a{color:var(--both)}
+
+.kidseg{margin-bottom:8px}
+.kidseg button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff;box-shadow:none}
+.sig{border-radius:12px;padding:10px 12px;margin-top:10px;background:var(--bg);border-left:4px solid var(--muted)}
+.sig.call{border-left-color:var(--danger)}
+.sig.watch{border-left-color:var(--warn)}
+.sig.tip{border-left-color:var(--both)}
+.sig.good{border-left-color:var(--ok)}
+.sig-h{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:4px}
+.sig.call .sig-h{color:var(--danger)} .sig.watch .sig-h{color:var(--warn)} .sig.good .sig-h{color:var(--ok)} .sig.tip .sig-h{color:var(--both)}
+.sig-i{padding:4px 0;line-height:1.35}
+.sig-i b{display:block;font-size:.95rem}
+.sig-i span{display:block;font-size:.85rem;color:var(--muted)}
+.det table{margin-top:8px}
+.thr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.thr label{display:flex;flex-direction:column;gap:4px;font-size:.8rem;color:var(--muted)}
+.thr input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:8px;font-size:1rem}
+.band{background:var(--bg);border-radius:12px;padding:8px 10px;border-left:4px solid var(--c)}
+.band table{margin-top:4px;font-size:.85rem}
+.band td{padding:3px 6px}
+
+/* ===== layout variant: bottom navigation, floating entry button, compact header ===== */
+.wrap{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+.bottomnav{position:fixed;left:0;right:0;bottom:0;top:auto;margin:0;z-index:20;display:grid;grid-template-columns:repeat(3,1fr);gap:0;
+  background:var(--surface);border-top:1px solid var(--line);border-bottom:0;padding:4px 8px calc(4px + env(safe-area-inset-bottom,0px))}
+.bottomnav button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border:0;border-radius:12px;font-size:.75rem;margin:0}
+.bottomnav button[aria-selected="true"]{color:var(--ink);background:var(--bg);border:0}
+.bottomnav .ni{font-size:1.25rem;line-height:1}
+.fab{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:60px;height:60px;border-radius:50%;border:0;
+  background:var(--ink);color:var(--bg);font-size:2rem;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.stickctl{top:env(safe-area-inset-top,0px);margin:0 -14px 10px;padding:8px 14px}
+.reg .rh{top:calc(env(safe-area-inset-top,0px) + var(--ctlH,0px))}
+dialog.sheet{margin:auto 0 0;width:100%;max-width:100%;max-height:92%;border-radius:22px 22px 0 0;padding:0}
+dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto}
+.sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sheet .actions{margin-bottom:0}
+.sheet .act{min-height:72px}
+.daydet .kidgrid{margin-top:10px}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:6px}
 </style>
 </head>
@@ -208,12 +285,28 @@ button{touch-action:manipulation}
 <div class="wrap">
   <div class="top">
     <h1 id="title">Baby log</h1>
-    <button class="theme" id="themeBtn" aria-label="Theme">◐ Auto</button>
+    <div class="topr"><button class="sync busy" id="sync" aria-live="polite" title="Sync now">Connecting…</button></div>
   </div>
 
   <div id="livebar"></div>
   <div class="sincebar" id="sincebar"></div>
 
+  <nav class="tabs bottomnav" role="tablist">
+    <button role="tab" data-tab="log" aria-selected="true"><span class="ni">📋</span>Day</button>
+    <button role="tab" data-tab="trend" aria-selected="false"><span class="ni">📈</span>Progress</button>
+    <button role="tab" data-tab="settings" aria-selected="false"><span class="ni">⚙️</span>Settings</button>
+  </nav>
+  <button class="fab" id="fab" aria-label="Log an event">＋</button>
+
+  <section id="tab-day" hidden></section>
+  <section id="tab-log"></section>
+  <section id="tab-trend" hidden></section>
+  <section id="tab-settings" hidden></section>
+
+</div>
+
+<dialog id="sheet" class="sheet"><div class="sheet-in">
+  <div class="sheet-h"><b>Log an event</b><button type="button" class="linkbtn" id="sheetClose">Close</button></div>
   <div class="who" id="who" role="group" aria-label="Who" hidden></div>
 
   <div class="when" role="group" aria-label="When">
@@ -234,17 +327,7 @@ button{touch-action:manipulation}
     <button class="act" data-a="diaper"><span class="ico">💧💩</span><span class="lbl">Pee + poo</span></button>
   </div>
 
-  <div class="tabs" role="tablist">
-    <button role="tab" data-tab="day" aria-selected="true">Day</button>
-    <button role="tab" data-tab="log" aria-selected="false">Log</button>
-    <button role="tab" data-tab="trend" aria-selected="false">Trends</button>
-  </div>
-
-  <section id="tab-day"></section>
-  <section id="tab-log" hidden></section>
-  <section id="tab-trend" hidden></section>
-  <p class="note" id="status">Loading…</p>
-</div>
+</div></dialog>
 
 <div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="undoBtn">Undo</button></div>
 
@@ -267,6 +350,10 @@ button{touch-action:manipulation}
     <div class="mlrow"><input type="number" id="fDur" inputmode="numeric" min="1" max="120" step="1" aria-label="Duration in minutes"></div>
     <div class="mlchips"><button type="button" data-durv="10">10</button><button type="button" data-durv="15">15</button><button type="button" data-durv="20">20</button><button type="button" data-durv="30">30</button></div>
   </div>
+  <div id="fSideWrap" style="display:flex;flex-direction:column;gap:6px"><span style="font-size:.9rem;color:var(--muted)">Side</span>
+    <div class="seg" id="fSide"><button type="button" data-v="L">Left</button><button type="button" data-v="R">Right</button><button type="button" data-v="B">Both</button></div></div>
+  <div id="fMilkWrap" style="display:flex;flex-direction:column;gap:6px"><span style="font-size:.9rem;color:var(--muted)">Milk</span>
+    <div class="seg" id="fMilk"><button type="button" data-v="f">Formula</button><button type="button" data-v="e">Expressed</button></div></div>
   <label id="fCmWrap">Measurement (cm)<input type="number" id="fCm" inputmode="decimal" min="15" max="120" step="0.1"></label>
   <label id="fGramsWrap">Weight (g)<input type="number" id="fGrams" inputmode="numeric" min="500" max="15000" step="1"></label>
   <div class="row">
@@ -282,7 +369,8 @@ button{touch-action:manipulation}
   <label id="apiWrap">API address (web app URL, ends with /exec)<input id="apiIn" type="url" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
   <label>Access code<input id="keyIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required></label>
   <p id="keyErr" class="note" style="color:var(--danger)" hidden></p>
-  <div class="row"><button class="btn" type="submit">Connect</button></div>
+  <div class="row"><button class="btn ghost" type="button" id="localBtn">Use on this device only</button><button class="btn" type="submit">Connect</button></div>
+  <p class="note" style="margin:0">Without connecting, entries stay on this device and can be sent to a shared log later.</p>
 </form></dialog>
 
 <dialog id="profDlg"><form class="dlg" id="profForm">
@@ -332,13 +420,25 @@ const dur = ms => { const m = Math.max(0, Math.round(ms/6e4)); if (m<60) return 
 const ago = ts => ts > Date.now() ? "scheduled" : dur(Date.now()-ts)+" ago";
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const isBottle = e => e.kind==="feed" && e.feedType==="bottle";
+const SIDE = {L:"L", R:"R", B:"L+R"};
+function nextSide(t){ // suggests the side to start with: the opposite of the last one used
+  const last = events.filter(e=>e.child===t && isBreast(e) && e.side).sort((a,b)=>b.ts-a.ts)[0];
+  return !last ? "L" : last.side==="L" ? "R" : "L";
+}
+function lastMilk(t){
+  const last = events.filter(e=>e.child===t && isBottle(e) && e.milk).sort((a,b)=>b.ts-a.ts)[0];
+  return last ? last.milk : "f";
+}
 const isBreast = e => e.kind==="feed" && e.feedType!=="bottle";
 const label = e => e.kind==="feed" ? (isBottle(e) ? "Bottle" : "Breastfeed") : e.kind==="pee" ? "Pee" : e.kind==="poo" ? "Poo" : e.kind==="len" ? "Length" : e.kind==="hc" ? "Head circumference" : "Weight";
 
 /* ---------- storage (Google Sheet via Apps Script) ---------- */
 // API address and access code are asked on first launch and stored on this device only.
-let apiUrl = "", apiKey = "";
-try { apiUrl = localStorage.getItem("bl-api") || ""; apiKey = localStorage.getItem("bl-key") || ""; } catch(e) {}
+let apiUrl = "", apiKey = "", mode = "server";           // mode "local": no shared log, data only on this device
+try { apiUrl = localStorage.getItem("bl-api") || ""; apiKey = localStorage.getItem("bl-key") || ""; mode = localStorage.getItem("bl-mode") || "server"; } catch(e) {}
+const isLocal = () => mode === "local";
+function setMode(m){ mode = m; try { localStorage.setItem("bl-mode", m); } catch(e) {} }
+class LocalMode extends Error {}
 const validUrl = u => /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(u);
 let setupPromise = null;
 function askSetup(msg){
@@ -354,35 +454,50 @@ function askSetup(msg){
       const u = $("#apiIn").value.trim(), k = $("#keyIn").value.trim();
       if (!validUrl(u)){ $("#apiWrap").hidden = false; $("#keyErr").textContent = "The address must be the Apps Script web app URL ending with /exec."; $("#keyErr").hidden = false; return; }
       if (!k) return;
-      apiUrl = u; apiKey = k;
+      apiUrl = u; apiKey = k; const wasLocal = isLocal(); setMode("server");
       try { localStorage.setItem("bl-api", u); localStorage.setItem("bl-key", k); } catch(err) {}
-      d.close(); setupPromise = null; res();
+      d.close(); setupPromise = null; res(wasLocal ? "fromLocal" : "server");
     };
+    $("#localBtn").onclick = ()=>{ setMode("local"); d.close(); setupPromise = null; res("local"); };
     d.oncancel = e=>e.preventDefault();
     d.showModal();
   });
   return setupPromise;
 }
-function disconnect(){
-  try { localStorage.removeItem("bl-key"); localStorage.removeItem("bl-api"); } catch(e) {}
-  apiKey = ""; apiUrl = ""; events = []; kids = []; applyKids(); render();
-  askSetup().then(()=>refresh().then(loadProfile));
+function disconnect(){   // forget address and code; what is already on the device stays visible
+  try { ["bl-key","bl-api"].forEach(k=>localStorage.removeItem(k)); } catch(e) {}
+  apiKey = ""; apiUrl = ""; setMode("local"); saveCache(); render(); setStatus();
 }
-async function run(action, ...args){
-  if (!validUrl(apiUrl) || !apiKey) await askSetup();
-  let j;
+async function connectShared(){  // from local mode: connect, then upload children and entries made on this device
+  const r = await askSetup();
+  if (r === "local") return;
   try {
-    const r = await fetch(apiUrl, {
+    const srv = await run("sync", {since: 0, ops: []});
+    const known = new Set((srv.children||[]).map(k=>k.id));
+    const extra = kids.filter(k=>!known.has(k.id));
+    if (extra.length) await run("saveProfile", {children: (srv.children||[]).concat(extra)});
+    synced = false;                                   // full download, then the outbox is sent
+  } catch(e) {}
+  refresh();
+}
+class NetError extends Error {}      // no network / request timed out
+class ServerError extends Error {}   // the API answered, but not with valid JSON (temporary Google error, quota…)
+async function run(action, ...args){
+  if (isLocal()) throw new LocalMode("local");
+  if (!validUrl(apiUrl) || !apiKey){ if (await askSetup() === "local") throw new LocalMode("local"); }
+  const ctl = window.AbortController ? new AbortController() : null;
+  const timer = ctl && setTimeout(()=>ctl.abort(), 20000);   // a hung request never blocks the queue
+  let r, j;
+  try {
+    r = await fetch(apiUrl, {
       method: "POST",
       headers: {"Content-Type": "text/plain;charset=utf-8"}, // avoids the CORS preflight request
-      body: JSON.stringify({key: apiKey, action, args})
+      body: JSON.stringify({key: apiKey, action, args}),
+      signal: ctl ? ctl.signal : undefined
     });
-    j = await r.json();
-  } catch(e) {
-    if (!navigator.onLine) throw new Error("offline");
-    await askSetup("url");                         // wrong address or deployment not accessible
-    return run(action, ...args);
-  }
+  } catch(e) { throw new NetError("offline"); }
+  finally { if (timer) clearTimeout(timer); }
+  try { j = await r.json(); } catch(e) { throw new ServerError("server"); }
   if (j.error === "unauthorized"){
     apiKey = ""; try { localStorage.removeItem("bl-key"); } catch(e) {}
     await askSetup("key");
@@ -391,28 +506,85 @@ async function run(action, ...args){
   if (j.error) throw new Error(j.error);
   return j.result;
 }
-let refreshing = false;
+
+/* ---------- local copy + outbox (offline-first sync) ---------- */
+// base: events confirmed by the server (id → event). outbox: local changes not sent yet.
+// What the app shows = base with the outbox applied on top, so it works the same online and offline.
+let base = {}, outbox = [], since = 0, synced = false, lastSync = 0, syncing = false, syncErr = "", failures = 0;
+function loadCache(){
+  try {
+    const c = JSON.parse(localStorage.getItem("bl-cache") || "null");
+    if (c && (isLocal() || c.api === apiUrl)){ base = c.base || {}; since = c.since || 0; kids = c.kids || []; lastSync = c.lastSync || 0; synced = !!c.since; }
+    outbox = JSON.parse(localStorage.getItem("bl-outbox") || "[]");
+  } catch(e) {}
+  rebuild();
+}
+function saveCache(){ try { localStorage.setItem("bl-cache", JSON.stringify({api:apiUrl, base, since, kids, lastSync})); } catch(e) {} }
+function saveOutbox(){ try { localStorage.setItem("bl-outbox", JSON.stringify(outbox)); } catch(e) {} }
+function rebuild(){
+  const m = Object.assign({}, base);
+  for (const o of outbox){ if (o.op==="put") m[o.ev.id] = o.ev; else delete m[o.id]; }
+  events = Object.values(m);
+}
+const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+  : "e" + Date.now().toString(36) + Math.random().toString(36).slice(2, 12);
+function queue(ops){ outbox.push(...ops); saveOutbox(); rebuild(); render(); setStatus(); scheduleSync(); }
+let syncTimer = null, syncAgain = false;
+function scheduleSync(ms=300){ clearTimeout(syncTimer); syncTimer = setTimeout(refresh, ms); }
 async function refresh(){
-  if (refreshing) return; refreshing = true;
-  try { events = await run("listEvents"); render();
-        $("#status").textContent = "Updated at " + hm(Date.now()); }
-  catch(e){ $("#status").textContent = "Not connected, retrying shortly."; }
-  finally { refreshing = false; }
+  if (isLocal()){ setStatus(); if (!kids.length && !$("#profDlg").open) openProfile(); return; }
+  if (syncing){ syncAgain = true; return; }
+  syncing = true; setStatus();
+  const ops = outbox.slice(0, 200);
+  try {
+    const r = await run("sync", {since: synced ? since : 0, ops});
+    outbox = outbox.slice(ops.length); saveOutbox();
+    if (!synced) base = {};
+    for (const e of r.events){ if (e.deleted) delete base[e.id]; else base[e.id] = e; }
+    since = r.serverTime; synced = true; lastSync = Date.now(); kids = r.children || []; syncErr = "";
+    saveCache(); rebuild(); applyKids(); render();
+    if (!kids.length && !$("#profDlg").open) openProfile();
+    if (outbox.length) syncAgain = true;
+    failures = 0;
+  } catch(e) {
+    if (e instanceof LocalMode){ syncing = false; syncErr = ""; setStatus(); if (!kids.length) openProfile(); return; }
+    syncErr = e instanceof NetError ? "offline" : e instanceof ServerError ? "server" : (e.message || "error");
+    failures++;
+    // ask for address and code only if this device has never connected: a dropped connection
+    // or a temporary Google error must never log the user out
+    if (e instanceof NetError && !synced && navigator.onLine !== false){
+      syncing = false; setStatus();
+      await askSetup("url");                       // never connected: the address is probably wrong
+      return refresh();
+    }
+  } finally {
+    syncing = false; setStatus();
+    if (syncAgain){ syncAgain = false; scheduleSync(50); }
+    else if (syncErr && outbox.length) scheduleSync(Math.min(30000, 2000 * 2 ** Math.min(failures, 4)));  // retry with backoff
+  }
+}
+function setStatus(){
+  const el = $("#sync"); if (!el) return;
+  const n = outbox.length, pend = n ? ` · ${n} to send` : "";
+  let cls, txt;
+  if (isLocal()){ cls = "off"; txt = "This device only"; }
+  else if (syncing){ cls = "busy"; txt = "Syncing…"; }
+  else if (syncErr === "offline"){ cls = "off"; txt = "Offline" + pend; }
+  else if (syncErr === "server"){ cls = "off"; txt = "Retrying" + pend; }
+  else if (syncErr){ cls = "err"; txt = "Sync error" + pend; }
+  else if (n){ cls = "busy"; txt = `${n} to send`; }
+  else if (lastSync){ cls = "ok"; txt = "Updated " + hm(lastSync); }
+  else { cls = "busy"; txt = "Connecting…"; }
+  el.className = "sync " + cls; el.textContent = txt;
 }
 async function addEvents(evs){
-  const tmp = evs.map((e,i)=>({id:"tmp"+Date.now()+i, ...e}));
-  events = events.concat(tmp); render();
-  try { const ids = await run("addEvents", evs); refresh(); return ids; }
-  catch(e){ events = events.filter(x=>!tmp.includes(x)); render(); throw e; }
+  const full = evs.map(e=>({...e, id: uid()}));
+  queue(full.map(ev=>({op:"put", ev})));
+  return full.map(e=>e.id);
 }
-async function delEvents(ids){
-  events = events.filter(e=>!ids.includes(e.id)); render();
-  await run("deleteEvents", ids); refresh();
-}
-async function setEvent(id, ev){
-  events = events.map(e=>e.id===id?{id,...ev}:e); render();
-  await run("updateEvent", id, ev); refresh();
-}
+async function delEvents(ids){ queue(ids.map(id=>({op:"del", id}))); }
+async function setEvent(id, ev){ queue([{op:"put", ev:{...ev, id}}]); }
+
 
 /* ---------- feeds (breast + top-up grouped) ---------- */
 function sessions(t){
@@ -476,15 +648,15 @@ async function log(a){
   if (a==="weight"){ openEditor(null, {kind:"weight", child: firstSel(), ts}); return; }
   if (a==="bottle"){
     const last = events.filter(e=>isBottle(e) && e.child===firstSel() && e.ml).sort((x,y)=>y.ts-x.ts)[0];
-    openEditor(null, {kind:"feed", feedType:"bottle", child:sel, ts, ml: last ? last.ml : ""}); return;
+    openEditor(null, {kind:"feed", feedType:"bottle", child:sel, ts, ml: last ? last.ml : "", milk: lastMilk(firstSel())}); return;
   }
   if (a==="breast" && whenMode!=="now"){
-    openEditor(null, {kind:"feed", feedType:"breast", child:sel, ts, title:"Breastfeed"}); return;
+    openEditor(null, {kind:"feed", feedType:"breast", child:sel, ts, side: nextSide(firstSel()), title:"Breastfeed"}); return;
   }
   const targets = sel==="all" ? kidIds() : [sel];
   const evs = [];
   for (const t of targets){
-    if (a==="breast") evs.push({kind:"feed", feedType:"breast", child:t, ts, live:1});
+    if (a==="breast") evs.push({kind:"feed", feedType:"breast", child:t, ts, live:1, side: nextSide(t)});
     else if (a==="diaper") evs.push({kind:"pee", child:t, ts}, {kind:"poo", child:t, ts});
     else evs.push({kind:a, child:t, ts});
   }
@@ -521,6 +693,8 @@ function openEditor(id, ev){
   $("#fCm").value = ev.cm || "";
   $("#fMl").value = ev.ml || "";
   $("#fDur").value = ev.dur || "";
+  setSeg("#fSide", ev.side || (ev.kind==="feed" && ev.feedType!=="bottle" && !id ? nextSide(ev.child==="all" ? firstSel() : ev.child) : ""));
+  setSeg("#fMilk", ev.milk || (ev.kind==="feed" && ev.feedType==="bottle" && !id ? lastMilk(ev.child==="all" ? firstSel() : ev.child) : ""));
   editingLive = !!(id && ev.live && !ev.dur);
   $("#fDel").hidden = !id;
   syncForm(); dlg.showModal();
@@ -532,9 +706,14 @@ function syncForm(){
   $("#fGramsWrap").hidden = !w; $("#fGrams").required = w;
   $("#fMlWrap").hidden = !a;
   $("#fDurWrap").hidden = k!=="feed-breast";
-  $("#fMlHint").textContent = a && $("#fKid").value==="all" ? " · ciascuno" : "";
+  $("#fSideWrap").hidden = k!=="feed-breast";
+  $("#fMilkWrap").hidden = !a;
+  $("#fMlHint").textContent = a && $("#fKid").value==="all" ? " · each" : "";
 }
 $("#fKind").onchange = syncForm;
+function setSeg(sel, v){ document.querySelectorAll(sel+" button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===v)); }
+const segVal = sel => { const b = document.querySelector(sel+' button[aria-pressed="true"]'); return b ? b.dataset.v : ""; };
+["#fSide","#fMilk"].forEach(sel=>document.querySelectorAll(sel+" button").forEach(b=>b.onclick=()=>setSeg(sel, b.getAttribute("aria-pressed")==="true" ? "" : b.dataset.v)));
 $("#fKid").onchange = syncForm;
 document.querySelectorAll("[data-mld]").forEach(b=>b.onclick=()=>{
   const v = (parseInt($("#fMl").value,10)||0) + Number(b.dataset.mld);
@@ -550,8 +729,8 @@ $("#dlgForm").onsubmit = async e=>{
   if (k.startsWith("feed")){ ev.kind = "feed"; ev.feedType = k.split("-")[1]; } else ev.kind = k;
   if (k==="weight"){ const g = parseInt($("#fGrams").value,10); if (!g) return; ev.grams = g; }
   if (k==="len" || k==="hc"){ const c = parseFloat(String($("#fCm").value).replace(",",".")); if (!c) return; ev.cm = c; }
-  if (k==="feed-bottle"){ const ml = parseInt($("#fMl").value,10); if (ml>0) ev.ml = ml; }
-  if (k==="feed-breast"){ const d = parseInt($("#fDur").value,10); if (d>0) ev.dur = d; else if (editingLive) ev.live = 1; }
+  if (k==="feed-bottle"){ const ml = parseInt($("#fMl").value,10); if (ml>0) ev.ml = ml; const mk = segVal("#fMilk"); if (mk) ev.milk = mk; }
+  if (k==="feed-breast"){ const d = parseInt($("#fDur").value,10); if (d>0) ev.dur = d; else if (editingLive) ev.live = 1; const sd = segVal("#fSide"); if (sd) ev.side = sd; }
   try{
     if (editing){ await setEvent(editing, ev); dlg.close(); return; }
     const targets = ev.child==="all" ? kidIds() : [ev.child];
@@ -592,6 +771,7 @@ function dayStats(t, key){
     breastOnly: ss.filter(s=>s.breast && !s.bottle).length,
     bottleOnly: ss.filter(s=>!s.breast && s.bottle).length,
     ml: es.filter(isBottle).reduce((a,e)=>a+(Number(e.ml)||0),0),
+    mlExp: es.filter(e=>isBottle(e) && e.milk==="e").reduce((a,e)=>a+(Number(e.ml)||0),0),
     durN: es.filter(e=>isBreast(e)&&e.dur).length,
     durAvg: (()=>{ const d = es.filter(e=>isBreast(e)&&e.dur).map(e=>Number(e.dur)); return d.length ? Math.round(d.reduce((a,b)=>a+b)/d.length) : null; })(),
     pee: es.filter(e=>e.kind==="pee").length,
@@ -604,20 +784,29 @@ const fmtDelta = d => d==null ? "" : `<span class="delta ${d>0?"up":d<0?"down":"
 const fmtRate = g => (g>0?"+":"")+Math.round(g)+" g/day";
 
 /* ---------- render ---------- */
-function render(){ renderSince(); renderDay(); renderLog(); renderTrend(); }
+function measureSticky(){
+  const tabs = document.querySelector(".tabs"); if (tabs) document.documentElement.style.setProperty("--tabsH", tabs.offsetHeight + 14 + "px");
+  const c = document.querySelector("#tab-log .stickctl"); if (c && c.offsetHeight) document.documentElement.style.setProperty("--ctlH", c.offsetHeight + "px");
+}
+window.addEventListener("resize", measureSticky);
+function render(){ renderSince(); renderDay(); renderLog(); fillDayDetails(); renderTrend(); if (!$("#tab-settings").contains(document.activeElement)) renderSettings(); measureSticky(); }
 
-const liveFeeds = () => events.filter(e=>isBreast(e) && e.live && !e.dur && !String(e.id).startsWith("tmp") && Date.now()-e.ts < LIVE_MAX && e.ts<=Date.now()+60000).sort((a,b)=>a.ts-b.ts);
+const liveFeeds = () => events.filter(e=>isBreast(e) && e.live && !e.dur && Date.now()-e.ts < LIVE_MAX && e.ts<=Date.now()+60000).sort((a,b)=>a.ts-b.ts);
 function renderLive(){
   const lf = liveFeeds();
-  $("#livebar").innerHTML = lf.map(e=>`<div class="live" style="--c:${KID(e.child).c}">
-      <span><b>${KID(e.child).name}</b> breastfeeding · <span class="lt">${dur(Date.now()-e.ts)}</span><small>since ${hm(e.ts)}</small></span>
+  $("#livebar").innerHTML = (lf.length>1 ? `<button class="stopall" id="stopAll">Stop all (${lf.length})</button>` : "") + lf.map(e=>`<div class="live" style="--c:${KID(e.child).c}">
+      <span><b>${esc(KID(e.child).name)}</b> breastfeeding · <span class="lt">${dur(Date.now()-e.ts)}</span><small>since ${hm(e.ts)}</small>
+        <span class="sides" role="group" aria-label="Side">${["L","R","B"].map(v=>`<button data-side="${v}" data-id="${esc(e.id)}" aria-pressed="${e.side===v}">${v==="B"?"Both":v==="L"?"Left":"Right"}</button>`).join("")}</span></span>
       <button data-stop="${esc(e.id)}">Stop</button></div>`).join("");
+  $("#livebar").querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{
+    const e = events.find(x=>x.id===b.dataset.id); if (!e) return;
+    const {id, ...rest} = e; setEvent(id, {...rest, side: b.dataset.side});
+  });
+  const stopOne = e => { const {id, live, ...rest} = e; const d = Math.max(1, Math.round((Date.now()-e.ts)/60000)); setEvent(id, {...rest, dur:d}); return d; };
+  if ($("#stopAll")) $("#stopAll").onclick = ()=>{ lf.forEach(stopOne); toast(`Stopped ${lf.length} feeds`, false); };
   $("#livebar").querySelectorAll("[data-stop]").forEach(b=>b.onclick=async()=>{
     const e = events.find(x=>x.id===b.dataset.stop); if (!e) return;
-    const {id, live, ...rest} = e;
-    const d = Math.max(1, Math.round((Date.now()-e.ts)/60000));
-    try{ await setEvent(id, {...rest, dur:d}); toast(`Breastfeed · ${KID(e.child).name} · ${d} min`, false); }
-    catch(err){ toast("Not saved: "+(err.message||"error"), false); }
+    const d = stopOne(e); toast(`Breastfeed · ${KID(e.child).name} · ${d} min`, false);
   });
 }
 function sessionEnd(ss){
@@ -642,6 +831,7 @@ function renderSince(){
     h += `<div class="scard${late?" warn":""}" style="--c:${KID(t).c}"><div class="nm">${KID(t).name}</div>
       <div class="big">${dur(Date.now()-end)}</div>
       <div class="sm">since end of feed${noDur?" (no duration)":""}</div>
+      <div class="sm">next side: <b>${nextSide(t)==="L"?"left":"right"}</b></div>
       <div class="sm">started ${hm(s.start)} (${dur(Date.now()-s.start)})${s.bottle&&s.breast?" · +top-up":""}</div></div>`;
   }
   $("#sincebar").innerHTML = h;
@@ -649,34 +839,33 @@ function renderSince(){
 
 function renderDay(){
   const key = dayKey(Date.now() + dayOffset*864e5), isToday = dayOffset===0;
-  let h = `<div class="daynav"><button id="prevD" aria-label="Previous day">‹</button><span class="d">${dayLabel(key)}</span><button id="nextD" aria-label="Next day" ${isToday?"disabled":""}>›</button></div><div class="kidgrid">`;
+  let h = `<div class="stickctl"><div class="daynav"><button id="prevD" aria-label="Previous day">‹</button><span class="d">${dayLabel(key)}</span><button id="nextD" aria-label="Next day" ${isToday?"disabled":""}>›</button></div></div><div class="kidgrid">`;
   for (const t of kidIds()){
     const s = dayStats(t,key);
     const since = k => { if (!isToday) return ""; const l = lastOf(t,k); return l ? `<span class="since">${hm(l.ts)} · ${ago(l.ts)}</span>` : ""; };
     const parts = [s.withTopUp&&`${s.withTopUp} breast+top-up`, s.breastOnly&&`${s.breastOnly} breast`, s.bottleOnly&&`${s.bottleOnly} bottle`].filter(Boolean).join(" · ");
     h += `<div class="tcard" style="--c:${KID(t).c}"><h3>${KID(t).name}</h3>
-      <div class="stat"><span class="k">Feeds${parts?`<span class="since">${parts}</span>`:""}${s.ml?`<span class="since">${s.ml} ml bottle</span>`:""}${s.durAvg?`<span class="since">breast avg ${s.durAvg} min</span>`:""}</span><span class="n">${s.pop}</span></div>
+      <div class="stat"><span class="k">Feeds${parts?`<span class="since">${parts}</span>`:""}${s.ml?`<span class="since">${s.ml} ml bottle${s.mlExp?` (${s.mlExp} expressed)`:""}</span>`:""}${s.durAvg?`<span class="since">breast avg ${s.durAvg} min</span>`:""}</span><span class="n">${s.pop}</span></div>
       <div class="stat"><span class="k">Pee${since("pee")}</span><span class="n">${s.pee}</span></div>
       <div class="stat"><span class="k">Poo${since("poo")}</span><span class="n">${s.poo}</span></div>
       <div class="stat"><span class="k">Weight${s.w&&s.w.d!=null?`<span class="since">${fmtDelta(s.w.d)}</span>`:""}</span><span class="n" style="font-size:1.1rem">${s.w?s.w.g+" g":"–"}</span></div>
     </div>`;
   }
-  h += `</div><div class="settings"><label for="alertSel">Highlight after</label>
-    <select id="alertSel">${[2,2.5,3,3.5,4,5].map(v=>`<option value="${v}" ${v===alertH?"selected":""}>${v} h</option>`).join("")}</select><span>from the end of a feed</span></div>
-    <p class="note">Breast and bottle within 60 min count as one feed.</p>
-    <p class="note"><button class="linkbtn" id="discBtn" style="padding:0">Disconnect this device</button></p>`;
+  h += `</div><p class="note">Breast and bottle within 60 min count as one feed.</p>`;
   $("#tab-day").innerHTML = h;
   $("#prevD").onclick = ()=>shiftDay(-1);
   $("#nextD").onclick = ()=>shiftDay(1);
-  $("#discBtn").onclick = ()=>{ if (confirm("Remove address and code from this device? Your data stays saved.")) disconnect(); };
-  $("#alertSel").onchange = e=>{ alertH = Number(e.target.value); try{ localStorage.setItem("bl-alertH", alertH); }catch(err){} renderSince(); };
 }
 
+function fillDayDetails(){   // Day and Log merged: the day's cards go into a collapsible block
+  const box = $("#dayDetails"), src = $("#tab-day .kidgrid");
+  if (box && src) box.innerHTML = src.outerHTML;
+}
 function shiftDay(d){
   const n = dayOffset + d; if (n>0) return;
-  dayOffset = n; renderDay(); renderLog();
+  dayOffset = n; renderDay(); renderLog(); fillDayDetails();
 }
-const chipTxt = e => isBreast(e) ? "🤱 breast"+(e.dur?" "+e.dur+"′":e.live&&Date.now()-e.ts<LIVE_MAX?" ⏱":"") : isBottle(e) ? "🍼 "+(e.ml?e.ml+" ml":"bottle") :
+const chipTxt = e => isBreast(e) ? "🤱 breast"+(e.side?" "+SIDE[e.side]:"")+(e.dur?" "+e.dur+"′":e.live&&Date.now()-e.ts<LIVE_MAX?" ⏱":"") : isBottle(e) ? "🍼 "+(e.ml?e.ml+" ml":"bottle")+(e.milk==="e"?" expressed":e.milk==="f"?" formula":"") :
   e.kind==="pee" ? "💧 pee" : e.kind==="poo" ? "💩 poo" : e.kind==="len" ? "📏 "+fmtNum(Number(e.cm),1)+" cm" : e.kind==="hc" ? "⭕ head "+fmtNum(Number(e.cm),1)+" cm" : "⚖️ "+e.grams+" g";
 function dayItems(t, key){
   // groups a child's events into "moments": feed (breast + top-up), change (close pee/poo), measurements
@@ -691,16 +880,18 @@ function dayItems(t, key){
   }
   return items;
 }
+let detOpen = false;
 function renderLog(){
   const key = dayKey(Date.now() + dayOffset*864e5), isToday = dayOffset===0;
-  let h = `<div class="daynav"><button id="prevL" aria-label="Previous day">‹</button><span class="d">${dayLabel(key)}</span><button id="nextL" aria-label="Next day" ${isToday?"disabled":""}>›</button></div>`;
+  let h = `<div class="stickctl"><div class="daynav"><button id="prevL" aria-label="Previous day">‹</button><span class="d">${dayLabel(key)}</span><button id="nextL" aria-label="Next day" ${isToday?"disabled":""}>›</button></div>`;
   // day summary
   h += `<div class="regsum">`;
   for (const t of kidIds()){
     const s = dayStats(t,key);
     h += `<div style="--c:${KID(t).c}"><b>${KID(t).name}</b><span>${s.pop} feeds · ${s.pee} pee · ${s.poo} poo${s.ml?` · ${s.ml} ml`:""}</span></div>`;
   }
-  h += `</div><button class="addmiss" id="addMiss">＋ Forgotten event</button>`;
+  h += `</div><button class="addmiss" id="addMiss">＋ Forgotten event</button></div>
+  <details class="det daydet"${detOpen?" open":""}><summary>Day details</summary><div id="dayDetails"></div></details>`;
   // rows: moments of different children close in time share a row
   const items = kidIds().flatMap(t=>dayItems(t,key)).sort((a,b)=>b.ts-a.ts);
   const rows = [];
@@ -764,18 +955,9 @@ const REF = {"ig":{"w":{"m":[[27,0.36,0.44,0.55,0.67,0.83,1.02,1.25],[28,0.46,0.
 
 /* ---------- children profile (shared, stored in Apps Script) ---------- */
 const NEW_KID = () => ({id:"", name:"", sex:"m", birth:"", gaW:40, gaD:0, bw:"", bl:"", bh:""});
-async function loadProfile(){
-  try {
-    const p = await run("getProfile");
-    kids = (p && p.children) || [];
-    applyKids(); render();
-    if (!kids.length) openProfile();
-  } catch(e) {}
-}
 function applyKids(){
   if (sel!=="all" && !kids.find(k=>k.id===sel)) sel = kids[0] ? kids[0].id : "";
   if (!many() && sel==="all") sel = kids[0] ? kids[0].id : "";
-  if (trSel!=="all" && !kids.find(k=>k.id===trSel)) trSel = "all";
   $("#title").innerHTML = kids.length ? kids.map(k=>`<span style="color:${KID(k.id).c}">${esc(k.name)}</span>`).join(' <span class="amp">·</span> ') : "Baby log";
   document.title = kids.length ? kids.map(k=>k.name).join(" · ") : "Baby log";
   const who = $("#who");
@@ -813,6 +995,7 @@ function whoLms(meas, sex, day){
 }
 // reference for a child at a given age: INTERGROWTH-21st preterm up to 64 weeks postmenstrual age, then WHO on corrected age
 function refAt(t, meas, pmaD){
+  if (!prof(t).birth || !isFinite(pmaD)) return null;
   const sex = prof(t).sex, k = meas==="w" ? 1000 : 1, wk = pmaD/7;
   if (wk <= 64){
     const row = igRow(meas, sex, wk); if (!row) return null;
@@ -860,78 +1043,10 @@ function velocity(t, fromTs){ // regression on the weighings in the period: g/da
   const g = n/d; return {g, gkg: g/(my/1000), n: ws.length};
 }
 
-/* ---------- daily metrics ---------- */
-function startsOf(t){ return sessions(t).map(s=>s.start); }
-function dayIntervals(t, key){
-  const st = startsOf(t), out = [];
-  for (let i=1; i<st.length; i++) if (dayKey(st[i])===key) out.push((st[i]-st[i-1])/36e5);
-  return out;
-}
-const median = a => { if (!a.length) return null; const s=[...a].sort((x,y)=>x-y), m=Math.floor(s.length/2); return s.length%2 ? s[m] : (s[m-1]+s[m])/2; };
-function firstDataDay(t){ const f = events.filter(e=>e.child===t).reduce((a,e)=>Math.min(a,e.ts), Infinity); return isFinite(f) ? dayKey(f) : null; }
-function hasData(t, key){ return key > (firstDataDay(t)||"") && events.some(e=>e.child===t && dayKey(e.ts)===key && e.kind!=="weight" && e.kind!=="len" && e.kind!=="hc"); }
-const METRICS = [
-  {k:"pop",   name:"Feeds",              unit:"per day", dec:1, ref:[8,12], refTxt:"8–12 per day", f:(t,k)=>dayStats(t,k).pop},
-  {k:"ml",    name:"Bottle",             unit:"ml per day", dec:0, f:(t,k)=>dayStats(t,k).ml},
-  {k:"mlkg",  name:"Bottle per kg",      unit:"ml/kg per day", dec:0, f:(t,k)=>{ const w = weightOn(t,k); return w ? dayStats(t,k).ml/(w/1000) : null; }},
-  {k:"agg",   name:"Feeds with top-up",  unit:"%", dec:0, f:(t,k)=>{ const s = dayStats(t,k); return s.pop ? 100*s.withTopUp/s.pop : null; }},
-  {k:"mlagg", name:"Top-up volume",      unit:"ml", dec:0, f:(t,k)=>{
-      const v = sessions(t).filter(s=>dayKey(s.start)===k && s.breast && s.bottle && s.ml).map(s=>s.ml);
-      return v.length ? v.reduce((a,b)=>a+b)/v.length : null; }},
-  {k:"dur",   name:"Breastfeed duration", unit:"min", dec:0, f:(t,k)=>dayStats(t,k).durAvg},
-  {k:"int",   name:"Interval between feeds", unit:"h (median)", dec:1, f:(t,k)=>median(dayIntervals(t,k))},
-  {k:"long",  name:"Longest stretch",    unit:"h", dec:1, f:(t,k)=>{ const v = dayIntervals(t,k); return v.length ? Math.max(...v) : null; }},
-  {k:"pee",   name:"Pee",                unit:"per day", dec:1, ref:[6,null], refTxt:"at least 6 per day", f:(t,k)=>dayStats(t,k).pee},
-  {k:"poo",   name:"Poo",                unit:"per day", dec:1, ref:[3,null], refTxt:"at least 3 per day in the first weeks", f:(t,k)=>dayStats(t,k).poo}
-];
-function metricSeries(m, t, days){ return days.map(k=>hasData(t,k) ? m.f(t,k) : null); }
-const avg = a => { const v = a.filter(x=>x!=null && !isNaN(x)); return v.length ? v.reduce((x,y)=>x+y)/v.length : null; };
-
-/* ---------- tab state ---------- */
-let trRange = 14, trSel = "all", trOpen = null, trMeas = "w";
-try { trRange = JSON.parse(localStorage.getItem("bl-range")) || 14; } catch(e) {}
-const selKids = () => trSel==="all" ? kidIds() : [trSel];
-function periodDays(n, offsetDays=0){ // complete days ending yesterday
-  const out = []; const y = new Date(Date.now() - 864e5*(1+offsetDays)); y.setHours(12,0,0,0);
-  for (let i=n-1; i>=0; i--) out.push(dayKey(y.getTime() - i*864e5));
-  return out;
-}
-function rangeLen(){
-  if (trRange!=="all") return trRange;
-  const first = Math.min(...events.map(e=>e.ts));
-  return isFinite(first) ? Math.max(1, Math.floor((Date.now()-first)/864e5)) : 7;
-}
-
-/* ---------- SVG charts ---------- */
-function lineChart(days, series, o={}){
-  const W = 340, H = o.big ? 170 : 46, pl = o.big ? 30 : 2, pr = o.big ? 16 : 2, pt = o.big ? 8 : 4, pb = o.big ? 20 : 4;
-  const vals = series.flatMap(s=>s.vals).filter(v=>v!=null);
-  if (o.ref) o.ref.forEach(v=>{ if (v!=null) vals.push(v); });
-  if (!vals.length) return `<div class="nodata">no data</div>`;
-  let lo = Math.min(0, ...vals), hi = Math.max(...vals); if (hi===lo) hi = lo+1; hi += (hi-lo)*0.08;
-  const X = i => pl + (days.length<2 ? (W-pl-pr)/2 : i/(days.length-1)*(W-pl-pr)), Y = v => pt + (hi-v)/(hi-lo)*(H-pt-pb);
-  let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:${o.big?"auto":"46px"};display:block" aria-hidden="${o.big?"false":"true"}" ${o.big?`role="img" aria-label="${esc(o.label||"")}"`:""}>`;
-  if (o.ref){
-    const [a,b] = o.ref, y1 = Y(b!=null ? b : hi), y2 = Y(a!=null ? a : lo);
-    s += `<rect x="${pl}" y="${Math.min(y1,y2)}" width="${W-pl-pr}" height="${Math.abs(y2-y1)}" fill="var(--refband)"/>`;
-  }
-  if (o.big){
-    const step = niceStep(hi-lo);
-    for (let v=Math.ceil(lo/step)*step; v<=hi; v+=step)
-      s += `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-4}" y="${Y(v)+3.5}" text-anchor="end" font-size="9" fill="var(--muted)">${fmtNum(v, step<1?1:0)}</text>`;
-    const every = Math.ceil(days.length/7);
-    days.forEach((k,i)=>{ if ((days.length-1-i)%every) return; const [y,m,d] = k.split("-");
-      s += `<text x="${X(i)}" y="${H-5}" text-anchor="middle" font-size="9" fill="var(--muted)">${d}/${m}</text>`; });
-  }
-  for (const se of series){
-    let path = "", pen = false;
-    se.vals.forEach((v,i)=>{ if (v==null){ pen = false; return; } path += (pen?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1); pen = true; });
-    s += `<path d="${path}" fill="none" stroke="${se.c}" stroke-width="${o.big?2.2:1.8}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
-    if (o.big) se.vals.forEach((v,i)=>{ if (v!=null) s += `<circle cx="${X(i)}" cy="${Y(v)}" r="2.6" fill="${se.c}"><title>${days[i]}: ${fmtNum(v,1)}</title></circle>`; });
-  }
-  return s + `</svg>`;
-}
+/* ---------- trends: growth only ---------- */
+let trMeas = "w";
 function niceStep(r){ const raw = r/4, p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw/p; return (n<1.5?1:n<3?2:n<7?5:10)*p; }
+const fmtDate = ts => new Date(ts).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
 
 function growthChart(t, m){
   if (!prof(t).birth) return `<div class="nodata">Add date of birth and gestational age in Profile.</div>`;
@@ -975,65 +1090,274 @@ function growthChart(t, m){
   return s + `</svg>`;
 }
 
+
+function tile(label, value, sub){ return `<div class="gt"><span class="gl">${label}</span><span class="gv">${value}</span>${sub?`<span class="gs">${sub}</span>`:""}</div>`; }
 function growthStats(t, m){
   if (!prof(t).birth) return "";
-  const M = MEAS[m], pts = measPoints(t, m).filter(p=>!p.birth), now = Date.now();
-  const age = Math.floor(lifeDays(t, now)), pma = pmaDays(t, now), corr = pma - 280;
-  let h = `<div class="gs-age">${age} days old · postmenstrual age ${fmtWeeks(pma)} wk${corr>=0?` · corrected age ${Math.floor(corr/7)} wk ${Math.floor(corr%7)} d`:` · ${Math.ceil(-corr)} days to term`}</div>`;
-  if (!pts.length) return h + `<div class="gs-row">No ${M.name.toLowerCase()} measurements yet.</div>`;
+  const M = MEAS[m], pts = measPoints(t, m).filter(p=>!p.birth);
+  if (!pts.length) return `<p class="note">No ${M.name.toLowerCase()} measurements yet.</p>`;
   const last = pts[pts.length-1], r = refAt(t, m, pmaDays(t,last.ts));
+  let h = `<div class="gtiles">` + tile("Latest", `${fmtNum(last.v, M.dec)} ${M.unit}`, fmtDate(last.ts));
   if (r){
     const z = r.zOf(last.v);
-    h += `<div class="gs-row"><b>${fmtNum(last.v, M.dec)} ${M.unit}</b> on ${new Date(last.ts).toLocaleDateString("en-GB",{day:"numeric",month:"short"})} · <b>${fmtPct(z)} percentile</b> <span class="muted">(z ${z>0?"+":""}${fmtNum(z,1)} · ${r.src})</span></div>`;
-    // channel trend: compared with a measurement at least 7 days earlier (from day 5 of life)
-    const ref14 = pts.filter(p=>p.ts <= last.ts - 7*864e5 && lifeDays(t,p.ts) >= 5).pop();
-    if (ref14){
-      const r0 = refAt(t, m, pmaDays(t,ref14.ts));
-      if (r0){
-        const dz = z - r0.zOf(ref14.v), days = Math.round((last.ts-ref14.ts)/864e5);
-        h += `<div class="gs-row">Centile channel over the last ${days} days: <b>${Math.abs(dz)<0.5?"stable":dz>0?"rising":"falling"}</b> <span class="muted">(z ${dz>0?"+":""}${fmtNum(dz,1)})</span></div>`;
-      }
-    }
+    h += tile("Percentile", fmtPct(z), `z ${z>0?"+":""}${fmtNum(z,1)}`);
+    const prev = pts.filter(p=>p.ts <= last.ts - 7*864e5 && lifeDays(t,p.ts) >= 5).pop();
+    const r0 = prev && refAt(t, m, pmaDays(t,prev.ts));
+    if (r0){ const dz = z - r0.zOf(prev.v);
+      h += tile("Centile channel", Math.abs(dz)<0.5 ? "stable" : dz>0 ? "rising" : "falling", `since ${fmtDate(prev.ts)}`); }
   }
   if (m==="w"){
+    let v = velocity(t, Date.now() - 7*864e5), lab = "last 7 days";
+    if (!v){ v = velocity(t, Date.now() - 14*864e5); lab = "last 14 days"; }
+    if (v) h += tile("Weight gain", `${v.g>0?"+":""}${fmtNum(v.g)} g/day`, `${fmtNum(v.gkg,1)} g/kg/day · ${lab}`);
     const bw = Number(prof(t).bw);
-    if (bw>0){
-      const rec = pts.find(p=>p.v>=bw && p.ts>birthTs(t)+864e5);
-      h += `<div class="gs-row">Birth weight ${bw} g: ${rec ? `<b>regained at ${Math.round(lifeDays(t,rec.ts))} days</b>` : `not yet regained (${last.v-bw>0?"+":""}${last.v-bw} g)`}</div>`;
-    } else h += `<div class="gs-row muted">Add the birth weight in Profile to see when it was regained.</div>`;
-    const v = velocity(t, Date.now() - rangeLen()*864e5);
-    if (v) h += `<div class="gs-row">Growth (selected period): <b>${v.g>0?"+":""}${fmtNum(v.g)} g/day</b> · <b>${fmtNum(v.gkg,1)} g/kg/day</b> <span class="muted">(${v.n} weighings)</span></div>`;
+    if (bw>0){ const rec = pts.find(p=>p.v>=bw && p.ts>birthTs(t)+864e5);
+      h += tile("Birth weight", `${bw} g`, rec ? `regained at day ${Math.round(lifeDays(t,rec.ts))}` : `not yet regained (${last.v-bw>0?"+":""}${last.v-bw} g)`); }
+  } else {
+    const first = pts[0];
+    if (pts.length>1){ const wk = (last.ts-first.ts)/(7*864e5); if (wk>=1) h += tile("Growth", `${last.v-first.v>0?"+":""}${fmtNum((last.v-first.v)/wk,1)} cm/week`, `since ${fmtDate(first.ts)}`); }
   }
-  return h;
+  return h + `</div>`;
+}
+function measTable(t, m){
+  const M = MEAS[m], pts = measPoints(t, m);
+  if (!pts.length) return "";
+  let h = `<details class="det"><summary>All measurements (${pts.length})</summary><table><thead><tr><th>Date</th><th>${M.name}</th><th>Change</th><th>Percentile</th></tr></thead><tbody>`;
+  pts.slice().reverse().forEach((p,i,arr)=>{
+    const prev = arr[i+1], r = refAt(t, m, pmaDays(t,p.ts));
+    const ev = !p.birth && events.find(e=>e.child===t && e.kind===M.kind && e.ts===p.ts && Number(e[M.field])===p.v);
+    h += `<tr ${ev?`data-edit="${esc(ev.id)}" class="tap"`:""}><td>${p.birth?"Birth":fmtDate(p.ts)}</td><td>${fmtNum(p.v,M.dec)} ${M.unit}</td><td>${prev?fmtDelta(Number((p.v-prev.v).toFixed(M.dec))).replace(/ g</," "+M.unit+"<"):"–"}</td><td>${r?fmtPct(r.zOf(p.v)):"–"}</td></tr>`;
+  });
+  return h + `</tbody></table></details>`;
+}
+function startsOf(t){ return sessions(t).map(s=>s.start); }
+function dayIntervals(t, key){
+  const st = startsOf(t), out = [];
+  for (let i=1; i<st.length; i++) if (dayKey(st[i])===key) out.push((st[i]-st[i-1])/36e5);
+  return out;
+}
+const median = a => { if (!a.length) return null; const s=[...a].sort((x,y)=>x-y), m=Math.floor(s.length/2); return s.length%2 ? s[m] : (s[m-1]+s[m])/2; };
+function firstDataDay(t){ const f = events.filter(e=>e.child===t).reduce((a,e)=>Math.min(a,e.ts), Infinity); return isFinite(f) ? dayKey(f) : null; }
+function hasData(t, key){ return key > (firstDataDay(t)||"") && events.some(e=>e.child===t && dayKey(e.ts)===key && e.kind!=="weight" && e.kind!=="len" && e.kind!=="hc"); }
+const METRICS = [
+  {k:"pop",   name:"Feeds",              unit:"per day", dec:1, ref:[8,12], refTxt:"8–12 per day", f:(t,k)=>dayStats(t,k).pop},
+  {k:"ml",    name:"Bottle",             unit:"ml per day", dec:0, f:(t,k)=>dayStats(t,k).ml},
+  {k:"mlexp", name:"Expressed milk",     unit:"ml per day", dec:0, f:(t,k)=>dayStats(t,k).mlExp},
+  {k:"mlkg",  name:"Bottle per kg",      unit:"ml/kg per day", dec:0, f:(t,k)=>{ const w = weightOn(t,k); return w ? dayStats(t,k).ml/(w/1000) : null; }},
+  {k:"agg",   name:"Feeds with top-up",  unit:"%", dec:0, f:(t,k)=>{ const s = dayStats(t,k); return s.pop ? 100*s.withTopUp/s.pop : null; }},
+  {k:"mlagg", name:"Top-up volume",      unit:"ml", dec:0, f:(t,k)=>{
+      const v = sessions(t).filter(s=>dayKey(s.start)===k && s.breast && s.bottle && s.ml).map(s=>s.ml);
+      return v.length ? v.reduce((a,b)=>a+b)/v.length : null; }},
+  {k:"dur",   name:"Breastfeed duration", unit:"min", dec:0, f:(t,k)=>dayStats(t,k).durAvg},
+  {k:"int",   name:"Interval between feeds", unit:"h (median)", dec:1, f:(t,k)=>median(dayIntervals(t,k))},
+  {k:"long",  name:"Longest stretch",    unit:"h", dec:1, f:(t,k)=>{ const v = dayIntervals(t,k); return v.length ? Math.max(...v) : null; }},
+  {k:"pee",   name:"Pee",                unit:"per day", dec:1, ref:[6,null], refTxt:"at least 6 per day", f:(t,k)=>dayStats(t,k).pee},
+  {k:"poo",   name:"Poo",                unit:"per day", dec:1, ref:[3,null], refTxt:"at least 3 per day in the first weeks", f:(t,k)=>dayStats(t,k).poo}
+];
+function metricSeries(m, t, days){ return days.map(k=>hasData(t,k) ? m.f(t,k) : null); }
+const avg = a => { const v = a.filter(x=>x!=null && !isNaN(x)); return v.length ? v.reduce((x,y)=>x+y)/v.length : null; };
+
+function lineChart(days, series, o={}){
+  const W = 340, H = o.big ? 170 : 46, pl = o.big ? 30 : 2, pr = o.big ? 16 : 2, pt = o.big ? 8 : 4, pb = o.big ? 20 : 4;
+  const vals = series.flatMap(s=>s.vals).filter(v=>v!=null);
+  if (o.ref) o.ref.forEach(v=>{ if (v!=null) vals.push(v); });
+  if (!vals.length) return `<div class="nodata">no data</div>`;
+  let lo = Math.min(0, ...vals), hi = Math.max(...vals); if (hi===lo) hi = lo+1; hi += (hi-lo)*0.08;
+  const X = i => pl + (days.length<2 ? (W-pl-pr)/2 : i/(days.length-1)*(W-pl-pr)), Y = v => pt + (hi-v)/(hi-lo)*(H-pt-pb);
+  let s = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:${o.big?"auto":"46px"};display:block" aria-hidden="${o.big?"false":"true"}" ${o.big?`role="img" aria-label="${esc(o.label||"")}"`:""}>`;
+  if (o.ref){
+    const [a,b] = o.ref, y1 = Y(b!=null ? b : hi), y2 = Y(a!=null ? a : lo);
+    s += `<rect x="${pl}" y="${Math.min(y1,y2)}" width="${W-pl-pr}" height="${Math.abs(y2-y1)}" fill="var(--refband)"/>`;
+  }
+  if (o.big){
+    const step = niceStep(hi-lo);
+    for (let v=Math.ceil(lo/step)*step; v<=hi; v+=step)
+      s += `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-4}" y="${Y(v)+3.5}" text-anchor="end" font-size="9" fill="var(--muted)">${fmtNum(v, step<1?1:0)}</text>`;
+    const every = Math.ceil(days.length/7);
+    days.forEach((k,i)=>{ if ((days.length-1-i)%every) return; const [y,m,d] = k.split("-");
+      s += `<text x="${X(i)}" y="${H-5}" text-anchor="middle" font-size="9" fill="var(--muted)">${d}/${m}</text>`; });
+  }
+  for (const se of series){
+    let path = "", pen = false;
+    se.vals.forEach((v,i)=>{ if (v==null){ pen = false; return; } path += (pen?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1); pen = true; });
+    s += `<path d="${path}" fill="none" stroke="${se.c}" stroke-width="${o.big?2.2:1.8}" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+    if (o.big) se.vals.forEach((v,i)=>{ if (v!=null) s += `<circle cx="${X(i)}" cy="${Y(v)}" r="2.6" fill="${se.c}"><title>${days[i]}: ${fmtNum(v,1)}</title></circle>`; });
+  }
+  return s + `</svg>`;
 }
 
-/* ---------- 24-hour rhythm ---------- */
-function rhythm(days){
-  const nk = selKids().length, W = 340, lane = nk>1 ? Math.max(3, Math.floor(12/nk)) : 10, rowH = lane*nk + 6, pl = 36, H = days.length*rowH + 16;
-  const X = h => pl + h/24*(W-pl-4);
+/* ---------- progress: one child at a time ---------- */
+let pgKid = "", pgRange = 14, pgOpen = null;
+try { pgRange = JSON.parse(localStorage.getItem("bl-range")) || 14; } catch(e) {}
+const curKid = () => kids.find(k=>k.id===pgKid) ? pgKid : (kids[0] ? kids[0].id : "");
+function periodDays(n, offsetDays=0){ // complete days ending yesterday
+  const out = []; const y = new Date(Date.now() - 864e5*(1+offsetDays)); y.setHours(12,0,0,0);
+  for (let i=n-1; i>=0; i--) out.push(dayKey(y.getTime() - i*864e5));
+  return out;
+}
+function rangeLen(t){
+  if (pgRange!=="all") return pgRange;
+  const f = events.filter(e=>!t || e.child===t).reduce((a,e)=>Math.min(a,e.ts), Infinity);
+  return isFinite(f) ? Math.max(1, Math.floor((Date.now()-f)/864e5)) : 7;
+}
+
+/* ---------- alert thresholds (agree them with your paediatrician) ---------- */
+// Age bands with values commonly given in NHS, AAP and WHO guidance for healthy breastfed infants (simplified).
+// For babies born before 37 weeks the band follows the corrected age; stools and wet diapers follow days of life.
+// null = not evaluated at that age.
+function ageBand(t){
+  const p = prof(t); if (!p.birth) return null;
+  const now = Date.now(), life = lifeDays(t, now), preterm = gaDays(t) < 259;
+  const corr = preterm ? pmaDays(t, now) - 280 : life;       // "effective" age in days
+  const b = {life, corr, preterm};
+  if (corr < 28){ Object.assign(b, {label: preterm && corr < 0 ? "Before term (corrected age)" : "First month", feeds:8, gapH: preterm ? 3 : 4, gain:20}); }
+  else if (corr < 56){ Object.assign(b, {label:"1–2 months", feeds:7, gapH:5, gain:20}); }
+  else if (corr < 90){ Object.assign(b, {label:"2–3 months", feeds:6, gapH:6, gain:20}); }
+  else if (corr < 180){ Object.assign(b, {label:"3–6 months", feeds:6, gapH:null, gain:15}); }
+  else { Object.assign(b, {label:"6–12 months", feeds:null, gapH:null, gain:10}); }
+  const nb = [28,56,90,180].find(x=>x>corr);
+  if (nb!=null) b.next = now + (nb-corr)*864e5;              // when the thresholds change next
+  b.wet  = life < 5 ? null : 6;                  // at least 6 heavy wet diapers a day from day 5
+  b.pooH = life < 42 ? 24 : null;                // first 6 weeks: at least one poo a day (often 2+)
+  return b;
+}
+const THR_KEYS = [["feeds","Min feeds in 24 h"],["wet","Min wet diapers in 24 h"],["gapH","Max hours between feeds"],["pooH","Max hours without poo"],["gain","Min weight gain (g/day)"]];
+const THR_DEFAULT = {on:true, auto:true, custom:{feeds:8, wet:6, pooH:24, gapH:4, gain:20}};
+let thr = JSON.parse(JSON.stringify(THR_DEFAULT));
+try { const sv = JSON.parse(localStorage.getItem("bl-thr") || "{}");
+      thr = {on: sv.on!==false, auto: sv.auto!==false && !("feeds" in sv), custom: Object.assign({}, THR_DEFAULT.custom, sv.custom || (("feeds" in sv) ? sv : {}))}; } catch(e) {}
+const saveThr = () => { try { localStorage.setItem("bl-thr", JSON.stringify(thr)); } catch(e) {} };
+function thrFor(t){            // thresholds in use for a child
+  if (!thr.auto) return Object.assign({}, thr.custom);
+  const b = ageBand(t);
+  return b ? {feeds:b.feeds, wet:b.wet, gapH:b.gapH, pooH:b.pooH, gain:b.gain} : Object.assign({}, THR_DEFAULT.custom);
+}
+
+/* ---------- signals: what the data says, and what usually helps ----------
+   level: "call"  = talk to the paediatrician
+          "watch" = keep an eye on it, mention it at the next contact
+          "tip"   = general, commonly given advice
+          "good"  = things going well                                         */
+function signals(t){
+  const out = [], now = Date.now(), p = prof(t), age = p.birth ? lifeDays(t, now) : null;
+  const preterm = p.birth && gaDays(t) < 259;                                  // born before 37+0
+  const ev24 = events.filter(e=>e.child===t && e.ts > now-864e5 && e.ts <= now);
+  const tracking = ev24.length > 0 && events.some(e=>e.child===t && e.ts <= now-864e5);
+  const ss = sessions(t).filter(s=>s.start <= now), T = thrFor(t);
+  const setBy = thr.auto ? "suggested for this age" : "you set";
+  if (thr.on && tracking){
+    // feeds in the last 24 h
+    const f24 = ss.filter(s=>s.start > now-864e5).length;
+    if (T.feeds!=null && f24 < T.feeds) out.push({level:"watch", title:`${f24} feeds in the last 24 h`,
+      text:`Below the ${T.feeds} ${setBy}. Offering the breast at early hunger cues (rooting, hands to mouth, stirring) usually helps reach 8–12 feeds a day.`});
+    // longest stretch without feeding (including the time since the last feed)
+    const starts = ss.map(s=>s.start).filter(x=>x > now-864e5-12*36e5);
+    let gap = 0; for (let i=1; i<starts.length; i++) if (starts[i] > now-864e5) gap = Math.max(gap, (starts[i]-starts[i-1])/36e5);
+    const sinceLast = ss.length ? (now - sessionEnd(ss[ss.length-1]))/36e5 : 0;
+    gap = Math.max(gap, sinceLast);
+    if (T.gapH!=null && gap > T.gapH) out.push({level:"watch", title:`Stretch of ${fmtNum(gap,1)} h without feeding`,
+      text: preterm ? `Babies born before 37 weeks are often advised not to go too long between feeds until weight gain is well established. Ask your paediatrician how long to let them sleep.`
+                    : `Longer than the ${T.gapH} h ${setBy}. In the first weeks long stretches are worth mentioning to your paediatrician.`});
+    // wet diapers
+    if (age==null || age >= 5){
+      const wet = ev24.filter(e=>e.kind==="pee").length;
+      if (T.wet!=null && wet < T.wet) out.push({level:"call", title:`${wet} wet diapers in the last 24 h`,
+        text:`Below the ${T.wet} ${setBy}. Wet diapers reflect how much milk the baby is getting: if they stay low, contact your paediatrician or midwife.`});
+    }
+    // stools (first 6 weeks)
+    if (age==null || age < 42){
+      const lp = events.filter(e=>e.child===t && e.kind==="poo" && e.ts<=now).reduce((a,e)=>Math.max(a,e.ts), 0);
+      if (T.pooH!=null && lp && (now-lp)/36e5 > T.pooH) out.push({level:"watch", title:`No poo for ${fmtNum((now-lp)/36e5,0)} h`,
+        text:`In the first weeks frequent stools are a sign of good intake. Mention it to your paediatrician if it continues.`});
+    }
+  } else if (thr.on && !tracking && events.some(e=>e.child===t)){
+    out.push({level:"watch", title:"No entries in the last 24 h", text:"Signals about feeds and diapers are paused until new entries are logged."});
+  }
+  // weight
+  const ws = measPoints(t,"w").filter(q=>!q.birth), bw = Number(p.bw);
+  if (ws.length){
+    const last = ws[ws.length-1];
+    if (bw>0){
+      const early = ws.filter(q=>lifeDays(t,q.ts) <= 7);
+      const minEarly = early.length ? Math.min(...early.map(q=>q.v)) : null;
+      if (minEarly && (bw-minEarly)/bw > 0.10) out.push({level:"call", title:`Weight loss above 10% in the first week`,
+        text:`Lowest weight ${minEarly} g vs ${bw} g at birth. This is usually followed closely by the paediatrician.`});
+      const regained = ws.find(q=>q.v>=bw && q.ts>birthTs(t)+864e5);
+      if (!regained && age!=null && age > 14) out.push({level:"call", title:"Birth weight not regained after 2 weeks",
+        text:`Latest ${last.v} g vs ${bw} g at birth. Worth discussing with your paediatrician.`});
+      if (regained && age!=null && age <= 21) out.push({level:"good", title:`Birth weight regained at day ${Math.round(lifeDays(t,regained.ts))}`, text:""});
+    }
+    const v = velocity(t, now - 7*864e5);
+    if (v){
+      if (T.gain!=null && v.g < T.gain) out.push({level:"watch", title:`Weight gain ${fmtNum(v.g)} g/day over the last 7 days`,
+        text:`Below the ${T.gain} g/day ${setBy}. Effective feeds matter more than long feeds: see the feeding tips below and talk to your paediatrician or a lactation consultant.`});
+      else out.push({level:"good", title:`Gaining ${fmtNum(v.g)} g/day (${fmtNum(v.gkg,1)} g/kg/day)`, text:"Over the last 7 days."});
+    }
+    const r = refAt(t,"w",pmaDays(t,last.ts)), prev = ws.filter(q=>q.ts <= last.ts-7*864e5 && lifeDays(t,q.ts) >= 5).pop();
+    const r0 = prev && refAt(t,"w",pmaDays(t,prev.ts));
+    if (r && r0){
+      const dz = r.zOf(last.v) - r0.zOf(prev.v);
+      if (dz <= -0.67) out.push({level:"call", title:"Weight crossed a centile line downwards",
+        text:`From ${fmtPct(r0.zOf(prev.v))} to ${fmtPct(r.zOf(last.v))} percentile since ${fmtDate(prev.ts)}. A drop across centile lines is something to show your paediatrician.`});
+      else if (Math.abs(dz) < 0.5) out.push({level:"good", title:`Keeping the ${fmtPct(r.zOf(last.v))} percentile channel`, text:"Steady growth along a centile line is what paediatricians look for."});
+    }
+    if ((now-last.ts)/864e5 > 7) out.push({level:"watch", title:`Last weighing ${Math.round((now-last.ts)/864e5)} days ago`, text:"Regular weighings (same scale, same conditions) make the trend more reliable."});
+  } else if (p.birth) out.push({level:"watch", title:"No weighings yet", text:"Log the weight to follow growth on the reference curves."});
+
+  // feeding patterns over the selected period vs the previous one
+  const n = rangeLen(t), days = periodDays(n), prevDays = pgRange==="all" ? null : periodDays(n, n);
+  const mAvg = (k, ds) => avg(metricSeries(METRICS.find(m=>m.k===k), t, ds));
+  const topup = mAvg("agg", days), topupPrev = prevDays && mAvg("agg", prevDays);
+  const durA = mAvg("dur", days), expMl = mAvg("mlexp", days), mlA = mAvg("ml", days);
+  if (topup!=null && topupPrev!=null && topup < topupPrev - 5) out.push({level:"good", title:`Fewer feeds need a top-up (${fmtNum(topup)}% vs ${fmtNum(topupPrev)}%)`,
+    text:"A sign that breastfeeding is becoming more effective."});
+  if (topup!=null && topup >= 40 && durA!=null && durA >= 25) out.push({level:"tip", title:"Long breastfeeds often followed by a top-up",
+    text:`Average ${fmtNum(durA)} min at the breast and ${fmtNum(topup)}% of feeds topped up: babies born early often tire at the breast. Commonly suggested: skin-to-skin, breast compression, switching sides when swallowing slows. A lactation consultant can check latch and milk transfer.`});
+  if (mlA!=null && mlA > 0 && (expMl==null || expMl < mlA*0.3)) out.push({level:"tip", title:"Top-ups are mostly formula",
+    text:"Expressing after some feeds and using that milk for top-ups is often recommended to protect and build milk supply. Ask your midwife or a lactation consultant how often to express."});
+  const order = {call:0, watch:1, tip:2, good:3};
+  return out.sort((a,b)=>order[a.level]-order[b.level]);
+}
+
+/* ---------- metric cards (single child) ---------- */
+const GROUPS = [
+  ["Feeding", ["pop","dur","agg","mlagg","ml","mlexp","mlkg","int","long"]],
+  ["Diapers", ["pee","poo"]]
+];
+function metricCard(m, t, days, prevDays){
+  const vals = metricSeries(m, t, days), a = avg(vals), pv = prevDays ? avg(metricSeries(m, t, prevDays)) : null;
+  const d = a!=null && pv!=null ? a - pv : null, open = pgOpen===m.k;
+  return `<button class="mcard${open?" open":""}" data-mc="${m.k}" aria-expanded="${open}"><span class="mt">${m.name}</span>
+    <span class="mv"><span style="color:${KID(t).c}"><b>${fmtNum(a, m.dec)}</b>${d!=null && Math.abs(d) >= Math.pow(10,-m.dec) ? `<small> ${d>0?"↑":"↓"}${fmtNum(Math.abs(d), m.dec)}</small>` : ""}</span></span>
+    <span class="mu">${m.unit}</span>${lineChart(days, [{c:KID(t).c, vals}], {ref:m.ref, big:open, label:m.name})}
+    ${open && m.refTxt ? `<span class="mref">Grey band: common reference, ${m.refTxt}</span>` : ""}</button>`;
+}
+
+/* ---------- 24-hour rhythm (single child) ---------- */
+function rhythm(t, days){
+  const W = 340, lane = 10, rowH = lane + 6, pl = 36, H = days.length*rowH + 16, X = h => pl + h/24*(W-pl-4);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Feeds over 24 hours" style="width:100%;height:auto;display:block">`;
   s += `<rect x="${X(0)}" y="0" width="${X(6)-X(0)}" height="${H-16}" fill="var(--refband)"/><rect x="${X(22)}" y="0" width="${X(24)-X(22)}" height="${H-16}" fill="var(--refband)"/>`;
   [0,6,12,18,24].forEach(h=>{ s += `<line x1="${X(h)}" x2="${X(h)}" y1="0" y2="${H-16}" stroke="var(--line)"/><text x="${X(h)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--muted)">${h}</text>`; });
+  const ss = sessions(t);
   days.forEach((k,i)=>{
     const y0 = i*rowH + 3, [yy,mm,dd] = k.split("-"), d0 = new Date(k+"T00:00").getTime();
     s += `<text x="${pl-5}" y="${y0+rowH/2+1}" text-anchor="end" font-size="9" fill="var(--muted)">${dd}/${mm}</text>`;
-    selKids().forEach((t,j)=>{
-      sessions(t).filter(se=>se.start < d0+864e5 && sessionEnd(se) > d0-36e5).forEach(se=>{
-        const a = Math.max(0,(se.start-d0)/36e5), b = Math.min(24, Math.max((sessionEnd(se)-d0)/36e5, (se.start-d0)/36e5 + 0.25));
-        if (b<=0 || a>=24) return;
-        s += `<rect x="${X(a)}" y="${y0 + j*lane}" width="${Math.max(2, X(b)-X(a))}" height="${lane-1}" rx="1.5" fill="${KID(t).c}"><title>${KID(t).name} ${hm(se.start)}</title></rect>`;
-      });
+    ss.filter(se=>se.start < d0+864e5 && sessionEnd(se) > d0-36e5).forEach(se=>{
+      const a = Math.max(0,(se.start-d0)/36e5), b = Math.min(24, Math.max((sessionEnd(se)-d0)/36e5, (se.start-d0)/36e5 + 0.25));
+      if (b<=0 || a>=24) return;
+      s += `<rect x="${X(a)}" y="${y0}" width="${Math.max(2, X(b)-X(a))}" height="${lane-1}" rx="1.5" fill="${KID(t).c}" opacity="${se.bottle&&se.breast?1:.65}"><title>${hm(se.start)}</title></rect>`;
     });
   });
   return s + `</svg>`;
 }
 
-/* ---------- weekly summary ---------- */
+/* ---------- weekly summary (single child) ---------- */
 function weeklyTable(t){
-  const n = Math.min(8, Math.ceil(rangeLen()/7));
-  let h = `<div class="tbl-wrap" style="--c:${KID(t).c}"><h3>${KID(t).name}</h3><table><thead><tr><th>Week</th><th>Feeds</th><th>Bottle ml</th><th>Pee</th><th>Poo</th><th>Weight g/day</th></tr></thead><tbody>`;
+  const n = Math.min(8, Math.ceil(rangeLen(t)/7));
+  let h = `<table><thead><tr><th>Week</th><th>Feeds</th><th>Bottle ml</th><th>Pee</th><th>Poo</th><th>Weight g/day</th></tr></thead><tbody>`, rows = 0;
   for (let w=0; w<n; w++){
-    const days = periodDays(7, w*7).filter(k=>hasData(t,k)); if (!days.length) continue;
+    const days = periodDays(7, w*7).filter(k=>hasData(t,k)); if (!days.length) continue; rows++;
     const a = f => avg(days.map(k=>f(k)));
     const from = new Date(days[0]+"T12:00").getTime(), to = new Date(days[days.length-1]+"T23:59").getTime();
     const ws = measPoints(t,"w").filter(p=>!p.birth && p.ts>=from-864e5 && p.ts<=to);
@@ -1041,77 +1365,143 @@ function weeklyTable(t){
     const lab = k => { const [y,m,d] = k.split("-"); return d+"/"+m; };
     h += `<tr><td>${lab(days[0])}–${lab(days[days.length-1])}</td><td>${fmtNum(a(k=>dayStats(t,k).pop),1)}</td><td>${fmtNum(a(k=>dayStats(t,k).ml))}</td><td>${fmtNum(a(k=>dayStats(t,k).pee),1)}</td><td>${fmtNum(a(k=>dayStats(t,k).poo),1)}</td><td>${g==null?"–":(g>0?"+":"")+fmtNum(g)}</td></tr>`;
   }
-  return h + `</tbody></table></div>`;
+  return rows ? h + `</tbody></table>` : `<p class="note">Not enough data yet.</p>`;
 }
 
-/* ---------- day-by-day table ---------- */
-function dailyTables(){
-  const days = [...new Set(events.map(e=>dayKey(e.ts)))].sort().reverse().slice(0, Math.max(14, rangeLen()));
-  let h = "";
-  for (const t of selKids()){
-    h += `<div class="tbl-wrap" style="--c:${KID(t).c}"><h3>${KID(t).name}</h3><table><thead><tr><th>Day</th><th>Feeds</th><th>+top-up</th><th>Breast′</th><th>ml</th><th>Pee</th><th>Poo</th><th>Weight</th><th>Δ</th></tr></thead><tbody>`;
-    for (const k of days){
-      const s = dayStats(t,k), [y,m,d] = k.split("-");
-      h += `<tr><td>${d}/${m}</td><td>${s.pop}</td><td>${s.withTopUp}</td><td>${s.durAvg||"–"}</td><td>${s.ml||"–"}</td><td>${s.pee}</td><td>${s.poo}</td><td>${s.w?s.w.g:"–"}</td><td>${s.w?fmtDelta(s.w.d)||"–":"–"}</td></tr>`;
-    }
-    h += `</tbody></table></div>`;
-  }
-  return h;
+/* ---------- comparison between children (secondary) ---------- */
+function compareTable(days){
+  const keys = ["pop","dur","agg","ml","pee","poo"];
+  let h = `<table><thead><tr><th></th>${kids.map(k=>`<th style="color:${KID(k.id).c}">${esc(k.name)}</th>`).join("")}</tr></thead><tbody>`;
+  keys.forEach(key=>{ const m = METRICS.find(x=>x.k===key);
+    h += `<tr><td>${m.name} <small class="muted">${m.unit}</small></td>${kids.map(k=>`<td>${fmtNum(avg(metricSeries(m,k.id,days)), m.dec)}</td>`).join("")}</tr>`; });
+  h += `<tr><td>Weight gain <small class="muted">g/day, 7 days</small></td>${kids.map(k=>{ const v = velocity(k.id, Date.now()-7*864e5); return `<td>${v?fmtNum(v.g):"–"}</td>`; }).join("")}</tr>`;
+  h += `<tr><td>Weight percentile</td>${kids.map(k=>{ const ws = measPoints(k.id,"w").filter(p=>!p.birth); const l = ws[ws.length-1]; const r = l && refAt(k.id,"w",pmaDays(k.id,l.ts)); return `<td>${r?fmtPct(r.zOf(l.v)):"–"}</td>`; }).join("")}</tr>`;
+  return h + `</tbody></table>`;
 }
 
-/* ---------- tab rendering ---------- */
+/* ---------- render ---------- */
+const LVL = {call:["Talk to your paediatrician","call"], watch:["Keep an eye on","watch"], tip:["What may help","tip"], good:["Going well","good"]};
 function renderTrend(){
   const el = $("#tab-trend"); if (!el) return;
-  if (!events.length){ el.innerHTML = `<p class="empty">Trends appear after the first entries.</p>`; return; }
-  const n = rangeLen(), days = periodDays(n), prev = trRange==="all" ? null : periodDays(n, n);
+  if (!kids.length){ el.innerHTML = `<p class="empty">Add your children in Settings to see their progress.</p>`; return; }
+  const t = curKid(), n = rangeLen(t), days = periodDays(n), prevDays = pgRange==="all" ? null : periodDays(n, n);
   const chip = (attr, v, l, cur) => `<button class="chip" data-${attr}="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`;
-  let h = `<div class="trctl">
-      <div class="when" role="group" aria-label="Period">${chip("rng",7,"7 d",trRange)}${chip("rng",14,"14 d",trRange)}${chip("rng",30,"30 d",trRange)}${chip("rng","all","All",trRange)}</div>
-      ${many() ? `<div class="when" role="group" aria-label="Children">${chip("tt","all","All",trSel)}${kids.map(k=>chip("tt",esc(k.id),esc(k.name),trSel)).join("")}</div>` : ""}
-    </div>`;
+  const p = prof(t), now = Date.now();
+  let h = `<div class="stickctl">` + (many() ? `<div class="kidseg seg">${kids.map(k=>`<button type="button" data-kid="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${k.id===t}">${esc(k.name)}</button>`).join("")}</div>` : "");
+  h += `<div class="when" role="group" aria-label="Period">${chip("rng",7,"7 d",pgRange)}${chip("rng",14,"14 d",pgRange)}${chip("rng",30,"30 d",pgRange)}${chip("rng","all","All",pgRange)}</div></div>`;
+
+  // header
+  let age = "";
+  if (p.birth){ const corr = pmaDays(t, now) - 280;
+    age = `${Math.floor(lifeDays(t, now))} days old · ${corr>=0 ? `corrected age ${Math.floor(corr/7)} wk ${Math.floor(corr%7)} d` : `${Math.ceil(-corr)} days to term`}`; }
+  h += `<div class="chartcard" style="--c:${KID(t).c}"><div class="cc-head"><div><div class="g-name">${esc(KID(t).name)}</div><div class="gs-age">${age || `<button class="linkbtn" data-goto="settings" style="padding:0">Add birth details in Settings</button>`}</div></div>
+</div>`;
+  // signals
+  const sg = signals(t);
+  if (!thr.on) h += `<p class="note">Signals are turned off in Settings.</p>`;
+  ["call","watch","good","tip"].forEach(lv=>{
+    const list = sg.filter(x=>x.level===lv); if (!list.length) return;
+    h += `<div class="sig ${LVL[lv][1]}"><div class="sig-h">${LVL[lv][0]}</div>${list.map(x=>`<div class="sig-i"><b>${x.title}</b>${x.text?`<span>${x.text}</span>`:""}</div>`).join("")}</div>`;
+  });
+  if (!sg.length) h += `<p class="note">Nothing to flag right now.</p>`;
+  h += `<p class="note">Signals use the age-based thresholds in Settings. They are not a diagnosis: when in doubt, contact your paediatrician.</p></div>`;
 
   // growth
-  h += `<div class="chartcard"><div class="cc-head"><h3>Growth</h3><button class="linkbtn" id="profBtn">Profile</button></div>
-    <div class="when" role="group" aria-label="Measurement">${chip("ms","w","Weight",trMeas)}${chip("ms","l","Length",trMeas)}${chip("ms","h","Head",trMeas)}<button class="chip" id="addMeas">＋ measurement</button></div>`;
-  for (const t of selKids()){
-    h += `<div class="growth" style="--c:${KID(t).c}"><div class="g-name">${KID(t).name} <span class="muted">· ${prof(t).sex==="m"?"boy":"girl"}, born at ${prof(t).gaW}+${prof(t).gaD} wk</span></div>
-      ${growthChart(t, trMeas)}${growthStats(t, trMeas)}</div>`;
-  }
-  h += `<p class="note">INTERGROWTH-21st preterm curves up to 64 weeks postmenstrual age, then WHO on corrected age. Bands: 3rd–97th and 16th–84th percentile. What matters most is that each child keeps their own channel: interpretation is up to the paediatrician.</p></div>`;
+  h += `<div class="chartcard growth" style="--c:${KID(t).c}"><div class="cc-head"><h3>Growth</h3><button class="linkbtn" id="addMeas">＋ Add</button></div>
+    <div class="when" role="group" aria-label="Measurement">${chip("ms","w","Weight",trMeas)}${chip("ms","l","Length",trMeas)}</div>
+    ${growthChart(t, trMeas)}${growthStats(t, trMeas)}${measTable(t, trMeas)}</div>`;
 
-  // metrics
-  h += `<h3 class="sec">Metrics <span class="muted">· average over ${trRange==="all"?"all days":n+" days"}, today excluded${prev?", vs previous period":""}</span></h3><div class="mgrid">`;
-  for (const m of METRICS){
-    const ser = selKids().map(t=>({t, c:KID(t).c, vals: metricSeries(m,t,days), pv: prev ? avg(metricSeries(m,t,prev)) : null}));
-    const open = trOpen===m.k;
-    h += `<button class="mcard${open?" open":""}" data-mc="${m.k}" aria-expanded="${open}"><span class="mt">${m.name}</span>
-      <span class="mv">${ser.map(s=>{ const a = avg(s.vals); const d = a!=null && s.pv!=null ? a - s.pv : null;
-        return `<span style="color:${s.c}"><b>${fmtNum(a, m.dec)}</b>${d!=null && Math.abs(d) >= Math.pow(10,-m.dec) ? `<small> ${d>0?"↑":"↓"}${fmtNum(Math.abs(d), m.dec)}</small>` : ""}</span>`; }).join("")}</span>
-      <span class="mu">${m.unit}</span>
-      ${lineChart(days, ser, {ref:m.ref, big:open, label:m.name})}
-      ${open && m.refTxt ? `<span class="mref">Grey band: common reference, ${m.refTxt}</span>` : ""}</button>`;
-  }
-  h += `</div><p class="note">Tap a metric to enlarge it. Intervals are measured from start to start of feeds.</p>`;
+  // feeding + diapers
+  GROUPS.forEach(([title, keys])=>{
+    h += `<h3 class="sec">${title} <span class="muted">· daily average over ${pgRange==="all"?"all days":n+" days"}${prevDays?", arrows vs previous period":""}</span></h3><div class="mgrid">`;
+    keys.forEach(k=>{ h += metricCard(METRICS.find(m=>m.k===k), t, days, prevDays); });
+    h += `</div>`;
+  });
+  h += `<p class="note">Tap a card to enlarge it. Intervals are measured from start to start of feeds.</p>`;
 
-  // rhythm
-  const rd = periodDays(Math.min(n, 10)).concat([dayKey(Date.now())]);
-  h += `<div class="chartcard"><h3>Feeding rhythm</h3>${rhythm(rd.slice().reverse())}<p class="note">Each bar is a feed (breast + top-up), from start to end. Night (22–6) in grey.</p></div>`;
-
-  // weekly summary and details
-  h += `<h3 class="sec">Weekly summary <span class="muted">· daily averages</span></h3>${selKids().map(weeklyTable).join("")}`;
-  h += `<details class="det"><summary>Day by day</summary>${dailyTables()}<p class="note">Δ = change from the previous weighing.</p></details>`;
-  h += `<details class="det"><summary>References</summary><p class="note">WHO Child Growth Standards (2006). INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), tables from the open-source gigs package (LSHTM). The reference bands for feeds, pee and poo follow common breastfeeding guidance and are a visual comparison only.</p></details>`;
+  // rhythm + weekly
+  const rd = periodDays(Math.min(n, 10)).concat([dayKey(now)]);
+  h += `<div class="chartcard"><h3>Feeding rhythm</h3>${rhythm(t, rd.slice().reverse())}<p class="note">Each bar is a feed from start to end; darker bars had a top-up. Night (22–6) in grey.</p></div>`;
+  h += `<details class="det"><summary>Weekly summary</summary>${weeklyTable(t)}</details>`;
+  if (many()) h += `<details class="det"><summary>Compare children</summary>${compareTable(days)}</details>`;
+  h += `<details class="det"><summary>About the curves</summary><p class="note">INTERGROWTH-21st for preterm infants up to 64 weeks postmenstrual age, then WHO on corrected age. Bands: 3rd–97th and 16th–84th percentile. What matters most is that each child keeps their own channel.</p></details>`;
   el.innerHTML = h;
 
-  el.querySelectorAll("[data-rng]").forEach(b=>b.onclick=()=>{ trRange = b.dataset.rng==="all" ? "all" : Number(b.dataset.rng); try{ localStorage.setItem("bl-range", JSON.stringify(trRange)); }catch(e){} renderTrend(); });
-  el.querySelectorAll("[data-tt]").forEach(b=>b.onclick=()=>{ trSel = b.dataset.tt; renderTrend(); });
+  el.querySelectorAll("[data-kid]").forEach(b=>b.onclick=()=>{ pgKid = b.dataset.kid; pgOpen = null; renderTrend(); });
+  el.querySelectorAll("[data-rng]").forEach(b=>b.onclick=()=>{ pgRange = b.dataset.rng==="all" ? "all" : Number(b.dataset.rng); try{ localStorage.setItem("bl-range", JSON.stringify(pgRange)); }catch(e){} renderTrend(); });
   el.querySelectorAll("[data-ms]").forEach(b=>b.onclick=()=>{ trMeas = b.dataset.ms; renderTrend(); });
-  el.querySelectorAll("[data-mc]").forEach(b=>b.onclick=()=>{ trOpen = trOpen===b.dataset.mc ? null : b.dataset.mc; renderTrend(); });
-  $("#profBtn").onclick = openProfile;
-  $("#addMeas").onclick = ()=>{
-    const t = trSel==="all" ? firstSel() : trSel;
-    openEditor(null, {kind: MEAS[trMeas].kind, child:t, ts:Date.now(), title:"New measurement"});
+  el.querySelectorAll("[data-mc]").forEach(b=>b.onclick=()=>{ pgOpen = pgOpen===b.dataset.mc ? null : b.dataset.mc; renderTrend(); });
+  el.querySelectorAll("[data-goto]").forEach(b=>b.onclick=()=>showTab(b.dataset.goto));
+  el.querySelectorAll("tr[data-edit]").forEach(r=>r.onclick=()=>{ const e = events.find(x=>x.id===r.dataset.edit); if (e) openEditor(e.id, e); });
+  $("#addMeas").onclick = ()=>openEditor(null, {kind: MEAS[trMeas].kind, child:t, ts:Date.now(), title:"New measurement"});
+}
+
+/* ---------- settings ---------- */
+const APP_VERSION = "1.6.0";
+const REPO_URL = "https://github.com/Xeroxi91/baby-log";
+const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
+function renderSettings(){
+  const el = $("#tab-settings"); if (!el) return;
+  const sexTxt = p => p.sex==="f" ? "girl" : "boy";
+  const kidRow = k => `<li><i class="sw" style="--c:${KID(k.id).c}"></i><span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span></li>`;
+  const pend = outbox.length;
+  el.innerHTML = `
+  <div class="sect"><h3>Children</h3>
+    ${kids.length ? `<ul class="kids">${kids.map(kidRow).join("")}</ul>` : `<p class="note">No children yet.</p>`}
+    <button class="btn ghost wide" id="setKids">${kids.length ? "Edit children" : "Add a child"}</button></div>
+
+  <div class="sect"><h3>Appearance</h3>
+    <div class="seg" id="themeSeg">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${theme===v}">${l}</button>`).join("")}</div></div>
+
+  <div class="sect"><h3>Feeds</h3>
+    <label class="row2">Highlight a child when the last feed ended more than
+      <select id="alertSel">${[2,2.5,3,3.5,4,5].map(v=>`<option value="${v}" ${v===alertH?"selected":""}>${v} h</option>`).join("")}</select> ago</label>
+    <p class="note">Breast and bottle within 60 min count as one feed.</p></div>
+
+  <div class="sect"><h3>Signals</h3>
+    <label class="row2"><input type="checkbox" id="thrOn" ${thr.on?"checked":""}> Show signals in Progress</label>
+    <div class="seg" id="thrMode"><button type="button" data-v="auto" aria-pressed="${thr.auto}">Automatic by age</button><button type="button" data-v="custom" aria-pressed="${!thr.auto}">Custom</button></div>
+    ${thr.auto ? kids.map(k=>{ const b = ageBand(k.id); return `<div class="band" style="--c:${KID(k.id).c}"><b>${esc(k.name)}</b>${b ? ` · ${b.label}` : ""}
+        ${b ? `<table><tbody>${THR_KEYS.map(([key,l])=>`<tr><td>${l}</td><td>${b[key]==null ? "not checked" : b[key]}</td></tr>`).join("")}</tbody></table>${b.next?`<p class="note" style="margin:4px 0 0">Next update on ${fmtDate(b.next)}</p>`:""}` : `<p class="note">Add the date of birth to get suggestions for this age.</p>`}</div>`; }).join("")
+      : `<div class="thr">${THR_KEYS.map(([key,l])=>`<label>${l}<input type="number" inputmode="decimal" step="${key==="gapH"?0.5:1}" min="0" max="200" data-thr="${key}" value="${thr.custom[key]}"></label>`).join("")}</div>
+         <button class="btn ghost wide" id="thrSuggest">Fill with values suggested for ${esc(kids[0] ? kids[0].name : "the age")}</button>`}
+    <p class="note">Automatic: thresholds change as the baby grows, following values commonly given in NHS, AAP and WHO guidance for healthy infants; for babies born early the age band follows the corrected age. Your paediatrician may advise different limits: in that case choose Custom.</p></div>
+
+  <div class="sect"><h3>Sync and sharing</h3>
+    ${isLocal() ? `<p class="row2">Using this device only${pend ? ` · ${pend} change${pend>1?"s":""} not shared yet` : ""}</p>
+    <button class="btn wide" id="connectBtn">Connect to a shared log</button>
+    <p class="note">Entries and children created here are uploaded when you connect.</p>` : `
+    <p class="row2">${lastSync ? `Last sync ${fmtDate(lastSync)} ${hm(lastSync)}` : "Not synced yet"}${pend ? ` · ${pend} change${pend>1?"s":""} waiting to be sent` : ""}</p>
+    <button class="btn ghost wide" id="syncNow">Sync now</button>
+    <p class="note">To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run <code>addAccessCode()</code>: existing codes keep working). Never share codes in public places.</p>
+    <div class="two"><button class="btn ghost" id="shareApp">Share app link</button><button class="btn ghost" id="copyApi">Copy API address</button></div>
+    <button class="btn del wide" id="discBtn">Disconnect this device</button>`}</div>
+
+  <div class="sect"><h3>About</h3>
+    <p class="row2"><b>Baby log</b> ${APP_VERSION}</p>
+    <p class="row2">Created by <b>Matteo Moschitta</b> · <a href="https://github.com/Xeroxi91" target="_blank" rel="noopener">Xeroxi91</a> · <a href="https://matteomoschitta.it" target="_blank" rel="noopener">matteomoschitta.it</a></p>
+    <p class="note">Growth references: WHO Child Growth Standards (2006); INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), reference tables via the open-source gigs package (LSHTM).</p>
+    <p class="note">Not a medical device: charts support conversations with your paediatrician and do not replace clinical assessment.</p>
+    <p class="note">License: PolyForm Noncommercial 1.0.0 · <a href="${REPO_URL}" target="_blank" rel="noopener">Source code</a></p></div>`;
+  $("#setKids").onclick = openProfile;
+  el.querySelectorAll("#themeSeg button").forEach(b=>b.onclick=()=>{ theme = b.dataset.v; try{ localStorage.setItem("bl-theme", theme); }catch(e){} applyTheme(); renderSettings(); });
+  $("#alertSel").onchange = e=>{ alertH = Number(e.target.value); try{ localStorage.setItem("bl-alertH", alertH); }catch(err){} renderSince(); };
+  if ($("#connectBtn")) $("#connectBtn").onclick = connectShared;
+  if (isLocal()){ ["syncNow","shareApp","copyApi","discBtn"].forEach(id=>{ const b = $("#"+id); if (b) b.remove(); }); }
+  if ($("#syncNow")) $("#syncNow").onclick = ()=>{ refresh(); };
+  $("#thrOn").onchange = e=>{ thr.on = e.target.checked; saveThr(); renderTrend(); };
+  el.querySelectorAll("#thrMode button").forEach(b=>b.onclick=()=>{ thr.auto = b.dataset.v==="auto"; saveThr(); renderSettings(); renderTrend(); });
+  el.querySelectorAll("[data-thr]").forEach(i=>i.onchange=()=>{ const v = i.value==="" ? null : Number(i.value); if (v==null || v>=0){ thr.custom[i.dataset.thr] = v; saveThr(); renderTrend(); } });
+  if ($("#thrSuggest")) $("#thrSuggest").onclick = ()=>{ const b = kids[0] && ageBand(kids[0].id); if (!b) return; THR_KEYS.forEach(([k])=>thr.custom[k] = b[k]); saveThr(); renderSettings(); renderTrend(); };
+  if ($("#shareApp")) $("#shareApp").onclick = async ()=>{
+    const url = appLink();
+    try { if (navigator.share){ await navigator.share({title:"Baby log", url}); return; } await navigator.clipboard.writeText(url); toast("App link copied", false); }
+    catch(e){ if (e && e.name!=="AbortError") toast(url, false); }
   };
+  if ($("#copyApi")) $("#copyApi").onclick = async ()=>{
+    try { await navigator.clipboard.writeText(apiUrl); toast("API address copied", false); } catch(e){ toast(apiUrl || "Not connected", false); }
+  };
+  if ($("#discBtn")) $("#discBtn").onclick = ()=>{ if (confirm("Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.")) disconnect(); };
 }
 
 /* ---------- profile dialog ---------- */
@@ -1140,43 +1530,50 @@ $("#profForm").onsubmit = async e=>{
   e.preventDefault();
   $("#profBody").querySelectorAll("[data-k]").forEach(inp=>{ draft[inp.dataset.i][inp.dataset.k] = inp.value.trim(); });
   $("#profDlg").close();
+  if (isLocal()){
+    draft.forEach(k=>{ if (!k.id) k.id = "c" + uid().replace(/-/g,"").slice(0,10); });
+    kids = draft; saveCache(); applyKids(); render(); toast("Profile saved on this device", false); return;
+  }
   try {
     const p = await run("saveProfile", {children: draft});
-    kids = (p && p.children) || kids; applyKids(); await refresh(); toast("Profile saved", false);
-  } catch(err) { toast("Profile not saved: "+(err.message||"error"), false); }
+    kids = (p && p.children) || kids; saveCache(); applyKids(); render(); refresh(); toast("Profile saved", false);
+  } catch(err) { toast(err instanceof NetError ? "Profile changes need a connection" : "Profile not saved: "+(err.message||"error"), false); }
 };
 $("#profCancel").onclick = ()=>$("#profDlg").close();
 
 /* ---------- UI wiring ---------- */
 document.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>setWhen(b.dataset.w));
-document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>log(b.dataset.a));
-document.querySelectorAll("[role=tab]").forEach(b=>b.onclick=()=>{
-  document.querySelectorAll("[role=tab]").forEach(x=>x.setAttribute("aria-selected", x===b));
-  ["day","log","trend"].forEach(t=>$("#tab-"+t).hidden = t!==b.dataset.tab);
-});
+document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{ $("#sheet").close(); log(b.dataset.a); });
+$("#fab").onclick = ()=>$("#sheet").showModal();
+$("#sheetClose").onclick = ()=>$("#sheet").close();
+$("#sheet").addEventListener("click", e=>{ if (e.target.id==="sheet") $("#sheet").close(); });   // tap outside closes
+document.addEventListener("toggle", e=>{ if (e.target.classList && e.target.classList.contains("daydet")) detOpen = e.target.open; }, true);
+function showTab(name){
+  document.querySelectorAll("[role=tab]").forEach(x=>x.setAttribute("aria-selected", x.dataset.tab===name));
+  ["day","log","trend","settings"].forEach(t=>$("#tab-"+t).hidden = t!==name || t==="day");
+  measureSticky();
+  window.scrollTo(0, 0);
+}
+document.querySelectorAll("[role=tab]").forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
 
 /* ---------- light / dark theme ---------- */
-const THEMES = [["auto","◐ Auto"],["light","☀️ Light"],["dark","🌙 Dark"]];
 let theme = "auto";
 try { theme = localStorage.getItem("bl-theme") || "auto"; } catch(e) {}
 function applyTheme(){
   if (theme==="auto") document.documentElement.removeAttribute("data-theme");
   else document.documentElement.setAttribute("data-theme", theme);
-  const t = THEMES.find(x=>x[0]===theme) || THEMES[0];
-  $("#themeBtn").textContent = t[1];
-  $("#themeBtn").setAttribute("aria-label", "Theme: "+t[1].split(" ")[1]+". Tap to change");
 }
-$("#themeBtn").onclick = ()=>{
-  const i = THEMES.findIndex(x=>x[0]===theme);
-  theme = THEMES[(i+1) % THEMES.length][0];
-  try { localStorage.setItem("bl-theme", theme); } catch(e) {}
-  applyTheme();
-};
 applyTheme();
 
 /* ---------- startup ---------- */
-render(); refresh().then(loadProfile);
+loadCache(); applyKids(); render(); setStatus(); refresh();
+// ask the browser to keep this site's storage (address, code and local data) even under storage pressure
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+$("#sync").onclick = ()=>{ if (isLocal()) showTab("settings"); else refresh(); };
+window.addEventListener("online", ()=>refresh());
+window.addEventListener("offline", ()=>{ syncErr = "offline"; setStatus(); });
 setInterval(()=>{ renderSince(); if (document.visibilityState==="visible") refresh(); }, 20000);
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 setInterval(()=>{ if (liveFeeds().length) renderLive(); }, 5000);
 document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState==="visible") refresh(); });
 </script>
