@@ -26,26 +26,46 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Breast side (left / right / both) with a suggestion of the side to start from next time.
 - Bottle content: formula or expressed breast milk, with daily totals.
 - Duplicate warning (same event for the same child within 10 minutes) and 5-second undo.
+- **Notes**: quick tags (spit-up, vomit, yellowish skin, pale or green stool, hard to wake, unusual
+  crying, rash), temperature and free text.
+- **Daily reminders** (e.g. vitamin D or medicines prescribed by your paediatrician): a checklist in
+  *Day*, one tap to mark as given. Two schedules: *times a day* (highlighted when not given after the
+  set hour) or *every few hours* (e.g. a syrup every 8 h: shows the next dose time and a countdown,
+  highlighted when due). Optional end date for a course of medicine.
 
 **Day**
 - Time since the end of the last feed for each child, with a configurable highlight threshold.
-- Per-day counters; breast + bottle within 60 minutes count as a single feed.
+- Per-day counters. A feed is one breastfeed (both sides count once if logged within 15 minutes)
+  plus any bottle given within 60 minutes after it ends; a bottle on its own is a separate feed.
 - Day-by-day log with one column per child, gaps of 2+ hours highlighted, "add forgotten event";
   day selector, daily summary and column names stay pinned while scrolling; *Day details* expands the
   per-child cards.
+
+**Stages: newborns and older children in the same app**
+- Each child has a stage, automatic by age or chosen in *Settings → Children*:
+  - **Newborn** (first months): full log, feed and diaper signals;
+  - **Infant**: feeds and diapers can still be logged, without automatic feed/diaper signals;
+  - **Child** (older siblings): only weight, height, notes and daily reminders; the child does not
+    appear in the Day columns.
+- The app suggests moving on (Newborn → Infant from about 3 months, Infant → Child from 1 year);
+  the change is always the parent's choice.
 
 **Progress (one child at a time)**
 - Child selector and period: 7 / 14 / 30 days / all.
 - **Signals**, grouped as *Talk to your paediatrician*, *Keep an eye on*, *Going well*, *What may help*:
   feeds and wet diapers in the last 24 h, long stretches without feeding, stools, weight loss after birth,
   birth weight not regained, weight gain, centile crossing, missing weighings, top-up trend,
+  notes (temperature of 38 °C or more, pale stool, hard to wake, prolonged jaundice, repeated vomiting),
+  reminders not given yet,
   feeding patterns (long feeds followed by top-ups, top-ups mostly formula).
 - **Thresholds that follow the baby's age** (*Settings → Signals → Automatic by age*): minimum feeds and
   wet diapers, maximum hours between feeds and without poo, minimum weight gain change by age band
   (first month, 1–2, 2–3, 3–6, 6–12 months), based on values commonly given in NHS, AAP and WHO guidance;
   for babies born early the band follows the corrected age. Choose *Custom* to use the limits agreed
   with your paediatrician.
-- **Growth**: weight and length on reference centiles, with latest value, percentile, centile channel,
+- **Growth**: weight, length/height and (from 2 years) BMI on reference centiles: INTERGROWTH-21st for
+  preterm babies up to 64 weeks postmenstrual age, WHO Child Growth Standards up to 5 years (corrected age
+  for preterm babies up to 2 years), WHO Growth Reference 2007 from 5 to 19 years (weight up to 10 years); with latest value, percentile, centile channel,
   g/day and g/kg/day, birth-weight recovery, length gain, and the full list of measurements.
 - **Feeding** and **Diapers** cards with sparklines and change vs the previous period: feeds, breastfeed
   duration, % feeds with top-up, top-up volume, bottle ml, expressed milk, ml/kg, interval between feeds,
@@ -53,7 +73,8 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Feeding rhythm over 24 h, weekly summary and, as a secondary view, comparison between children.
 
 **Settings**
-- Children profiles, theme (auto / light / dark), feed highlight threshold, signal thresholds (automatic by age or custom).
+- Children profiles, title shown at the top (default *Baby log*, per device), theme (auto / light / dark),
+  feed highlight threshold, signal thresholds (automatic by age or custom).
 - Sync status, *Sync now*, sharing (app link, API address), disconnect this device.
 - About: version, references, license and source code.
 
@@ -132,8 +153,8 @@ No file needs to be edited.
    and are uploaded later with *Settings → Connect to a shared log*. On iPhone the Home Screen app has its own storage, separate from Safari,
    so do this step inside the installed app.
 4. Open **Settings → Edit children** and add each child: name, sex, date of birth, gestational age at birth
-   (weeks + days), and optionally birth weight, length and head circumference.
-   Gestational age is needed for corrected age and growth charts; use 40+0 for term babies if unknown.
+   (weeks + days; leave empty if born at term), the **stage**, and optionally birth weight, length and
+   head circumference.
 
 To add another caregiver later, run **`addAccessCode()`** in Apps Script: it creates one new code
 and keeps the existing ones. Share the app link and API address from *Settings → Sync and sharing*,
@@ -153,6 +174,8 @@ and the code through a private channel.
 | Weight / length | *Weight* button, or *Progress* → *Growth* → *＋ Add* |
 | Change children or birth data | *Settings* → *Edit children* |
 | Theme | *Settings* → *Appearance* |
+| Note | **＋** → *Note* → tags, temperature, text |
+| Daily reminder | *Settings* → *Daily reminders* → *＋ Add reminder*; tick it in *Day* |
 | Remove a device | *Settings* → *Disconnect this device* (data already on the device stays visible) |
 
 ---
@@ -164,7 +187,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | Column | Content |
 |---|---|
 | `id` | unique id |
-| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc` |
+| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med` |
 | `child` | internal child key (mapped to the child in the profile) |
 | `ts` | timestamp (milliseconds since 1970, UTC) |
 | `feedType` | `breast` or `bottle` |
@@ -178,9 +201,13 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | `milk` | bottle content: `f` formula, `e` expressed breast milk |
 | `updatedAt` | last change on the server (milliseconds), used by incremental sync |
 | `deleted` | `1` for deleted events (tombstones) |
+| `tags` | note tags (comma-separated) |
+| `text` | note text |
+| `temp` | temperature in °C |
+| `ref` | reminder id for a given reminder (`kind` = `med`) |
 
 Children profiles and access codes are stored in the script's **Script Properties**
-(`PROFILE`, `KEYS`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
+(`PROFILE`, `KEYS`, `MEDS`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
 
 ---
 
@@ -220,7 +247,8 @@ Optionally run `normaliseLegacyValues()` once to rewrite them in the sheet.
 
 In `index.html`:
 
-- `SESSION_GAP` — breast and bottle within this time count as one feed (default 60 min).
+- `SESSION_GAP` — a bottle within this time after a breastfeed ends is its top-up (default 60 min).
+- `SIDE_GAP` — breastfeeds within this time count as the two sides of one feed (default 15 min).
 - `DUP_WINDOW` — duplicate warning window (default 10 min).
 - `LIVE_MAX` — how long a running breastfeeding timer stays visible (default 60 min).
 - CSS variables `--k0` … `--k5` — colours of the children (six, reused after the sixth).
@@ -259,6 +287,8 @@ Created by **Matteo Moschitta** — [@Xeroxi91](https://github.com/Xeroxi91) · 
 ## Credits and references
 
 - WHO Child Growth Standards (2006).
+- de Onis M. et al., *Development of a WHO growth reference for school-aged children and adolescents*,
+  Bulletin of the WHO, 2007.
 - Villar J. et al., *Postnatal growth standards for preterm infants: the Preterm Postnatal
   Follow-up Study of the INTERGROWTH-21st Project*, Lancet Global Health, 2015.
 - Reference tables via the open-source R package [gigs](https://github.com/lshtm-gigs/gigs) (LSHTM).

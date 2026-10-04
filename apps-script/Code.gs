@@ -3,7 +3,7 @@
  * Exposes a small JSON API, protected by access codes, for the static page (e.g. GitHub Pages).
  *
  * Sheet "events": id | kind | child | ts | feedType | grams | dateTime | ml | duration | running | cm
- *                 | side | milk | updatedAt | deleted
+ *                 | side | milk | updatedAt | deleted | tags | text | temp | ref
  * The "child" column holds an internal child key; the page only ever sees opaque child ids.
  * Sync model: the page keeps a local copy and an outbox of changes; one "sync" call sends the
  * outbox and receives everything changed since the last sync (deletions are kept as tombstones).
@@ -14,7 +14,7 @@
 const SHEET = 'events';
 const LEGACY_SHEETS = ['eventi'];   // older versions of this project used this sheet name
 const HEADER = ['id', 'kind', 'child', 'ts', 'feedType', 'grams', 'dateTime', 'ml', 'duration', 'running', 'cm',
-                'side', 'milk', 'updatedAt', 'deleted'];
+                'side', 'milk', 'updatedAt', 'deleted', 'tags', 'text', 'temp', 'ref'];
 const COL = {}; HEADER.forEach((h, i) => COL[h] = i);
 const FEED_TYPES = { seno: 'breast', art: 'bottle', breast: 'breast', bottle: 'bottle' }; // legacy values are normalised
 
@@ -34,6 +34,7 @@ function doPost(e) {
       const api = {
         sync:         () => sync_(args[0] || {}),
         getProfile:   () => ({ children: children_().map(publicChild_) }),
+        saveMeds:     () => ({ meds: saveMeds_((args[0] && args[0].meds) || []) }),
         saveProfile:  () => ({ children: saveChildren_((args[0] && args[0].children) || []).map(publicChild_) })
       };
       out = api[req.action] ? { result: api[req.action]() } : { error: 'unknown action' };
@@ -78,7 +79,7 @@ function addAccessCode() {
 
 /* ---------- children ---------- */
 // Each child has an opaque id (seen by the page) and a key (value of the "child" column, never sent).
-const CHILD_FIELDS = ['name', 'sex', 'birth', 'gaW', 'gaD', 'bw', 'bl', 'bh'];
+const CHILD_FIELDS = ['name', 'sex', 'birth', 'gaW', 'gaD', 'bw', 'bl', 'bh', 'stage'];
 const newId_ = () => 'c' + Utilities.getUuid().replace(/-/g, '').slice(0, 10);
 
 let CHILDREN_CACHE_ = null;
@@ -163,7 +164,8 @@ function sheet_() {
 function row_(id, e, updatedAt, deleted) {
   return [id, e.kind, e.kidKey, Number(e.ts), e.feedType || '', e.grams || '', new Date(Number(e.ts)),
           e.ml || '', e.dur || '', e.live ? 1 : '', e.cm || '', e.side || '', e.milk || '',
-          updatedAt || '', deleted ? 1 : ''];
+          updatedAt || '', deleted ? 1 : '', e.tags || '', e.text ? String(e.text).slice(0, 500) : '',
+          e.temp || '', e.ref || ''];
 }
 
 function withLock_(fn) {
@@ -183,11 +185,15 @@ function rowToEvent_(r) {
   if (r[COL.side]) e.side = String(r[COL.side]);
   if (r[COL.milk]) e.milk = String(r[COL.milk]);
   if (r[COL.deleted]) e.deleted = 1;
+  if (r[COL.tags]) e.tags = String(r[COL.tags]);
+  if (r[COL.text]) e.text = String(r[COL.text]);
+  if (r[COL.temp]) e.temp = Number(r[COL.temp]);
+  if (r[COL.ref]) e.ref = String(r[COL.ref]);
   return e;
 }
 
 const validId_ = id => /^[A-Za-z0-9_-]{6,64}$/.test(String(id || ''));
-const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1 };
+const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1 };
 
 /**
  * Applies the client's outbox and returns everything changed since `since`
@@ -226,7 +232,7 @@ function sync_(p) {
       const e = toClient_(rowToEvent_(r));
       if (e.child) events.push(e);
     }
-    return { serverTime: now, events: events, children: children_().map(publicChild_) };
+    return { serverTime: now, events: events, children: children_().map(publicChild_), meds: meds_() };
   });
 }
 
@@ -239,4 +245,29 @@ function normaliseLegacyValues() {
   if (n < 1) return;
   const rng = s.getRange(2, 5, n, 1), v = rng.getValues();
   rng.setValues(v.map(r => [FEED_TYPES[r[0]] || r[0]]));
+}
+
+/* ---------- daily reminders (vitamin D, prescribed medicines…) ---------- */
+function meds_() {
+  const raw = PropertiesService.getScriptProperties().getProperty('MEDS');
+  return raw ? JSON.parse(raw) : [];
+}
+
+function saveMeds_(list) {
+  return withLock_(() => {
+    const ids = {};
+    children_().forEach(c => ids[c.id] = true);
+    const out = list.slice(0, 30).filter(m => m && ids[m.child] && String(m.name || '').trim()).map(m => ({
+      id: /^m[a-z0-9]{6,20}$/.test(String(m.id)) ? String(m.id) : 'm' + Utilities.getUuid().replace(/-/g, '').slice(0, 10),
+      child: String(m.child),
+      name: String(m.name).trim().slice(0, 40),
+      dose: String(m.dose || '').slice(0, 40),
+      times: Math.max(1, Math.min(12, Number(m.times) || 1)),
+      due: Math.max(0, Math.min(23, Number(m.due) || 0)),
+      every: Math.max(0, Math.min(48, Number(m.every) || 0)),          // hours between doses (0 = times a day)
+      until: /^\d{4}-\d{2}-\d{2}$/.test(String(m.until || '')) ? String(m.until) : ''
+    }));
+    PropertiesService.getScriptProperties().setProperty('MEDS', JSON.stringify(out));
+    return out;
+  });
 }
