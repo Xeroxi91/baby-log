@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use, adapt or fork this software, please cite it as below."
+title: "Baby log: a personal newborn log with growth charts"
+type: software
+authors:
+  - alias: "Xeroxi91"
+repository-code: "https://github.com/Xeroxi91/baby-log"
+url: "https://xeroxi91.github.io/baby-log/"
+license: PolyForm-Noncommercial-1.0.0
+version: "1.0.0"
+date-released: "2026-10-04"
+keywords:
+  - newborn
+  - growth charts
+  - breastfeeding
+  - INTERGROWTH-21st
+  - WHO growth standards
