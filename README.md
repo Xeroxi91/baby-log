@@ -17,7 +17,8 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 ## Features
 
 **Quick logging**
-- A floating **＋** button opens the logging panel from any screen; the bottom bar (*Day · Progress ·
+- A floating **＋** button opens the logging panel from any screen; tap one or more children to log
+  the same event for each (e.g. twins); the bottom bar (*Day · Progress ·
   Settings*) stays within thumb reach.
 - One-tap buttons: breastfeed, bottle/top-up (with ml), pee, poo, pee + poo, weight.
 - Time: *now*, −15 / −30 / −60 min, or any date/time. Per child or for all children at once.
@@ -166,7 +167,7 @@ and the code through a private channel.
 
 | Action | How |
 |---|---|
-| Log an event | **＋** → choose the child (or *All*), the time, then tap a button |
+| Log an event | **＋** → tap one or more children, the time, then an event |
 | Breastfeeding timer | **＋** → *Breast* with time *Now* → tap **Stop** at the end |
 | Bottle / top-up | *Bottle* → choose ml (±10 or 30/60/90/120) |
 | Fix or delete | *Day* → tap the event |

@@ -301,6 +301,12 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .actions [data-a][hidden]{display:none}
 .lbl2{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);margin-bottom:10px}
 .lbl2 input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font-size:1rem}
+.sheet .actions{grid-template-columns:repeat(4,1fr);gap:6px}
+.sheet .who{display:flex;flex-wrap:wrap;gap:6px}
+.sheet .who button{flex:1 1 auto;min-width:0;white-space:nowrap}
+.sheet .act{min-height:58px;padding:6px 2px;border-radius:12px;gap:2px}
+.sheet .act .ico{font-size:1.15rem}
+.sheet .act .lbl{font-size:.72rem;font-weight:700}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:6px}
 </style>
 </head>
@@ -344,12 +350,12 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
   <div class="actions">
     <button class="act" data-a="breast"><span class="ico">🤱</span><span class="lbl">Breast</span></button>
     <button class="act" data-a="bottle"><span class="ico">🍼</span><span class="lbl">Bottle</span></button>
-    <button class="act" data-a="weight"><span class="ico">⚖️</span><span class="lbl">Weight</span></button>
     <button class="act" data-a="pee"><span class="ico">💧</span><span class="lbl">Pee</span></button>
     <button class="act" data-a="poo"><span class="ico">💩</span><span class="lbl">Poo</span></button>
     <button class="act" data-a="diaper"><span class="ico">💧💩</span><span class="lbl">Pee + poo</span></button>
+    <button class="act" data-a="weight"><span class="ico">⚖️</span><span class="lbl">Weight</span></button>
     <button class="act" data-a="len"><span class="ico">📏</span><span class="lbl">Height</span></button>
-    <button class="act wide2" data-a="note"><span class="ico">📝</span><span class="lbl">Note</span></button>
+    <button class="act" data-a="note"><span class="ico">📝</span><span class="lbl">Note</span></button>
   </div>
 
 </div></dialog>
@@ -442,7 +448,9 @@ let kids = [];                                   // [{id, name, sex, birth, gaW,
 const kidIds = () => kids.map(k=>k.id);
 const KID = id => { const i = kids.findIndex(k=>k.id===id); return i<0 ? {name:"?", c:"var(--muted)"} : {name:kids[i].name, c:`var(--k${i%PALETTE})`}; };
 const prof = id => kids.find(k=>k.id===id) || {};
-const firstSel = () => sel==="all" ? (logIds()[0] || (kids[0] ? kids[0].id : "")) : sel;
+let picks = [];                       // children selected in the logging panel (one or more)
+const firstSel = () => sel==="multi" ? picks[0] : sel==="all" ? (logIds()[0] || (kids[0] ? kids[0].id : "")) : sel;
+const pickTargets = () => picks.filter(id=>stageOf(id)!=="child");
 const many = () => kids.length > 1;
 // stage of each child: newborn (full tracking), infant (lighter: no feed/diaper signals), child (growth, notes, reminders)
 const STAGES = [["newborn","Newborn"],["infant","Infant"],["child","Child"]];
@@ -710,8 +718,8 @@ const resetWhen = () => { if (whenMode!=="custom") setWhen("now"); };
 async function log(a){
   if (!kids.length){ openProfile(); return; }
   const ts = currentTs();
-  if (a==="len"){ const c = sel==="all" ? firstSel() : sel; openEditor(null, {kind:"len", child:c, ts, title: lifeDays(c, ts) >= 730 ? "Height" : "Length"}); return; }
-  if (a==="note"){ openEditor(null, {kind:"note", child: sel==="all" ? firstSel() : sel, ts, title:"Note"}); return; }
+  if (a==="len"){ const c = firstSel(); openEditor(null, {kind:"len", child:c, ts, title: lifeDays(c, ts) >= 730 ? "Height" : "Length"}); return; }
+  if (a==="note"){ openEditor(null, {kind:"note", child: firstSel(), ts, title:"Note"}); return; }
   if (a==="weight"){ openEditor(null, {kind:"weight", child: firstSel(), ts}); return; }
   if (a==="bottle"){
     const last = events.filter(e=>isBottle(e) && e.child===firstSel() && e.ml).sort((x,y)=>y.ts-x.ts)[0];
@@ -720,7 +728,8 @@ async function log(a){
   if (a==="breast" && whenMode!=="now"){
     openEditor(null, {kind:"feed", feedType:"breast", child:sel, ts, side: nextSide(firstSel()), title:"Breastfeed"}); return;
   }
-  const targets = sel==="all" ? logIds() : [sel];
+  const targets = sel==="multi" ? pickTargets() : [sel];
+  if (!targets.length) return;
   const evs = [];
   for (const t of targets){
     if (a==="breast") evs.push({kind:"feed", feedType:"breast", child:t, ts, live:1, side: nextSide(t)});
@@ -731,7 +740,7 @@ async function log(a){
     const ids = await saveWithCheck(evs); if (!ids) return;
     lastAdded = ids;
     const what = a==="breast" ? "Breastfeed" : a==="diaper" ? "Pee + poo" : a==="pee" ? "Pee" : "Poo";
-    toast(what+" · "+targets.map(t=>KID(t).name).join(" e ")+" · "+hm(ts));
+    toast(what+" · "+targets.map(t=>KID(t).name).join(" and ")+" · "+hm(ts));
     resetWhen();
   }catch(e){ toast("Not saved: "+(e.message||"error"), false); }
 }
@@ -772,7 +781,7 @@ function openEditor(id, ev){
 }
 function syncForm(){
   const k = $("#fKind").value, w = k==="weight", a = k==="feed-bottle", cm = k==="len" || k==="hc";
-  if ((w||cm) && $("#fKid").value==="all") $("#fKid").value = kids[0].id;
+  if ((w||cm) && ["all","multi"].includes($("#fKid").value)) $("#fKid").value = firstSel() || kids[0].id;
   $("#fCmWrap").hidden = !cm; $("#fCm").required = cm;
   $("#fGramsWrap").hidden = !w; $("#fGrams").required = w;
   $("#fMlWrap").hidden = !a;
@@ -781,7 +790,7 @@ function syncForm(){
   $("#fMilkWrap").hidden = !a;
   $("#fNoteWrap").hidden = k!=="note";
   $("#fMedWrap").hidden = k!=="med";
-  $("#fMlHint").textContent = a && $("#fKid").value==="all" ? " · each" : "";
+  $("#fMlHint").textContent = a && ["all","multi"].includes($("#fKid").value) ? " · each" : "";
 }
 $("#fKind").onchange = syncForm;
 function setSeg(sel, v){ document.querySelectorAll(sel+" button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===v)); }
@@ -813,7 +822,7 @@ $("#dlgForm").onsubmit = async e=>{
   if (k==="feed-breast"){ const d = parseInt($("#fDur").value,10); if (d>0) ev.dur = d; else if (editingLive) ev.live = 1; const sd = segVal("#fSide"); if (sd) ev.side = sd; }
   try{
     if (editing){ await setEvent(editing, ev); dlg.close(); return; }
-    const targets = ev.child==="all" ? logIds() : [ev.child];
+    const targets = ev.child==="all" ? logIds() : ev.child==="multi" ? pickTargets() : [ev.child];
     dlg.close();
     const ids = await saveWithCheck(targets.map(t=>({...ev, child:t})));
     if (!ids) return;
@@ -1079,21 +1088,27 @@ const NEW_KID = () => ({id:"", name:"", sex:"m", birth:"", gaW:40, gaD:0, bw:"",
 // header title: app name (customisable on each device), not the children's names
 const appTitle = () => { try { return localStorage.getItem("bl-title") || "Baby log"; } catch(e) { return "Baby log"; } };
 function stageActs(){   // older children: only weight, height and notes
-  const child = sel!=="all" && stageOf(sel)==="child";
+  const child = picks.length > 0 && picks.every(id=>stageOf(id)==="child");
   document.querySelectorAll('.actions [data-a]').forEach(b=>{ b.hidden = child && ["breast","bottle","pee","poo","diaper"].includes(b.dataset.a); });
 }
 function applyKids(){
-  if (sel!=="all" && !kids.find(k=>k.id===sel)) sel = kids[0] ? kids[0].id : "";
-  if (!manyLog() && sel==="all") sel = logIds()[0] || (kids[0] ? kids[0].id : "");
+  picks = picks.filter(id=>kids.some(k=>k.id===id));
+  if (!picks.length && kids.length) picks = [logIds()[0] || kids[0].id];
+  sel = picks.length > 1 ? "multi" : (picks[0] || "");
   $("#title").textContent = appTitle(); document.title = appTitle();
   const who = $("#who");
   who.hidden = !many();
-  who.style.gridTemplateColumns = `repeat(${Math.min(4, kids.length + (manyLog()?1:0))}, minmax(0,1fr))`;
-  who.innerHTML = kids.map(k=>`<button data-t="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${k.id===sel}">${esc(k.name)}</button>`).join("")
-    + (manyLog() ? `<button data-t="all" style="--c:var(--both)" aria-pressed="${sel==="all"}">All</button>` : "");
-  who.querySelectorAll("button").forEach(b=>b.onclick=()=>{ sel = b.dataset.t; who.querySelectorAll("button").forEach(x=>x.setAttribute("aria-pressed", x===b)); stageActs(); });
+  who.style.gridTemplateColumns = `repeat(${Math.min(4, kids.length)}, minmax(0,1fr))`;
+  who.innerHTML = kids.map(k=>`<button data-t="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${picks.includes(k.id)}">${esc(k.name)}</button>`).join("");
+  who.querySelectorAll("button").forEach(b=>b.onclick=()=>{          // toggle; at least one stays selected
+    const id = b.dataset.t;
+    if (picks.includes(id)){ if (picks.length > 1) picks = picks.filter(x=>x!==id); }
+    else picks = kids.map(k=>k.id).filter(x=>x===id || picks.includes(x));
+    sel = picks.length > 1 ? "multi" : picks[0];
+    applyKids();
+  });
   stageActs();
-  $("#fKid").innerHTML = kids.map(k=>`<option value="${esc(k.id)}">${esc(k.name)}</option>`).join("") + (many() ? `<option value="all" id="fAllOpt">All</option>` : "");
+  $("#fKid").innerHTML = kids.map(k=>`<option value="${esc(k.id)}">${esc(k.name)}</option>`).join("") + (picks.length > 1 ? `<option value="multi">${esc(picks.map(id=>KID(id).name).join(" + "))}</option>` : "") + (manyLog() ? `<option value="all" id="fAllOpt">All</option>` : "");
   $("#fKidWrap").hidden = !many();
 }
 const birthTs = t => new Date(prof(t).birth+"T00:00").getTime();
@@ -1657,7 +1672,7 @@ function renderTrend(){
 }
 
 /* ---------- settings ---------- */
-const APP_VERSION = "1.9.1";
+const APP_VERSION = "1.10.0";
 const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
 function renderSettings(){
