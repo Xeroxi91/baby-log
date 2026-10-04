@@ -1,4 +1,4 @@
-Required Notice: Copyright (c) 2026 Xeroxi91 (https://github.com/Xeroxi91/baby-log)
+Required Notice: Copyright (c) 2026 Matteo Moschitta (Xeroxi91) - https://matteomoschitta.it - https://github.com/Xeroxi91/baby-log
 
 # PolyForm Noncommercial License 1.0.0
 

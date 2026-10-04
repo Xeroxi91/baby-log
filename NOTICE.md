@@ -1,6 +1,6 @@
 # Third-party notices
 
-The license in `LICENSE.md` applies to the original code of this project (`index.html`, `apps-script/Code.gs` and assets).
+The license in `LICENSE.md` applies to the original code of this project (`index.html`, `sw.js`, `apps-script/Code.gs` and assets).
 The following third-party material is used under its own terms and is **not** covered by that license.
 
 - **WHO Child Growth Standards** (2006) – weight-for-age, length-for-age and head-circumference-for-age
@@ -11,6 +11,5 @@ The following third-party material is used under its own terms and is **not** co
 - Reference values were extracted from the tables distributed with the open-source R package
   **gigs** (London School of Hygiene & Tropical Medicine, GPL-3.0). No gigs code is included.
   https://github.com/lshtm-gigs/gigs
-- Fonts **Atkinson Hyperlegible** and **Fraunces**, loaded from Google Fonts, SIL Open Font License 1.1.
 
 Anyone reusing the growth reference values should check the original publishers' terms of use.

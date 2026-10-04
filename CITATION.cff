@@ -3,7 +3,10 @@ message: "If you use, adapt or fork this software, please cite it as below."
 title: "Baby log: a personal newborn log with growth charts"
 type: software
 authors:
-  - alias: "Xeroxi91"
+  - given-names: "Matteo"
+    family-names: "Moschitta"
+    alias: "Xeroxi91"
+    website: "https://matteomoschitta.it"
 repository-code: "https://github.com/Xeroxi91/baby-log"
 url: "https://xeroxi91.github.io/baby-log/"
 license: PolyForm-Noncommercial-1.0.0
