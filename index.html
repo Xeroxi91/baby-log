@@ -307,6 +307,35 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .sheet .act{min-height:58px;padding:6px 2px;border-radius:12px;gap:2px}
 .sheet .act .ico{font-size:1.15rem}
 .sheet .act .lbl{font-size:.72rem;font-weight:700}
+.pumpc{background:var(--surface);border-radius:12px;padding:8px 12px;margin-bottom:10px;border-left:4px solid var(--both)}
+.pumph{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pumph span{color:var(--muted);font-size:.85rem}
+.pumpi{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.pumpi button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:5px 10px;font-size:.85rem}
+.pumpi small{color:var(--muted)}
+/* ===== night mode: very dark, warm and dim, bigger targets ===== */
+:root[data-night]{color-scheme:dark;
+  --bg:#000; --surface:#0E0B08; --ink:#D9B48C; --muted:#8C7258; --line:#2A2016;
+  --k0:#B97C2E; --k1:#4E8E84; --k2:#8577C2; --k3:#B97650; --k4:#6A9354; --k5:#5389AE;
+  --ok:#4E8E84; --both:#8577C2; --both-soft:#1C1830; --danger:#C0574F; --warn:#C08A2E; --warn-soft:#241A08;
+  --refband:rgba(140,114,88,.10); --refband2:rgba(140,114,88,.12)}
+:root[data-night] .ico, :root[data-night] .ritem button, :root[data-night] .nightbtn, :root[data-night] .bottomnav .ni{filter:brightness(.65) saturate(.7)}
+:root[data-night] .sheet .act{min-height:76px}
+:root[data-night] .sheet .act .ico{font-size:1.5rem}
+:root[data-night] .sheet .act .lbl{font-size:.82rem}
+:root[data-night] .scard .big{font-size:1.9rem}
+:root[data-night] .fab{background:#3A2C1E;color:#D9B48C;box-shadow:none}
+:root[data-night] img, :root[data-night] svg{opacity:.85}
+.nightbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:40px;height:40px;font-size:1.1rem;margin-right:6px}
+.nightbtn[aria-pressed="true"]{background:var(--both-soft);border-color:var(--both)}
+.topr{display:flex;align-items:center}
+.cdays{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
+.cday{width:16px;height:16px;border-radius:4px;display:inline-block}
+.cday.c0{background:transparent;border:1.5px dashed var(--muted)}
+.cday.c1{background:var(--warn-soft);border:1.5px solid var(--warn)}
+.cday.c2{background:var(--ok);opacity:.75}
+.clog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.9rem}
+.clog b{display:inline-block;min-width:3.4em;color:var(--muted);font-variant-numeric:tabular-nums}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:6px}
 </style>
 </head>
@@ -314,7 +343,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 <div class="wrap">
   <div class="top">
     <h1 id="title">Baby log</h1>
-    <div class="topr"><button class="sync busy" id="sync" aria-live="polite" title="Sync now">Connecting…</button></div>
+    <div class="topr"><button class="nightbtn" id="nightBtn" aria-pressed="false" title="Night mode">🌙</button><button class="sync busy" id="sync" aria-live="polite" title="Sync now">Connecting…</button></div>
   </div>
 
   <div id="livebar"></div>
@@ -356,6 +385,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
     <button class="act" data-a="weight"><span class="ico">⚖️</span><span class="lbl">Weight</span></button>
     <button class="act" data-a="len"><span class="ico">📏</span><span class="lbl">Height</span></button>
     <button class="act" data-a="note"><span class="ico">📝</span><span class="lbl">Note</span></button>
+    <button class="act" data-a="pump"><span class="ico">🥛</span><span class="lbl">Pumping</span></button>
   </div>
 
 </div></dialog>
@@ -365,7 +395,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 <dialog id="dlg"><form method="dialog" class="dlg" id="dlgForm">
   <h2 id="dlgTitle">Edit</h2>
   <label id="fKidWrap">Who<select id="fKid"></select></label>
-  <label>What<select id="fKind"><option value="feed-breast">Breastfeed</option><option value="feed-bottle">Bottle</option><option value="pee">Pee</option><option value="poo">Poo</option><option value="weight">Weight</option><option value="len">Length</option><option value="hc">Head circumference</option><option value="note">Note</option><option value="med">Given (reminder)</option></select></label>
+  <label>What<select id="fKind"><option value="feed-breast">Breastfeed</option><option value="feed-bottle">Bottle</option><option value="pee">Pee</option><option value="poo">Poo</option><option value="weight">Weight</option><option value="len">Length</option><option value="hc">Head circumference</option><option value="note">Note</option><option value="pump">Pumping</option><option value="med">Given (reminder)</option></select></label>
   <label>When<input type="datetime-local" id="fTs" required></label>
   <div id="fMlWrap" style="display:flex;flex-direction:column;gap:8px">
     <span style="font-size:.9rem;color:var(--muted)">ml<span id="fMlHint" style="font-size:.8rem"></span></span>
@@ -381,6 +411,12 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
     <div class="mlrow"><input type="number" id="fDur" inputmode="numeric" min="1" max="120" step="1" aria-label="Duration in minutes"></div>
     <div class="mlchips"><button type="button" data-durv="10">10</button><button type="button" data-durv="15">15</button><button type="button" data-durv="20">20</button><button type="button" data-durv="30">30</button></div>
   </div>
+  <div id="fTwWrap" style="display:flex;flex-direction:column;gap:6px">
+    <span style="font-size:.9rem;color:var(--muted)">Test weighing (optional): same clothes and diaper, same scale</span>
+    <div class="two"><label>Before (g)<input type="number" id="fPre" inputmode="numeric" min="500" max="15000"></label>
+    <label>After (g)<input type="number" id="fPost" inputmode="numeric" min="500" max="15000"></label></div>
+    <small id="fTwOut" class="muted"></small>
+  </div>
   <div id="fSideWrap" style="display:flex;flex-direction:column;gap:6px"><span style="font-size:.9rem;color:var(--muted)">Side</span>
     <div class="seg" id="fSide"><button type="button" data-v="L">Left</button><button type="button" data-v="R">Right</button><button type="button" data-v="B">Both</button></div></div>
   <div id="fMilkWrap" style="display:flex;flex-direction:column;gap:6px"><span style="font-size:.9rem;color:var(--muted)">Milk</span>
@@ -392,8 +428,8 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
     <label>Note (optional)<textarea id="fText" rows="2" maxlength="500"></textarea></label>
   </div>
   <label id="fMedWrap">Reminder<select id="fMed"></select></label>
-  <label id="fCmWrap">Measurement (cm)<input type="number" id="fCm" inputmode="decimal" min="15" max="120" step="0.1"></label>
-  <label id="fGramsWrap">Weight (g)<input type="number" id="fGrams" inputmode="numeric" min="500" max="15000" step="1"></label>
+  <label id="fCmWrap"><span id="fCmLbl">Measurement (cm)</span><input type="number" id="fCm" inputmode="decimal" min="10" max="230" step="0.1"><small class="muted" id="fCmHint"></small></label>
+  <label id="fGramsWrap"><span id="fGramsLbl">Weight (g)</span><input type="number" id="fGrams" inputmode="decimal" min="0.1" max="200000" step="any"><small class="muted" id="fGramsHint"></small></label>
   <div class="row">
     <button type="button" class="btn del" id="fDel">Delete</button>
     <button type="button" class="btn ghost" id="fCancel">Close</button>
@@ -407,7 +443,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
   <label id="apiWrap">API address (web app URL, ends with /exec)<input id="apiIn" type="url" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
   <label>Access code<input id="keyIn" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" required></label>
   <p id="keyErr" class="note" style="color:var(--danger)" hidden></p>
-  <div class="row"><button class="btn ghost" type="button" id="localBtn">Use on this device only</button><button class="btn" type="submit">Connect</button></div>
+  <div class="row"><button class="btn ghost" type="button" id="demoBtn">Try with sample data</button><button class="btn ghost" type="button" id="localBtn">Use on this device only</button><button class="btn" type="submit">Connect</button></div>
   <p class="note" style="margin:0">Without connecting, entries stay on this device and can be sent to a shared log later.</p>
 </form></dialog>
 
@@ -468,6 +504,188 @@ let alertH = 3;
 try { alertH = Number(localStorage.getItem("bl-alertH")) || 3; } catch(e) {}
 
 const $ = s => document.querySelector(s);
+/* ---------- languages: English (source) and Italian ---------- */
+// The interface is written in English; Italian is applied by translating rendered text.
+let LANG = "en";
+try { const l = localStorage.getItem("bl-lang"); LANG = l==="it" || l==="en" ? l : ((navigator.language||"").toLowerCase().startsWith("it") ? "it" : "en"); } catch(e) {}
+const LOC = () => LANG==="it" ? "it-IT" : "en-GB";
+const IT = {
+// navigation and general
+"Day":"Giorno","Progress":"Andamento","Settings":"Impostazioni","Baby log":"Baby log","Close":"Chiudi","Save":"Salva","Delete":"Elimina","Edit":"Modifica","Change":"Cambia","Undo":"Annulla","All":"Tutti","Auto":"Auto","On":"Attiva","Off":"Disattiva","No":"No","Now":"Ora","Pick time":"Scegli ora","Who":"Chi","What":"Cosa","When":"Quando","For":"Per","Date":"Data","Date and time":"Data e ora","Name":"Nome","Sex":"Sesso","Male":"Maschio","Female":"Femmina","Other":"Altro","min":"min","ml":"ml","Period":"Periodo","Measurement":"Misura","Profile":"Profilo","Previous day":"Giorno precedente","Next day":"Giorno successivo","no data":"nessun dato","ago":"fa","stable":"stabile",
+"Log an event":"Registra un evento","Log an event ":"Registra un evento","New event":"Nuovo evento","New measurement":"Nuova misura","Add anyway":"Aggiungi comunque","Duplicate?":"Doppione?","＋ Forgotten event":"＋ Evento dimenticato","＋ Add":"＋ Aggiungi","＋ Add child":"＋ Aggiungi figlio","＋ Add reminder":"＋ Aggiungi promemoria","Day details":"Dettagli del giorno",
+"Tap an event to edit it · swipe to change day.":"Tocca un evento per modificarlo · scorri per cambiare giorno.",
+// events
+"Breast":"Seno","Bottle":"Biberon","Pee":"Pipì","Poo":"Cacca","Pee + poo":"Pipì + cacca","Weight":"Peso","Height":"Altezza","Length":"Lunghezza","Note":"Nota","Notes":"Note","Pumping":"Tiralatte","Breastfeed":"Allattamento","Head circumference":"Circonferenza cranica","BMI":"IMC","Given (reminder)":"Dato (promemoria)",
+"Left":"Sinistro","Right":"Destro","Both":"Entrambi","left":"sinistro","right":"destro","Side":"Lato","Milk":"Latte","Formula":"Formula","Expressed":"Estratto","Millilitres":"Millilitri","Duration in minutes":"Durata in minuti","Duration in minutes (optional)":"Durata in minuti (facoltativa)","Weight (g)":"Peso (g)","Weight (kg)":"Peso (kg)","Length (cm)":"Lunghezza (cm)","Height (cm)":"Altezza (cm)","Head circumference (cm)":"Circonferenza cranica (cm)","Measurement (cm)":"Misura (cm)",
+"Stop":"Stop","breastfeeding":"allattamento","Stop all":"Ferma tutti",
+"Test weighing (optional): same clothes and diaper, same scale":"Doppia pesata (facoltativa): stessi vestiti e pannolino, stessa bilancia","Before (g)":"Prima (g)","After (g)":"Dopo (g)",
+"What did you notice?":"Cosa hai notato?","Temperature (°C, optional)":"Temperatura (°C, facoltativa)","Note (optional)":"Nota (facoltativa)",
+"Spit-up":"Rigurgito","Vomit":"Vomito","Yellowish skin/eyes":"Pelle/occhi giallastri","Pale stool":"Feci chiare","Green stool":"Feci verdi","Hard to wake":"Difficile da svegliare","Unusual crying":"Pianto insolito","Rash":"Eruzione cutanea","Reminder":"Promemoria",
+"💧 pee":"💧 pipì","💩 poo":"💩 cacca","🥛 Pumping":"🥛 Tiralatte",
+// since bar / day
+"since end of feed":"dalla fine della poppata","next side:":"prossimo lato:","Feeds":"Poppate","per day":"al giorno",
+// progress
+"Growth":"Crescita","Latest":"Ultimo","Percentile":"Percentile","Centile channel":"Canale di percentile","Birth weight":"Peso alla nascita","Weight gain":"Aumento di peso","All measurements ({x})":"Tutte le misure ({x})","Feeding":"Alimentazione","Diapers":"Pannolini","Feeding rhythm":"Ritmo delle poppate","Weekly summary":"Riepilogo settimanale","Compare children":"Confronto tra figli","About the curves":"Le curve",
+"Breastfeed duration":"Durata allattamento","Intake at the breast":"Assunto al seno","Feeds with top-up":"Poppate con aggiunta","Top-up volume":"Volume aggiunta","Expressed milk":"Latte estratto","Pumped (parent)":"Estratto (genitore)","Bottle per kg":"Biberon per kg","Interval between feeds":"Intervallo tra poppate","Longest stretch":"Pausa più lunga",
+"ml per day":"ml al giorno","ml/kg per day":"ml/kg al giorno","h (median)":"h (mediana)","ml per feed (test weighing)":"ml per poppata (doppia pesata)","%":"%",
+"Week":"Settimana","Bottle ml":"Biberon ml","Weight g/day":"Peso g/giorno","Weight percentile":"Percentile peso",
+"Tap a card to enlarge it. Intervals are measured from start to start of feeds.":"Tocca una scheda per ingrandirla. Gli intervalli si misurano dall'inizio di una poppata all'inizio della successiva.",
+"Each bar is a feed from start to end; darker bars had a top-up. Night (22–6) in grey.":"Ogni barra è una poppata dall'inizio alla fine; le più scure hanno avuto un'aggiunta. Notte (22–6) in grigio.",
+"Talk to your paediatrician":"Parlane con il pediatra","Keep an eye on":"Da tenere d'occhio","Going well":"Va bene","What may help":"Cosa può aiutare",
+"Nothing to flag right now.":"Niente da segnalare al momento.",
+"Signals use the age-based thresholds in Settings. They are not a diagnosis: when in doubt, contact your paediatrician.":"I segnali usano le soglie per età delle Impostazioni. Non sono una diagnosi: nel dubbio contatta il pediatra.",
+"Signals are turned off in Settings.":"I segnali sono disattivati nelle Impostazioni.",
+"Steady growth along a centile line is what paediatricians look for.":"Una crescita regolare lungo una linea di percentile è ciò che i pediatri cercano.",
+"Over the last 7 days.":"Negli ultimi 7 giorni.",
+"age in months":"età in mesi","age in years":"età in anni","corrected age in months":"età corretta in mesi","corrected age in years":"età corretta in anni","weeks of postmenstrual age (40 = term)":"settimane di età postmestruale (40 = termine)",
+"Add birth details in Settings":"Aggiungi i dati di nascita nelle Impostazioni","Add date of birth and gestational age in Profile.":"Aggiungi data di nascita ed età gestazionale nel Profilo.",
+"WHO weight references end at 10 years: use BMI.":"Le referenze OMS per il peso finiscono a 10 anni: usa l'IMC.","Reference curves not available for this age.":"Curve di riferimento non disponibili per questa età.",
+"BMI needs a height and a weight measured within a month of each other.":"L'IMC richiede altezza e peso misurati a meno di un mese di distanza.",
+"Add your children in Settings to see their progress.":"Aggiungi i figli nelle Impostazioni per vederne l'andamento.","Not enough data yet.":"Dati ancora insufficienti.",
+"INTERGROWTH-21st for preterm infants up to 64 weeks postmenstrual age; WHO Child Growth Standards up to 5 years (corrected age for preterm babies up to 2 years); WHO Growth Reference 2007 from 5 to 19 years (weight up to 10 years, then BMI). Bands: 3rd–97th and 16th–84th percentile. What matters most is that each child keeps their own channel.":"INTERGROWTH-21st per i nati pretermine fino a 64 settimane di età postmestruale; OMS Child Growth Standards fino a 5 anni (età corretta per i pretermine fino a 2 anni); OMS Growth Reference 2007 da 5 a 19 anni (peso fino a 10 anni, poi IMC). Fasce: 3°–97° e 16°–84° percentile. Ciò che conta di più è che ogni bambino mantenga il proprio canale.",
+// signal texts
+"Birth weight not regained after 2 weeks":"Peso di nascita non recuperato dopo 2 settimane","Long breastfeeds often followed by a top-up":"Poppate lunghe spesso seguite da un'aggiunta","No entries in the last 24 h":"Nessuna registrazione nelle ultime 24 h","No weighings yet":"Ancora nessuna pesata","Noted: hard to wake":"Annotato: difficile da svegliare","Noted: pale stool":"Annotato: feci chiare","Noted: yellowish skin after 2 weeks":"Annotato: pelle giallastra dopo 2 settimane","Ready for the Infant stage?":"Pronti per la fase Infant?","Switch to the Child stage?":"Passare alla fase Child?","Top-ups are mostly formula":"Le aggiunte sono soprattutto formula","Weight crossed a centile line downwards":"Il peso ha attraversato una linea di percentile verso il basso","Weight loss above 10% in the first week":"Calo di peso oltre il 10% nella prima settimana",
+"A baby who is hard to wake or unusually floppy needs prompt medical advice.":"Un bambino difficile da svegliare o insolitamente molle richiede un parere medico tempestivo.",
+"A sign that breastfeeding is becoming more effective.":"Un segno che l'allattamento sta diventando più efficace.",
+"Expressing after some feeds and using that milk for top-ups is often recommended to protect and build milk supply. Ask your midwife or a lactation consultant how often to express.":"Tirare il latte dopo alcune poppate e usarlo per le aggiunte è spesso consigliato per sostenere la produzione. Chiedi all'ostetrica o a una consulente per l'allattamento ogni quanto tirarlo.",
+"From 1 year the log can keep only growth, notes and reminders. Change it in Settings → Children.":"Da 1 anno il diario può tenere solo crescita, note e promemoria. Cambialo in Impostazioni → Figli.",
+"From about 3 months, when your paediatrician confirms growth is well established, many parents log less. In Settings → Children you can switch to Infant: feeds and diapers stay available but are no longer checked.":"Da circa 3 mesi, quando il pediatra conferma che la crescita è ben avviata, molti genitori registrano meno. In Impostazioni → Figli puoi passare a Infant: poppate e pannolini restano disponibili ma non vengono più controllati.",
+"Log the weight to follow growth on the reference curves.":"Registra il peso per seguire la crescita sulle curve di riferimento.",
+"Pale (white, grey or very light) stools in a newborn should be shown to your paediatrician soon. Keep a photo to show.":"Le feci chiare (bianche, grigie o molto pallide) in un neonato vanno mostrate presto al pediatra. Tieni una foto da fargli vedere.",
+"Regular weighings (same scale, same conditions) make the trend more reliable.":"Pesate regolari (stessa bilancia, stesse condizioni) rendono l'andamento più affidabile.",
+"Signals about feeds and diapers are paused until new entries are logged.":"I segnali su poppate e pannolini sono sospesi finché non registri nuovi eventi.",
+"Small spit-ups are common; repeated or forceful vomiting is worth a call to your paediatrician.":"Piccoli rigurgiti sono comuni; vomito ripetuto o a getto merita una telefonata al pediatra.",
+"In babies under 3 months a temperature of 38 °C or more needs prompt medical advice: contact your paediatrician or out-of-hours service now.":"Sotto i 3 mesi una temperatura di 38 °C o più richiede un parere medico tempestivo: contatta subito il pediatra o la guardia medica.",
+"In the first weeks frequent stools are a sign of good intake. Mention it to your paediatrician if it continues.":"Nelle prime settimane feci frequenti sono segno di una buona alimentazione. Parlane con il pediatra se continua.",
+// settings
+"Children":"Figli","Edit children":"Modifica figli","Appearance":"Aspetto","Theme":"Tema","Light":"Chiaro","Dark":"Scuro","Night mode":"Modalità notte","· very dark and dim, bigger buttons":"· molto scura e attenuata, pulsanti più grandi","Title shown at the top":"Titolo in alto","Language":"Lingua","3rd":"3°","16th":"16°","50th":"50°","84th":"84°","97th":"97°",
+"Try with sample data":"Prova con dati di esempio","You are looking at":"Stai guardando","sample data":"dati di esempio",": nothing is shared.":": niente viene condiviso.","Remove sample data and start":"Rimuovi i dati di esempio e inizia","Remove all sample data from this device?":"Rimuovere tutti i dati di esempio da questo dispositivo?","Remove the sample data before connecting to a shared log?":"Rimuovere i dati di esempio prima di collegarti a un diario condiviso?",
+"Descriptive view: the app shows your entries without interpreting them. Signals can be turned on in Settings → Signals.":"Vista descrittiva: l'app mostra le registrazioni senza interpretarle. I segnali si possono attivare in Impostazioni → Segnali.",
+"Off by default. When on, the app compares your entries with age-based thresholds and shows \"talk to your paediatrician / keep an eye on / going well / what may help\". It is not a medical device: use it only if it helps you, and agree thresholds with your paediatrician.":"Disattivati di default. Se attivi, l'app confronta le registrazioni con soglie per età e mostra \"parlane con il pediatra / da tenere d'occhio / va bene / cosa può aiutare\". Non è un dispositivo medico: usali solo se ti sono utili e concorda le soglie con il pediatra.",
+"Diary completeness":"Completezza del diario","Averages use only days with entries. A missing entry does not mean that nothing happened.":"Le medie usano solo i giorni con registrazioni. Un evento non registrato non significa che non sia avvenuto.",
+"Export":"Esporta","Spreadsheet (CSV)":"Foglio di calcolo (CSV)","Full backup (JSON)":"Backup completo (JSON)","All entries, children and reminders on this device. The file contains personal data: keep it private.":"Tutti gli eventi, i figli e i promemoria presenti su questo dispositivo. Il file contiene dati personali: tienilo riservato.",
+"Daily reminders":"Promemoria giornalieri","Daily reminder":"Promemoria giornaliero","New daily reminder":"Nuovo promemoria giornaliero","Edit reminder":"Modifica promemoria","Dose (optional)":"Dose (facoltativa)","Times a day":"Volte al giorno","Every few hours":"Ogni tot ore","Every (hours)":"Ogni (ore)","Doses a day":"Dosi al giorno","Remind after":"Ricorda dopo le","Until (optional)":"Fino al (facoltativo)","All children":"Tutti i figli","e.g. Vitamin D":"es. Vitamina D","e.g. 4 drops":"es. 4 gocce",
+"For a course of medicine, set the last day: the reminder stops after it.":"Per una terapia, indica l'ultimo giorno: dopo quella data il promemoria si ferma.",
+"For example vitamin D or other medicines prescribed by your paediatrician. They appear in Day as a daily checklist.":"Per esempio vitamina D o altri farmaci prescritti dal pediatra. Compaiono in Giorno come lista di controllo quotidiana.",
+"Feeds ":"Poppate ","Highlight a child when the last feed ended more than":"Evidenzia un figlio quando l'ultima poppata è finita da più di",
+"A bottle within 60 min after a breastfeed counts as its top-up; both sides within 15 min count as one feed.":"Un biberon entro 60 min dalla fine del seno conta come aggiunta; i due lati entro 15 min contano come una poppata.",
+"Signals":"Segnali","Show signals in Progress":"Mostra i segnali in Andamento","Automatic by age":"Automatiche per età","Custom":"Personalizzate","not checked":"non controllato",
+"Min feeds in 24 h":"Poppate minime in 24 h","Min wet diapers in 24 h":"Pannolini bagnati minimi in 24 h","Max hours between feeds":"Ore massime tra poppate","Max hours without poo":"Ore massime senza cacca","Min weight gain (g/day)":"Aumento minimo di peso (g/giorno)",
+"Automatic: thresholds change as the baby grows, following values commonly given in NHS, AAP and WHO guidance for healthy infants; for babies born early the age band follows the corrected age. Your paediatrician may advise different limits: in that case choose Custom.":"Automatiche: le soglie cambiano con la crescita, secondo i valori più diffusi nelle indicazioni di NHS, AAP e OMS per neonati sani; per i nati prima del termine la fascia segue l'età corretta. Il pediatra può indicare limiti diversi: in quel caso scegli Personalizzate.",
+"Before term (corrected age)":"Prima del termine (età corretta)","First month":"Primo mese","1–2 months":"1–2 mesi","2–3 months":"2–3 mesi","3–6 months":"3–6 mesi","6–12 months":"6–12 mesi","Over 1 year":"Oltre 1 anno",
+"Sync and sharing":"Sincronizzazione e condivisione","Sync now":"Sincronizza ora","Share app link":"Condividi link app","Copy API address":"Copia indirizzo API","Disconnect this device":"Disconnetti questo dispositivo","Connect to a shared log":"Collega a un diario condiviso","Using this device only":"Uso solo su questo dispositivo","Not synced yet":"Non ancora sincronizzato",
+"Entries and children created here are uploaded when you connect.":"Eventi e figli creati qui vengono caricati quando ti colleghi.",
+"About":"Informazioni","Created by":"Creato da","Source code":"Codice sorgente",
+"Not a medical device: charts support conversations with your paediatrician and do not replace clinical assessment.":"Non è un dispositivo medico: i grafici aiutano il dialogo con il pediatra e non sostituiscono la valutazione clinica.",
+"Growth references: WHO Child Growth Standards (2006); INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), reference tables via the open-source gigs package (LSHTM).":"Riferimenti di crescita: OMS Child Growth Standards (2006) e Growth Reference 2007; INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), tabelle tramite il pacchetto open source gigs (LSHTM).",
+// profile
+"Date of birth":"Data di nascita","Gestational weeks":"Settimane gestazionali","+ days":"+ giorni","Birth weight (g)":"Peso alla nascita (g)","Birth length (cm)":"Lunghezza alla nascita (cm)","Birth head circ. (cm)":"Circ. cranica alla nascita (cm)","Stage":"Fase","Newborn":"Newborn","Infant":"Infant","Child":"Child","Leave empty if born at term.":"Lascia vuoto se nato a termine.",
+"Newborn: full log. Infant: lighter, no feed or diaper signals. Child: weight, height, notes and reminders only.":"Newborn: diario completo. Infant: più leggero, senza segnali su poppate e pannolini. Child: solo peso, altezza, note e promemoria.",
+"Used for corrected age and growth charts. Shared by all devices connected to the same log.":"Serve per età corretta e curve di crescita. È condiviso da tutti i dispositivi collegati allo stesso diario.",
+// setup
+"Connect the log":"Collega il diario","API address (web app URL, ends with /exec)":"Indirizzo API (URL della web app, finisce con /exec)","Access code":"Codice di accesso","Connect":"Collega","Use on this device only":"Usa solo su questo dispositivo",
+"Only once per device. The address and code are stored on this device only.":"Solo una volta per dispositivo. Indirizzo e codice restano salvati solo su questo dispositivo.",
+"Without connecting, entries stay on this device and can be sent to a shared log later.":"Senza collegamento gli eventi restano su questo dispositivo e si possono inviare a un diario condiviso in seguito.",
+// status
+"This device only":"Solo questo dispositivo","Connecting…":"Connessione…","Offline":"Offline","Retrying":"Nuovo tentativo","Sync error":"Errore di sincronizzazione","Syncing…":"Sincronizzazione…","scheduled":"programmato",
+// toasts / confirms
+"API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
+"Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
+};
+// templates: {x} matches any text
+const IT_T = [
+["Today, {x}","Oggi, {x}"],["Yesterday, {x}","Ieri, {x}"],
+["{x} feeds · {x} pee · {x} poo · {x} ml","{x} poppate · {x} pipì · {x} cacca · {x} ml"],
+["{x} breast+top-up · {x} breast","{x} seno+aggiunta · {x} seno"],["{x} ml bottle ({x} expressed)","{x} ml biberon ({x} estratto)"],["{x} ml bottle","{x} ml biberon"],
+["{x} session · {x} ml","{x} sessione · {x} ml"],["{x} sessions · {x} ml","{x} sessioni · {x} ml"],
+["started {x} ({x}) · +top-up","iniziata {x} ({x}) · +aggiunta"],["started {x} ({x})","iniziata {x} ({x})"],
+["{x} without events","{x} senza eventi"],["no events for {x}","nessun evento da {x}"],
+["{x} days old · {x} days to term · {x} stage","{x} giorni · {x} giorni al termine · fase {x}"],["{x} days old · corrected age {x} wk {x} d · {x} stage","{x} giorni · età corretta {x} sett {x} g · fase {x}"],
+["{x} years {x} months · {x} stage","{x} anni {x} mesi · fase {x}"],["{x} year {x} months · {x} stage","{x} anno {x} mesi · fase {x}"],["{x} years {x} month · {x} stage","{x} anni {x} mese · fase {x}"],["{x} year {x} month · {x} stage","{x} anno {x} mese · fase {x}"],["{x} years · {x} stage","{x} anni · fase {x}"],["{x} year · {x} stage","{x} anno · fase {x}"],
+["{x} days old · {x} stage","{x} giorni · fase {x}"],["{x} months · corrected {x} months · {x} stage","{x} mesi · corretta {x} mesi · fase {x}"],["{x} months · {x} stage","{x} mesi · fase {x}"],
+["breast avg {x} min","seno media {x} min"],["g/day, {x} days","g/giorno, {x} giorni"],
+["{x} g/kg/day · last {x} days","{x} g/kg/giorno · ultimi {x} giorni"],["Gaining {x} g/day ({x} g/kg/day)","Cresce {x} g/giorno ({x} g/kg/giorno)"],
+["Keeping the {x} percentile channel","Mantiene il canale del {x} percentile"],["Birth weight regained at day {x}","Peso di nascita recuperato al giorno {x}"],["regained at day {x}","recuperato al giorno {x}"],
+["since {x}","dal {x}"],["Next update on {x}","Prossimo aggiornamento il {x}"],["Over the last {x} days.","Negli ultimi {x} giorni."],
+["· daily average over {x} days, arrows vs previous period","· media giornaliera su {x} giorni, frecce rispetto al periodo precedente"],["· daily average over all days","· media giornaliera su tutti i giorni"],["· last {x} days","· ultimi {x} giorni"],
+["Grey band: common reference, {x}","Fascia grigia: riferimento comune, {x}"],["at least {x} per day in the first weeks","almeno {x} al giorno nelle prime settimane"],["at least {x} per day","almeno {x} al giorno"],["{x} per day","{x} al giorno"],
+["Usual range for this age: {x} – {x}","Intervallo abituale per questa età: {x} – {x}"],
+["{x} is outside the usual range for this age ({x} – {x}). Save anyway?","{x} è fuori dall'intervallo abituale per questa età ({x} – {x}). Salvare comunque?"],
+["{x} cm is outside the usual range for this age ({x} – {x} cm). Save anyway?","{x} cm è fuori dall'intervallo abituale per questa età ({x} – {x} cm). Salvare comunque?"],
+["{x} already given today for {x}. Undo the last one?","{x} già dato oggi a {x}. Annullare l'ultimo?"],
+["Next dose of {x} for {x} is at {x}. Log a dose now anyway?","La prossima dose di {x} per {x} è alle {x}. Registrare comunque una dose ora?"],
+["Fill with values suggested for {x}","Compila con i valori suggeriti per {x}"],["{x}: feed and diaper signals are not used at this stage.","{x}: in questa fase i segnali su poppate e pannolini non sono usati."],
+["Edit {x} at {x}","Modifica {x} delle {x}"],["{x} of {x} on WHO curves","{x} di {x} sulle curve OMS"],["{x} of {x} on reference curves","{x} di {x} sulle curve di riferimento"],
+["All measurements ({x})","Tutte le misure ({x})"],["Updated {x}","Aggiornato {x}"],["{x} to send","{x} da inviare"],["Stop all ({x})","Ferma tutti ({x})"],["Stopped {x} feeds","Fermate {x} poppate"],
+["Breastfeed · {x} · {x} min","Allattamento · {x} · {x} min"],["Not saved: {x}","Non salvato: {x}"],["Profile not saved: {x}","Profilo non salvato: {x}"],
+["{x} feeds in the last 24 h","{x} poppate nelle ultime 24 h"],["{x} vomits in the last 24 h","{x} episodi di vomito nelle ultime 24 h"],["{x} wet diapers in the last 24 h","{x} pannolini bagnati nelle ultime 24 h"],
+["Fewer feeds need a top-up ({x} vs {x})","Meno poppate con aggiunta ({x} contro {x})"],["Last weighing {x} days ago","Ultima pesata {x} giorni fa"],["No poo for {x} h","Niente cacca da {x} h"],["Stretch of {x} h without feeding","{x} h senza poppare"],
+["Temperature {x} °C","Temperatura {x} °C"],["Weight gain {x} g/day over the last 7 days","Aumento di peso {x} g/giorno negli ultimi 7 giorni"],["{x}: dose due since {x}","{x}: dose da dare dalle {x}"],["{x} not given yet today","{x} non ancora dato oggi"],["Dose: {x}.","Dose: {x}."],
+["Below the {x} suggested for this age. {y}","Sotto il valore di {x} suggerito per questa età. {y}"],["Below the {x} you set. {y}","Sotto il valore di {x} che hai impostato. {y}"],
+["Longer than the {x} h suggested for this age. {y}","Più delle {x} h suggerite per questa età. {y}"],["Longer than the {x} h you set. {y}","Più delle {x} h che hai impostato. {y}"],
+["Average {x} min at the breast and {x} of feeds topped up: babies born early often tire at the breast. Commonly suggested: skin-to-skin, breast compression, switching sides when swallowing slows. A lactation consultant can check latch and milk transfer.","In media {x} min al seno e {x} delle poppate con aggiunta: i bambini nati prima del termine si stancano spesso al seno. Si suggeriscono di solito pelle a pelle, compressione del seno e cambio di lato quando la deglutizione rallenta. Una consulente per l'allattamento può valutare attacco e trasferimento del latte."],
+["From {x} to {x} percentile since {x}. A drop across centile lines is something to show your paediatrician.","Dal {x} al {x} percentile dal {x}. Una discesa attraverso le linee di percentile va mostrata al pediatra."],
+["Jaundice lasting beyond {x} weeks of age is usually checked by the paediatrician.","Un ittero che dura oltre le {x} settimane di vita viene di solito controllato dal pediatra."],
+["Latest {x} g vs {x} g at birth. Worth discussing with your paediatrician.","Ultimo {x} g contro {x} g alla nascita. Vale la pena parlarne con il pediatra."],
+["Lowest weight {x} g vs {x} g at birth. This is usually followed closely by the paediatrician.","Peso minimo {x} g contro {x} g alla nascita. Di solito il pediatra lo segue da vicino."],
+["Weight · {x}: {x} g","Peso · {x}: {x} g"],["{x} · {x}: {x} cm","{x} · {x}: {x} cm"],
+["{x} ago","{x} fa"],
+["Taken at the breast: about {x} ml","Assunto al seno: circa {x} ml"],
+["{x} of {x} days with entries · {x} with few entries · no entries on {x}","{x} giorni su {x} con registrazioni · {x} con poche registrazioni · nessuna registrazione il {x}"],
+["{x} of {x} days with entries · {x} with few entries","{x} giorni su {x} con registrazioni · {x} con poche registrazioni"],
+["{x} of {x} days with entries · no entries on {x}","{x} giorni su {x} con registrazioni · nessuna registrazione il {x}"],
+["{x} of {x} days with entries","{x} giorni su {x} con registrazioni"],["After is lower than before: check the values","Il dopo è minore del prima: controlla i valori"],
+["{x} not shared yet","{x} non ancora condivise"],["{x} waiting to be sent","{x} in attesa di invio"],["Last sync {x}","Ultima sincronizzazione {x}"],
+["{x} (Child), {x} (Child): feed and diaper signals are not used at this stage.","{x} (Child), {x} (Child): in questa fase i segnali su poppate e pannolini non sono usati."],
+["boy · born {x}","maschio · nato il {x}"],["girl · born {x}","femmina · nata il {x}"],
+];
+// phrases replaced inside longer texts (signal explanations, reminder lines)
+const IT_P = [
+[" · next tomorrow "," · prossima domani "],[" · next "," · prossima "],["(in ","(tra "],[" · due since "," · da dare dalle "],[" · first dose any time"," · prima dose quando vuoi"],[" · due"," · da dare"],
+["× a day","× al giorno"],[" · every "," · ogni "],[" · until "," · fino al "],[" · remind after "," · ricorda dopo le "],[" (ended)"," (terminato)"],
+["Offering the breast at early hunger cues (rooting, hands to mouth, stirring) usually helps reach 8–12 feeds a day.","Offrire il seno ai primi segnali di fame (ricerca del capezzolo, mani alla bocca, risveglio) aiuta di solito ad arrivare a 8–12 poppate al giorno."],
+["Wet diapers reflect how much milk the baby is getting: if they stay low, contact your paediatrician or midwife.","I pannolini bagnati riflettono quanto latte assume il bambino: se restano pochi, contatta il pediatra o l'ostetrica."],
+["Effective feeds matter more than long feeds: see the feeding tips below and talk to your paediatrician or a lactation consultant.","Contano più poppate efficaci che poppate lunghe: vedi i suggerimenti sotto e parlane con il pediatra o con una consulente per l'allattamento."],
+["Babies born before 37 weeks are often advised not to go too long between feeds until weight gain is well established. Ask your paediatrician how long to let them sleep.","Per i nati prima delle 37 settimane si consiglia spesso di non lasciar passare troppo tempo tra le poppate finché la crescita non è ben avviata. Chiedi al pediatra quanto lasciarli dormire."],
+["In the first weeks long stretches are worth mentioning to your paediatrician.","Nelle prime settimane le pause lunghe vanno riferite al pediatra."],
+[" g/day"," g/giorno"],[" cm/week"," cm/settimana"],[" cm/year"," cm/anno"],[" kg/year"," kg/anno"],["regained at day","recuperato al giorno"],
+["🤱 breast","🤱 seno"],[" expressed"," estratto"],["🍼 ","🍼 "],[" formula"," formula"],
+];
+function compileT(list){ return list.map(([a,b])=>{ const names = []; const re = new RegExp("^"+a.replace(/[.*+?^$()|[\]\\]/g,"\\$&").replace(/\{(\w)\}/g,(m,n)=>{ names.push(n); return "(.+?)"; })+"$"); return [re, b, names]; }); }
+const IT_RE = compileT(IT_T);
+function tr(s){
+  if (LANG!=="it" || !s) return s;
+  const m0 = s.match(/^(\s*)([\s\S]*?)(\s*)$/), pre = m0[1], core = m0[2], post = m0[3];
+  if (!core) return s;
+  if (IT[core]!=null) return pre+IT[core]+post;
+  for (const [re, out, names] of IT_RE){
+    const m = core.match(re); if (!m) continue;
+    let i = 1, res = out; const vals = {};
+    names.forEach(n=>{ (vals[n] = vals[n] || []).push(m[i++]); });
+    const used = {}; res = res.replace(/\{(\w)\}/g,(x,n)=>{ used[n] = (used[n]||0); return tr(vals[n][used[n]++]); });
+    return pre+res+post;
+  }
+  let out = core;
+  for (const [a,b] of IT_P) if (out.includes(a)) out = out.split(a).join(b);
+  return pre+out+post;
+}
+function translateTree(root){
+  if (LANG!=="it" || !root) return;
+  const walk = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  const nodes = []; let n; while ((n = walk.nextNode())) nodes.push(n);
+  nodes.forEach(t=>{ if (t.parentElement && t.parentElement.closest("script,style,.notr")) return; const v = tr(t.nodeValue); if (v!==t.nodeValue) t.nodeValue = v; });
+  if (root.querySelectorAll) root.querySelectorAll("[placeholder],[title],[aria-label]").forEach(e=>["placeholder","title","aria-label"].forEach(a=>{ const v = e.getAttribute(a); if (v){ const t = tr(v); if (t!==v) e.setAttribute(a, t); } }));
+}
+if (LANG==="it"){
+  document.documentElement.lang = "it";
+  const nativeConfirm = window.confirm.bind(window);
+  window.confirm = msg => nativeConfirm(tr(msg));
+  new MutationObserver(ms=>{ for (const m of ms){
+    if (m.type==="characterData") { const v = tr(m.target.nodeValue); if (v!==m.target.nodeValue) m.target.nodeValue = v; }
+    else m.addedNodes.forEach(x=>{ if (x.nodeType===3){ const v = tr(x.nodeValue); if (v!==x.nodeValue) x.nodeValue = v; } else if (x.nodeType===1) translateTree(x); });
+  } }).observe(document.body, {childList:true, subtree:true, characterData:true});
+}
+
 const pad = n => String(n).padStart(2,"0");
 const dayKey = ts => { const d = new Date(ts); return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); };
 const hm = ts => { const d = new Date(ts); return pad(d.getHours())+":"+pad(d.getMinutes()); };
@@ -475,7 +693,7 @@ const toLocalInput = ts => dayKey(ts)+"T"+hm(ts);
 const fromLocalInput = v => new Date(v).getTime();
 const dayLabel = key => { const [y,m,d]=key.split("-").map(Number); const dt=new Date(y,m-1,d);
   const today = dayKey(Date.now()), yest = dayKey(Date.now()-864e5);
-  const base = dt.toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+  const base = dt.toLocaleDateString(LOC(),{weekday:"short",day:"numeric",month:"short"});
   return key===today ? "Today, "+base : key===yest ? "Yesterday, "+base : base; };
 const dur = ms => { const m = Math.max(0, Math.round(ms/6e4)); if (m<60) return m+" min"; return Math.floor(m/60)+" h "+pad(m%60); };
 const ago = ts => ts > Date.now() ? "scheduled" : dur(Date.now()-ts)+" ago";
@@ -494,7 +712,7 @@ const isBreast = e => e.kind==="feed" && e.feedType!=="bottle";
 const NOTE_TAGS = [["spitup","Spit-up"],["vomit","Vomit"],["yellow","Yellowish skin/eyes"],["pale","Pale stool"],["green","Green stool"],["sleepy","Hard to wake"],["crying","Unusual crying"],["rash","Rash"],["other","Other"]];
 const TAG = Object.fromEntries(NOTE_TAGS);
 let meds = [];                                    // [{id, child, name, dose, times, due}]
-const label = e => e.kind==="note" ? "Note" : e.kind==="med" ? (medName(e.ref) || "Reminder") : e.kind==="feed" ? (isBottle(e) ? "Bottle" : "Breastfeed") : e.kind==="pee" ? "Pee" : e.kind==="poo" ? "Poo" : e.kind==="len" ? "Length" : e.kind==="hc" ? "Head circumference" : "Weight";
+const label = e => e.kind==="pump" ? "Pumping" : e.kind==="note" ? "Note" : e.kind==="med" ? (medName(e.ref) || "Reminder") : e.kind==="feed" ? (isBottle(e) ? "Bottle" : "Breastfeed") : e.kind==="pee" ? "Pee" : e.kind==="poo" ? "Poo" : e.kind==="len" ? "Length" : e.kind==="hc" ? "Head circumference" : "Weight";
 
 /* ---------- storage (Google Sheet via Apps Script) ---------- */
 // API address and access code are asked on first launch and stored on this device only.
@@ -522,6 +740,7 @@ function askSetup(msg){
       try { localStorage.setItem("bl-api", u); localStorage.setItem("bl-key", k); } catch(err) {}
       d.close(); setupPromise = null; res(wasLocal ? "fromLocal" : "server");
     };
+    $("#demoBtn").onclick = ()=>seedDemo();
     $("#localBtn").onclick = ()=>{ setMode("local"); d.close(); setupPromise = null; res("local"); };
     d.oncancel = e=>e.preventDefault();
     d.showModal();
@@ -532,7 +751,60 @@ function disconnect(){   // forget address and code; what is already on the devi
   try { ["bl-key","bl-api"].forEach(k=>localStorage.removeItem(k)); } catch(e) {}
   apiKey = ""; apiUrl = ""; setMode("local"); saveCache(); render(); setStatus();
 }
-async function connectShared(){  // from local mode: connect, then upload children and entries made on this device
+/* ---------- sample data (for demos and tests; stays on this device) ---------- */
+const isDemo = () => { try { return localStorage.getItem("bl-demo")==="1"; } catch(e) { return false; } };
+function seedDemo(){
+  const now = Date.now(), day = 864e5, H = 36e5, ev = {}; let n = 0;
+  const add = o => { const id = "p" + (n++); ev[id] = Object.assign({id}, o); };
+  const birth = new Date(now - 16*day); birth.setHours(0,0,0,0);
+  const kids = [
+    {id:"cdemoa0001", name:"Child A", sex:"m", birth: birth.toISOString().slice(0,10), gaW:36, gaD:5, bw:"2650", bl:"46", bh:""},
+    {id:"cdemob0002", name:"Child B", sex:"f", birth: birth.toISOString().slice(0,10), gaW:36, gaD:5, bw:"2870", bl:"47", bh:""}];
+  const start = now - 14*day; let side = {cdemoa0001:"L", cdemob0002:"R"};
+  kids.forEach((k,ki)=>{
+    let t = start + ki*15*60e3, i = 0;
+    while (t < now - 40*60e3){
+      const dur = 18 + (i*7 % 14), d = Math.floor((t-start)/day);
+      add({kind:"feed", feedType:"breast", child:k.id, ts:t, dur, side: side[k.id]});
+      side[k.id] = side[k.id]==="L" ? "R" : "L";
+      if ((i + ki) % 2 === 0 || d < 4) add({kind:"feed", feedType:"bottle", child:k.id, ts:t+(dur+5)*60e3, ml: 25 + Math.min(20, d*2) + (i%3)*5, milk: i%3===0 ? "e" : "f"});
+      if (i % 4 !== 3) add({kind:"pee", child:k.id, ts:t+50*60e3});
+      if (i % (ki ? 3 : 2) === 0) add({kind:"poo", child:k.id, ts:t+52*60e3});
+      t += (2.2 + ((i*13) % 10)/10) * H; i++;
+    }
+    for (let d = 14; d >= 0; d -= 2){
+      const ts = now - d*day - 3*H, base = ki ? 2800 : 2600, g = ki ? 21 : 33;
+      add({kind:"weight", child:k.id, ts, grams: Math.round(base + (14-d)*g + (d%4?6:-4))});
+    }
+    add({kind:"len", child:k.id, ts: now - 12*day, cm: ki ? 47.2 : 46.3});
+    add({kind:"len", child:k.id, ts: now - 2*day,  cm: ki ? 48.0 : 47.6});
+  });
+  kids.push({id:"cdemoc0003", name:"Child C", sex:"m", birth:new Date(now-2155*day).toISOString().slice(0,10), gaW:"", gaD:"", bw:"", bl:"", bh:""},
+            {id:"cdemod0004", name:"Child D", sex:"f", birth:new Date(now-903*day).toISOString().slice(0,10), gaW:"", gaD:"", bw:"", bl:"", bh:""});
+  [["cdemoc0003",[[730,104.2,16900],[370,110.5,19000],[15,116.8,21200]]],
+   ["cdemod0004",[[533,80.1,10800],[360,86.0,12100],[178,91.0,13100],[10,94.5,13900]]]].forEach(([c,ms])=>
+    ms.forEach(([da,cm,g])=>{ const ts = now - da*day; add({kind:"len", child:c, ts, cm}); add({kind:"weight", child:c, ts, grams:g}); }));
+  for (let d = 6; d >= 0; d--) [7, 13, 21].forEach((h,i)=>{ const ts = new Date(now - d*day); ts.setHours(h, 10*i, 0, 0); if (ts.getTime() < now) add({kind:"pump", child:"parent", ts: ts.getTime(), ml: 60 + d*-3 + i*15 + 20, side:"B", dur:15}); });
+  add({kind:"feed", feedType:"breast", child:"cdemoa0001", ts: now - 6*H, dur:15, side:"L", pre:3020, post:3062});
+  add({kind:"note", child:"cdemob0002", ts: now - 5*H, tags:"spitup", text:"small spit-up after the bottle"});
+  const meds = [{id:"mdemoa0001", child:"cdemoa0001", name:"Vitamin D", dose:"4 drops", times:1, due:10},
+                {id:"mdemob0002", child:"cdemob0002", name:"Vitamin D", dose:"4 drops", times:1, due:10},
+                {id:"mdemoc0003", child:"cdemoc0003", name:"Syrup", dose:"5 ml", times:3, due:0, every:8, until:new Date(now+4*day).toISOString().slice(0,10)}];
+  add({kind:"med", child:"cdemoc0003", ts: now - 5*H, ref:"mdemoc0003"});
+  add({kind:"med", child:"cdemoa0001", ts: now - 4*H, ref:"mdemoa0001"});
+  try {
+    localStorage.setItem("bl-mode", "local"); localStorage.setItem("bl-demo", "1");
+    localStorage.setItem("bl-cache", JSON.stringify({api:"", base: ev, since: 0, kids, meds, lastSync: 0}));
+    localStorage.setItem("bl-outbox", "[]");
+  } catch(e) {}
+  location.reload();
+}
+function clearDemo(){
+  try { ["bl-cache","bl-outbox","bl-demo"].forEach(k=>localStorage.removeItem(k)); } catch(e) {}
+  location.reload();
+}
+async function connectShared(){
+  if (isDemo()){ if (!confirm("Remove the sample data before connecting to a shared log?")) return; try { ["bl-cache","bl-outbox","bl-demo"].forEach(k=>localStorage.removeItem(k)); } catch(e) {} base = {}; outbox = []; kids = []; meds = []; rebuild && rebuild(); }  // from local mode: connect, then upload children and entries made on this device
   const r = await askSetup();
   if (r === "local") return;
   try {
@@ -677,7 +949,7 @@ const isTopUp = e => isBottle(e) && sessions(e.child).some(s=>s.breast && s.item
 
 /* ---------- duplicates ---------- */
 function findDup(ev){
-  if (ev.kind==="weight" || ev.kind==="len" || ev.kind==="hc" || ev.kind==="note") return null;
+  if (ev.kind==="weight" || ev.kind==="len" || ev.kind==="hc" || ev.kind==="note" || ev.kind==="pump") return null;
   return events.find(x=>x.child===ev.child && x.kind===ev.kind &&
     (ev.kind!=="feed" || isBottle(x)===isBottle(ev)) && Math.abs(x.ts-ev.ts)<=DUP_WINDOW);
 }
@@ -719,6 +991,7 @@ async function log(a){
   if (!kids.length){ openProfile(); return; }
   const ts = currentTs();
   if (a==="len"){ const c = firstSel(); openEditor(null, {kind:"len", child:c, ts, title: lifeDays(c, ts) >= 730 ? "Height" : "Length"}); return; }
+  if (a==="pump"){ openEditor(null, {kind:"pump", child:"parent", ts, side:"B", title:"Pumping"}); return; }
   if (a==="note"){ openEditor(null, {kind:"note", child: firstSel(), ts, title:"Note"}); return; }
   if (a==="weight"){ openEditor(null, {kind:"weight", child: firstSel(), ts}); return; }
   if (a==="bottle"){
@@ -765,10 +1038,12 @@ function openEditor(id, ev){
   $("#fKid").value = ev.child;
   $("#fKind").value = ev.kind==="feed" ? "feed-"+(ev.feedType||"breast") : ev.kind;
   $("#fTs").value = toLocalInput(ev.ts);
-  $("#fGrams").value = ev.grams || "";
+  weightUnit = ev.child && prof(ev.child).birth && lifeDays(ev.child, ev.ts || Date.now()) >= 365 ? "kg" : "g";
+  $("#fGrams").value = ev.grams ? (weightUnit==="kg" ? +(ev.grams/1000).toFixed(2) : ev.grams) : "";
   $("#fCm").value = ev.cm || "";
   $("#fMl").value = ev.ml || "";
   $("#fDur").value = ev.dur || "";
+  $("#fPre").value = ev.pre || ""; $("#fPost").value = ev.post || "";
   $("#fTemp").value = ev.temp || ""; $("#fText").value = ev.text || "";
   $("#fTags").querySelectorAll("button").forEach(b=>b.setAttribute("aria-pressed", (ev.tags||"").split(",").includes(b.dataset.v)));
   $("#fMed").innerHTML = meds.map(m=>`<option value="${esc(m.id)}">${esc(m.name)} · ${esc(KID(m.child).name)}</option>`).join("");
@@ -779,20 +1054,54 @@ function openEditor(id, ev){
   $("#fDel").hidden = !id;
   syncForm(); dlg.showModal();
 }
+/* plausible range for a measurement at this child's age: WHO / INTERGROWTH −5…+5 SD, widened 15% */
+let weightUnit = "g";
+function measRange(t, kind, ts){
+  const m = kind==="weight" ? "w" : kind==="len" ? "l" : "h";
+  const abs = m==="w" ? [300, 200000] : m==="l" ? [20, 230] : [15, 70];
+  if (!t || !prof(t).birth) return {lo:abs[0], hi:abs[1], ref:false};
+  const r = refAt(t, m, pmaDays(t, ts));
+  if (!r) return {lo:abs[0], hi:abs[1], ref:false};
+  return {lo:Math.max(abs[0], r.valAt(-5)*0.85), hi:Math.min(abs[1], r.valAt(5)*1.15), ref:true};
+}
+const fmtW = g => weightUnit==="kg" ? fmtNum(g/1000, 1)+" kg" : Math.round(g)+" g";
+function measHints(){
+  const k = $("#fKind").value, t = ["all","multi"].includes($("#fKid").value) ? firstSel() : $("#fKid").value, ts = fromLocalInput($("#fTs").value) || Date.now();
+  if (k==="weight"){
+    const unit = t && prof(t).birth && lifeDays(t, ts) >= 365 ? "kg" : "g";
+    if (unit!==weightUnit){ const v = parseFloat(String($("#fGrams").value).replace(",",".")); if (v) $("#fGrams").value = unit==="kg" ? +(v/1000).toFixed(2) : Math.round(v*1000); weightUnit = unit; }
+    $("#fGramsLbl").textContent = weightUnit==="kg" ? "Weight (kg)" : "Weight (g)";
+    $("#fGrams").step = weightUnit==="kg" ? "0.01" : "1"; $("#fGrams").inputMode = weightUnit==="kg" ? "decimal" : "numeric";
+    const r = measRange(t, "weight", ts);
+    $("#fGramsHint").textContent = r.ref ? `Usual range for this age: ${fmtW(r.lo)} – ${fmtW(r.hi)}` : "";
+  }
+  if (k==="len" || k==="hc"){
+    const r = measRange(t, k, ts);
+    $("#fCmLbl").textContent = k==="hc" ? "Head circumference (cm)" : (t && prof(t).birth && lifeDays(t, ts) >= 730 ? "Height (cm)" : "Length (cm)");
+    $("#fCmHint").textContent = r.ref ? `Usual range for this age: ${fmtNum(r.lo,0)} – ${fmtNum(r.hi,0)} cm` : "";
+  }
+}
 function syncForm(){
-  const k = $("#fKind").value, w = k==="weight", a = k==="feed-bottle", cm = k==="len" || k==="hc";
+  const k = $("#fKind").value, w = k==="weight", a = k==="feed-bottle", cm = k==="len" || k==="hc", pu = k==="pump";
   if ((w||cm) && ["all","multi"].includes($("#fKid").value)) $("#fKid").value = firstSel() || kids[0].id;
   $("#fCmWrap").hidden = !cm; $("#fCm").required = cm;
   $("#fGramsWrap").hidden = !w; $("#fGrams").required = w;
-  $("#fMlWrap").hidden = !a;
-  $("#fDurWrap").hidden = k!=="feed-breast";
-  $("#fSideWrap").hidden = k!=="feed-breast";
+  $("#fMlWrap").hidden = !a && !pu;
+  $("#fDurWrap").hidden = k!=="feed-breast" && !pu;
+  $("#fSideWrap").hidden = k!=="feed-breast" && !pu;
+  $("#fTwWrap").hidden = k!=="feed-breast" || ["all","multi"].includes($("#fKid").value);
+  $("#fKidWrap").hidden = !many() || pu;
+  twOut(); measHints();
   $("#fMilkWrap").hidden = !a;
   $("#fNoteWrap").hidden = k!=="note";
   $("#fMedWrap").hidden = k!=="med";
   $("#fMlHint").textContent = a && ["all","multi"].includes($("#fKid").value) ? " · each" : "";
 }
 $("#fKind").onchange = syncForm;
+$("#fTs").addEventListener("change", measHints);
+function twOut(){ const a = parseInt($("#fPre").value,10), b = parseInt($("#fPost").value,10);
+  $("#fTwOut").textContent = a && b ? (b>=a ? `Taken at the breast: about ${b-a} ml` : "After is lower than before: check the values") : ""; }
+["#fPre","#fPost"].forEach(id=>$(id).oninput = twOut);
 function setSeg(sel, v){ document.querySelectorAll(sel+" button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===v)); }
 const segVal = sel => { const b = document.querySelector(sel+' button[aria-pressed="true"]'); return b ? b.dataset.v : ""; };
 ["#fSide","#fMilk"].forEach(sel=>document.querySelectorAll(sel+" button").forEach(b=>b.onclick=()=>setSeg(sel, b.getAttribute("aria-pressed")==="true" ? "" : b.dataset.v)));
@@ -809,8 +1118,13 @@ $("#dlgForm").onsubmit = async e=>{
   e.preventDefault();
   const k = $("#fKind").value, ev = {child:$("#fKid").value, ts:fromLocalInput($("#fTs").value)};
   if (k.startsWith("feed")){ ev.kind = "feed"; ev.feedType = k.split("-")[1]; } else ev.kind = k;
-  if (k==="weight"){ const g = parseInt($("#fGrams").value,10); if (!g) return; ev.grams = g; }
-  if (k==="len" || k==="hc"){ const c = parseFloat(String($("#fCm").value).replace(",",".")); if (!c) return; ev.cm = c; }
+  if (k==="weight"){ const v = parseFloat(String($("#fGrams").value).replace(",",".")); if (!v) return;
+    ev.grams = Math.round(weightUnit==="kg" ? v*1000 : v);
+    const r = measRange(ev.child, "weight", ev.ts);
+    if ((ev.grams < r.lo || ev.grams > r.hi) && !confirm(`${fmtW(ev.grams)} is outside the usual range for this age (${fmtW(r.lo)} – ${fmtW(r.hi)}). Save anyway?`)) return; }
+  if (k==="len" || k==="hc"){ const c = parseFloat(String($("#fCm").value).replace(",",".")); if (!c) return; ev.cm = c;
+    const r = measRange(ev.child, k, ev.ts);
+    if ((c < r.lo || c > r.hi) && !confirm(`${fmtNum(c,1)} cm is outside the usual range for this age (${fmtNum(r.lo,0)} – ${fmtNum(r.hi,0)} cm). Save anyway?`)) return; }
   if (k==="feed-bottle"){ const ml = parseInt($("#fMl").value,10); if (ml>0) ev.ml = ml; const mk = segVal("#fMilk"); if (mk) ev.milk = mk; }
   if (k==="note"){
     const tags = [...$("#fTags").querySelectorAll('button[aria-pressed="true"]')].map(b=>b.dataset.v).join(",");
@@ -819,15 +1133,18 @@ $("#dlgForm").onsubmit = async e=>{
     if (tags) ev.tags = tags; if (temp) ev.temp = temp; if (text) ev.text = text.slice(0,500);
   }
   if (k==="med"){ ev.ref = $("#fMed").value; if (!ev.ref) return; const m = meds.find(x=>x.id===ev.ref); if (m) ev.child = m.child; }
-  if (k==="feed-breast"){ const d = parseInt($("#fDur").value,10); if (d>0) ev.dur = d; else if (editingLive) ev.live = 1; const sd = segVal("#fSide"); if (sd) ev.side = sd; }
+  if (k==="feed-breast"){ const d = parseInt($("#fDur").value,10); if (d>0) ev.dur = d; else if (editingLive) ev.live = 1; const sd = segVal("#fSide"); if (sd) ev.side = sd;
+    const pre = parseInt($("#fPre").value,10), post = parseInt($("#fPost").value,10); if (pre && post){ ev.pre = pre; ev.post = post; } }
+  if (k==="pump"){ ev.child = "parent"; const ml = parseInt($("#fMl").value,10); if (!(ml>0)) { $("#fMl").focus(); return; } ev.ml = ml;
+    const d = parseInt($("#fDur").value,10); if (d>0) ev.dur = d; const sd = segVal("#fSide"); if (sd) ev.side = sd; }
   try{
     if (editing){ await setEvent(editing, ev); dlg.close(); return; }
-    const targets = ev.child==="all" ? logIds() : ev.child==="multi" ? pickTargets() : [ev.child];
+    const targets = ev.child==="parent" ? ["parent"] : ev.child==="all" ? logIds() : ev.child==="multi" ? pickTargets() : [ev.child];
     dlg.close();
     const ids = await saveWithCheck(targets.map(t=>({...ev, child:t})));
     if (!ids) return;
     lastAdded = ids;
-    const who = targets.map(t=>KID(t).name).join(" and ");
+    const who = ev.child==="parent" ? "Pumping" : targets.map(t=>KID(t).name).join(" and ");
     toast(k==="weight" ? "Weight · "+who+": "+ev.grams+" g" : (k==="len"||k==="hc") ? label(ev)+" · "+who+": "+fmtNum(ev.cm,1)+" cm"
         : label(ev)+" · "+who+(ev.ml?" · "+ev.ml+" ml":"")+(ev.dur?" · "+ev.dur+" min":"")+" · "+hm(ev.ts));
     resetWhen();
@@ -955,8 +1272,9 @@ function shiftDay(d){
   dayOffset = n; renderDay(); renderLog(); fillDayDetails();
 }
 function medName(id){ const m = meds.find(x=>x.id===id); return m ? m.name : ""; }
-const noteTxt = e => [ (e.tags||"").split(",").filter(Boolean).map(t=>TAG[t]||t).join(", "), e.temp ? fmtNum(Number(e.temp),1)+" °C" : "", e.text ? "“"+(e.text.length>40?e.text.slice(0,40)+"…":e.text)+"”" : "" ].filter(Boolean).join(" · ") || "note";
-const chipTxt = e => e.kind==="note" ? "📝 "+esc(noteTxt(e)) : e.kind==="med" ? "💊 "+esc(medName(e.ref) || "reminder") : isBreast(e) ? "🤱 breast"+(e.side?" "+SIDE[e.side]:"")+(e.dur?" "+e.dur+"′":e.live&&Date.now()-e.ts<LIVE_MAX?" ⏱":"") : isBottle(e) ? "🍼 "+(e.ml?e.ml+" ml":"bottle")+(e.milk==="e"?" expressed":e.milk==="f"?" formula":"") :
+const noteTxt = e => [ (e.tags||"").split(",").filter(Boolean).map(t=>tr(TAG[t]||t)).join(", "), e.temp ? fmtNum(Number(e.temp),1)+" °C" : "", e.text ? "“"+(e.text.length>40?e.text.slice(0,40)+"…":e.text)+"”" : "" ].filter(Boolean).join(" · ") || "note";
+const twTxt = e => e.pre && e.post ? ` · +${Math.max(0, e.post-e.pre)} g` : "";
+const chipTxt = e => e.kind==="pump" ? `🥛 ${e.ml} ml${e.side?" "+(e.side==="B"?"L+R":e.side):""}${e.dur?" "+e.dur+"′":""}` : e.kind==="note" ? "📝 "+esc(noteTxt(e)) : e.kind==="med" ? "💊 "+esc(medName(e.ref) || "reminder") : isBreast(e) ? "🤱 breast"+(e.side?" "+SIDE[e.side]:"")+(e.dur?" "+e.dur+"′":e.live&&Date.now()-e.ts<LIVE_MAX?" ⏱":"")+twTxt(e) : isBottle(e) ? "🍼 "+(e.ml?e.ml+" ml":"bottle")+(e.milk==="e"?" expressed":e.milk==="f"?" formula":"") :
   e.kind==="pee" ? "💧 pee" : e.kind==="poo" ? "💩 poo" : e.kind==="len" ? "📏 "+fmtNum(Number(e.cm),1)+" cm" : e.kind==="hc" ? "⭕ head "+fmtNum(Number(e.cm),1)+" cm" : "⚖️ "+e.grams+" g";
 function dayItems(t, key){
   // groups a child's events into "moments": feed (breast + top-up), change (close pee/poo), measurements
@@ -972,9 +1290,23 @@ function dayItems(t, key){
   return items.sort((a,b)=>a.ts-b.ts);
 }
 let detOpen = false;
+/* ---------- pumping (the parent's, not a child's) ---------- */
+function pumpBlock(key){
+  const ps = events.filter(e=>e.kind==="pump" && dayKey(e.ts)===key).sort((a,b)=>a.ts-b.ts);
+  if (!ps.length) return "";
+  const tot = ps.reduce((a,e)=>a+(Number(e.ml)||0),0);
+  return `<div class="pumpc"><div class="pumph"><b>🥛 Pumping</b><span>${ps.length} session${ps.length>1?"s":""} · ${tot} ml</span></div>
+    <div class="pumpi">${ps.map(e=>`<button data-edit="${esc(e.id)}"><small>${hm(e.ts)}</small> ${e.ml} ml${e.side?` ${e.side==="B"?"L+R":e.side}`:""}</button>`).join("")}</div></div>`;
+}
 /* ---------- daily reminders (vitamin D, iron, prescribed medicines…) ---------- */
 const H_ = 36e5;
 const medActive = m => !m.until || dayKey(Date.now()) <= m.until;
+// first day a reminder applies: the day it was created (older reminders: first dose given, else today)
+function medStart(m){
+  if (m.from) return m.from;
+  const g = events.filter(e=>e.kind==="med" && e.ref===m.id).reduce((a,e)=>Math.min(a,e.ts), Infinity);
+  return isFinite(g) ? dayKey(g) : dayKey(Date.now());
+}
 function lastGiven(m){ return events.filter(e=>e.kind==="med" && e.ref===m.id && e.ts<=Date.now()).reduce((a,e)=>Math.max(a,e.ts), 0); }
 function nextDose(m){ const l = lastGiven(m); return Number(m.every) > 0 && l ? l + Number(m.every)*H_ : null; }   // interval schedule only
 function givenOn(m, key){ return events.filter(e=>e.kind==="med" && e.ref===m.id && dayKey(e.ts)===key).sort((a,b)=>a.ts-b.ts); }
@@ -990,7 +1322,7 @@ function nextTxt(m){   // "next 16:10 · in 3 h 20" or "due since 16:10"
   return Date.now() >= n ? ` · due since ${when}` : ` · next ${when} (in ${inTxt(n-Date.now())})`;
 }
 function remindersBlock(key, isToday){
-  const list = meds.filter(m=>kids.some(k=>k.id===m.child) && (medActive(m) || givenOn(m,key).length));
+  const list = meds.filter(m=>kids.some(k=>k.id===m.child) && (givenOn(m,key).length || (key >= medStart(m) && (!m.until || key <= m.until))));
   if (!list.length) return "";
   return `<div class="rem">${list.map(m=>{ const g = givenOn(m, key), n = Number(m.times||1), done = g.length >= n, late = medLate(m, key);
     return `<button class="remi${done?" done":""}${late?" late":""}" data-med="${esc(m.id)}" ${isToday?"":"disabled"} style="--c:${KID(m.child).c}">
@@ -1020,6 +1352,7 @@ function renderLog(){
   }
   h += `</div><button class="addmiss" id="addMiss">＋ Forgotten event</button></div>
   ${remindersBlock(key, isToday)}
+  ${pumpBlock(key)}
   <details class="det daydet"${detOpen?" open":""}><summary>Day details</summary><div id="dayDetails"></div></details>`;
   // rows: moments of different children close in time share a row
   const items = logIds().flatMap(t=>dayItems(t,key)).sort((a,b)=>b.ts-a.ts);
@@ -1036,10 +1369,17 @@ function renderLog(){
     h += `<p class="empty">No events logged on this day.</p>`;
   } else {
     h += `<div class="reg" style="grid-template-columns:3.1em repeat(${logIds().length},minmax(0,1fr))"><div class="rh"></div>${logIds().map(t=>`<div class="rh" style="color:${KID(t).c}">${esc(KID(t).name)}</div>`).join("")}`;
-    let prev = isToday ? Date.now() : null;
+    // a row ends with its latest event (a breastfeed ends after its duration); gaps are measured from there
+    const evEnd = e => e.ts + (isBreast(e) && e.dur ? e.dur*60000 : 0);
+    rows.forEach(r=>{ r.end = Math.max(r.ts, ...Object.values(r.cols).flat().flatMap(it=>(it.evs||[it]).map(evEnd))); });
+    const lastEnd = []; for (let i=rows.length-1, m=-Infinity; i>=0; i--){ m = Math.max(m, rows[i].end); lastEnd[i] = m; }
+    const now = Date.now();
+    rows.forEach((r,i)=>r.gapAbove = (i===0 ? (isToday ? now : null) : rows[i-1].ts));
+    let ri = 0;
     for (const r of rows){
-      if (prev && prev - r.ts >= 2*36e5) h += `<div class="rgap">${prev===Date.now()?"no events for ":""}${dur(prev-r.ts)}${prev===Date.now()?"":" without events"}</div>`;
-      prev = r.ts;
+      const upper = r.gapAbove, g = upper==null ? 0 : upper - lastEnd[ri];
+      if (g >= 2*36e5) h += `<div class="rgap">${ri===0 && isToday ? "no events for " : ""}${dur(g)}${ri===0 && isToday ? "" : " without events"}</div>`;
+      ri++;
       h += `<div class="rt">${hm(r.ts)}</div>`;
       for (const t of logIds()){
         h += `<div class="rc" style="--c:${KID(t).c}">`;
@@ -1059,6 +1399,7 @@ function renderLog(){
   $("#prevL").onclick = ()=>shiftDay(-1);
   $("#nextL").onclick = ()=>shiftDay(1);
   $("#tab-log").querySelectorAll("[data-med]").forEach(b=>b.onclick=()=>tapMed(b.dataset.med));
+  $("#tab-log").querySelectorAll(".pumpi [data-edit]").forEach(b=>b.onclick=()=>{ const e = events.find(x=>x.id===b.dataset.edit); if (e) openEditor(e.id, e); });
   $("#addMiss").onclick = ()=>{
     const ts = isToday ? Date.now() : new Date(key+"T12:00").getTime();
     openEditor(null, {kind:"feed", feedType:"breast", child:sel, ts, title:"New event"});
@@ -1089,7 +1430,7 @@ const NEW_KID = () => ({id:"", name:"", sex:"m", birth:"", gaW:40, gaD:0, bw:"",
 const appTitle = () => { try { return localStorage.getItem("bl-title") || "Baby log"; } catch(e) { return "Baby log"; } };
 function stageActs(){   // older children: only weight, height and notes
   const child = picks.length > 0 && picks.every(id=>stageOf(id)==="child");
-  document.querySelectorAll('.actions [data-a]').forEach(b=>{ b.hidden = child && ["breast","bottle","pee","poo","diaper"].includes(b.dataset.a); });
+  document.querySelectorAll('.actions [data-a]').forEach(b=>{ b.hidden = (child && ["breast","bottle","pee","poo","diaper"].includes(b.dataset.a)) || (b.dataset.a==="pump" && !logIds().length); });
 }
 function applyKids(){
   picks = picks.filter(id=>kids.some(k=>k.id===id));
@@ -1164,8 +1505,8 @@ function normCdf(z){ // Abramowitz-Stegun
   return z>0 ? 1-p : p;
 }
 const ordinal = n => n + (n%100>=11 && n%100<=13 ? "th" : ["th","st","nd","rd"][n%10] || "th");
-const fmtPct = z => { const p = normCdf(z)*100; return p<1 ? "<1st" : p>99 ? ">99th" : ordinal(Math.round(p)); };
-const fmtNum = (v, dec=0) => v==null || isNaN(v) ? "–" : v.toFixed(dec);
+const fmtPct = z => { const p = normCdf(z)*100; if (LANG==="it") return p<1 ? "<1°" : p>99 ? ">99°" : Math.round(p)+"°"; return p<1 ? "<1st" : p>99 ? ">99th" : ordinal(Math.round(p)); };
+const fmtNum = (v, dec=0) => v==null || isNaN(v) ? "–" : (LANG==="it" ? v.toFixed(dec).replace(".", ",") : v.toFixed(dec));
 
 /* ---------- measurements ---------- */
 const MEAS = {w:{name:"Weight", unit:"g", kind:"weight", field:"grams", bk:"bw", dec:0},
@@ -1221,7 +1562,7 @@ function ageChart(t, m){
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${measName(t,m)} of ${esc(KID(t).name)} on WHO curves" style="width:100%;height:auto;display:block">`;
   const step = niceStep((hi-lo)*0.6);
   for (let v=Math.ceil(lo/step)*step; v<=hi; v+=step)
-    s += `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-4}" y="${Y(v)+3.5}" text-anchor="end" font-size="9" fill="var(--muted)">${m==="w"?fmtNum(v/1000,1).replace(/\.0$/,"")+" kg":fmtNum(v,0)}</text>`;
+    s += `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-4}" y="${Y(v)+3.5}" text-anchor="end" font-size="9" fill="var(--muted)">${m==="w"?fmtNum(v/1000,1).replace(/[.,]0$/,"")+" kg":fmtNum(v,0)}</text>`;
   s += `<path d="${band(-2,2)}" fill="var(--refband)"/><path d="${band(-1,1)}" fill="var(--refband2)"/>`;
   [-2,-1,1,2].forEach(z=>{ s += `<path d="${line(curve[z])}" fill="none" stroke="var(--muted)" stroke-width=".6" opacity=".6"/>`; });
   s += `<path d="${line(curve[0])}" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
@@ -1241,8 +1582,8 @@ function ageChart(t, m){
 /* ---------- trends: growth only ---------- */
 let trMeas = "w";
 function niceStep(r){ const raw = r/4, p = Math.pow(10, Math.floor(Math.log10(raw))), n = raw/p; return (n<1.5?1:n<3?2:n<7?5:10)*p; }
-const fmtDate = ts => new Date(ts).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
-const fmtDateY = ts => new Date(ts).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+const fmtDate = ts => new Date(ts).toLocaleDateString(LOC(),{day:"numeric",month:"short"});
+const fmtDateY = ts => new Date(ts).toLocaleDateString(LOC(),{day:"numeric",month:"short",year:"numeric"});
 
 function growthChart(t, m){
   if (!prof(t).birth) return `<div class="nodata">Add date of birth and gestational age in Profile.</div>`;
@@ -1266,7 +1607,7 @@ function growthChart(t, m){
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${M.name} of ${KID(t).name} on reference curves" style="width:100%;height:auto;display:block">`;
   const step = niceStep((hi-lo)*0.6);
   for (let v=Math.ceil(lo/step)*step; v<=hi; v+=step)
-    s += `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-4}" y="${Y(v)+3.5}" text-anchor="end" font-size="9" fill="var(--muted)">${m==="w"?fmtNum(v/1000,1).replace(/\.0$/,"")+" kg":fmtNum(v,0)}</text>`;
+    s += `<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-4}" y="${Y(v)+3.5}" text-anchor="end" font-size="9" fill="var(--muted)">${m==="w"?fmtNum(v/1000,1).replace(/[.,]0$/,"")+" kg":fmtNum(v,0)}</text>`;
   s += `<path d="${band(-2,2)}" fill="var(--refband)"/><path d="${band(-1,1)}" fill="var(--refband2)"/>`;
   [-2,-1,1,2].forEach(z=>{ s += `<path d="${line(curve[z])}" fill="none" stroke="var(--muted)" stroke-width=".6" opacity=".6"/>`; });
   s += `<path d="${line(curve[0])}" fill="none" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
@@ -1345,6 +1686,8 @@ const METRICS = [
   {k:"pop",   name:"Feeds",              unit:"per day", dec:1, ref:[8,12], refTxt:"8–12 per day", f:(t,k)=>dayStats(t,k).pop},
   {k:"ml",    name:"Bottle",             unit:"ml per day", dec:0, f:(t,k)=>dayStats(t,k).ml},
   {k:"mlexp", name:"Expressed milk",     unit:"ml per day", dec:0, f:(t,k)=>dayStats(t,k).mlExp},
+  {k:"pump",  name:"Pumped (parent)",    unit:"ml per day", dec:0, f:(t,k)=>{ const v = events.filter(e=>e.kind==="pump" && dayKey(e.ts)===k); return v.length ? v.reduce((a,e)=>a+(Number(e.ml)||0),0) : null; }},
+  {k:"tw",    name:"Intake at the breast", unit:"ml per feed (test weighing)", dec:0, f:(t,k)=>{ const v = events.filter(e=>e.child===t && isBreast(e) && e.pre && e.post && dayKey(e.ts)===k).map(e=>e.post-e.pre); return v.length ? v.reduce((a,b)=>a+b)/v.length : null; }},
   {k:"mlkg",  name:"Bottle per kg",      unit:"ml/kg per day", dec:0, f:(t,k)=>{ const w = weightOn(t,k); return w ? dayStats(t,k).ml/(w/1000) : null; }},
   {k:"agg",   name:"Feeds with top-up",  unit:"%", dec:0, f:(t,k)=>{ const s = dayStats(t,k); return s.pop ? 100*s.withTopUp/s.pop : null; }},
   {k:"mlagg", name:"Top-up volume",      unit:"ml", dec:0, f:(t,k)=>{
@@ -1416,18 +1759,19 @@ function ageBand(t){
   else if (corr < 56){ Object.assign(b, {label:"1–2 months", feeds:7, gapH:5, gain:20}); }
   else if (corr < 90){ Object.assign(b, {label:"2–3 months", feeds:6, gapH:6, gain:20}); }
   else if (corr < 180){ Object.assign(b, {label:"3–6 months", feeds:6, gapH:null, gain:15}); }
-  else { Object.assign(b, {label:"6–12 months", feeds:null, gapH:null, gain:10}); }
+  else if (corr < 365){ Object.assign(b, {label:"6–12 months", feeds:null, gapH:null, gain:10}); }
+  else { Object.assign(b, {label:"Over 1 year", feeds:null, gapH:null, gain:null}); }
   const nb = [28,56,90,180].find(x=>x>corr);
   if (nb!=null) b.next = now + (nb-corr)*864e5;              // when the thresholds change next
-  b.wet  = life < 5 ? null : 6;                  // at least 6 heavy wet diapers a day from day 5
+  b.wet  = life < 5 || corr >= 365 ? null : 6;                  // at least 6 heavy wet diapers a day from day 5
   b.pooH = life < 42 ? 24 : null;                // first 6 weeks: at least one poo a day (often 2+)
   return b;
 }
 const THR_KEYS = [["feeds","Min feeds in 24 h"],["wet","Min wet diapers in 24 h"],["gapH","Max hours between feeds"],["pooH","Max hours without poo"],["gain","Min weight gain (g/day)"]];
-const THR_DEFAULT = {on:true, auto:true, custom:{feeds:8, wet:6, pooH:24, gapH:4, gain:20}};
+const THR_DEFAULT = {on:false, auto:true, custom:{feeds:8, wet:6, pooH:24, gapH:4, gain:20}};
 let thr = JSON.parse(JSON.stringify(THR_DEFAULT));
 try { const sv = JSON.parse(localStorage.getItem("bl-thr") || "{}");
-      thr = {on: sv.on!==false, auto: sv.auto!==false && !("feeds" in sv), custom: Object.assign({}, THR_DEFAULT.custom, sv.custom || (("feeds" in sv) ? sv : {}))}; } catch(e) {}
+      thr = {on: sv.on===true, auto: sv.auto!==false && !("feeds" in sv), custom: Object.assign({}, THR_DEFAULT.custom, sv.custom || (("feeds" in sv) ? sv : {}))}; } catch(e) {}
 const saveThr = () => { try { localStorage.setItem("bl-thr", JSON.stringify(thr)); } catch(e) {} };
 function thrFor(t){            // thresholds in use for a child
   if (!thr.auto) return Object.assign({}, thr.custom);
@@ -1536,7 +1880,7 @@ function signals(t){
   const vom = notes.filter(e=>(e.tags||"").split(",").includes("vomit")).length;
   if (vom >= 2) out.push({level:"watch", title:`${vom} vomits in the last 24 h`, text:"Small spit-ups are common; repeated or forceful vomiting is worth a call to your paediatrician."});
   // reminders not given yet today
-  meds.filter(m=>m.child===t && medLate(m, dayKey(now))).forEach(m=>out.push({level:"watch",
+  meds.filter(m=>m.child===t && medLate(m, dayKey(now))).forEach(m=>out.push({level:"watch", kind:"med",
     title: Number(m.every)>0 ? `${m.name}: dose due since ${hm(nextDose(m))}` : `${m.name} not given yet today`, text: m.dose ? `Dose: ${m.dose}.` : ""}));
   const order = {call:0, watch:1, tip:2, good:3};
   return out.sort((a,b)=>order[a.level]-order[b.level]);
@@ -1544,7 +1888,7 @@ function signals(t){
 
 /* ---------- metric cards (single child) ---------- */
 const GROUPS = [
-  ["Feeding", ["pop","dur","agg","mlagg","ml","mlexp","mlkg","int","long"]],
+  ["Feeding", ["pop","dur","tw","agg","mlagg","ml","mlexp","pump","mlkg","int","long"]],
   ["Diapers", ["pee","poo"]]
 ];
 function metricCard(m, t, days, prevDays){
@@ -1591,6 +1935,21 @@ function weeklyTable(t){
   return rows ? h + `</tbody></table>` : `<p class="note">Not enough data yet.</p>`;
 }
 
+/* ---------- how complete is the diary? A missing entry is not an event that did not happen ---------- */
+function completenessCard(t, days){
+  const care = e => e.child===t && (e.kind==="feed" || e.kind==="pee" || e.kind==="poo");
+  const counts = days.map(k=>events.filter(e=>care(e) && dayKey(e.ts)===k).length);
+  const started = days.findIndex((k,i)=>counts[i]>0); if (started < 0) return "";
+  const ds = days.slice(started), cs = counts.slice(started);
+  const empty = ds.filter((k,i)=>cs[i]===0), few = ds.filter((k,i)=>cs[i]>0 && cs[i] < 6);
+  const lab = k => fmtDate(new Date(k+"T12:00").getTime());
+  const cells = ds.map((k,i)=>`<i class="cday ${cs[i]===0?"c0":cs[i]<6?"c1":"c2"}" title="${lab(k)}: ${cs[i]}"></i>`).join("");
+  return `<div class="chartcard"><h3>Diary completeness</h3>
+    <div class="cdays">${cells}</div>
+    <p class="row2" style="margin:6px 0 0">${ds.length-empty.length} of ${ds.length} days with entries${few.length?` · ${few.length} with few entries`:""}${empty.length?` · no entries on ${empty.slice(-4).map(lab).join(", ")}${empty.length>4?"…":""}`:""}</p>
+    <p class="note" style="margin:4px 0 0">Averages use only days with entries. A missing entry does not mean that nothing happened.</p></div>`;
+}
+
 /* ---------- comparison between children (secondary) ---------- */
 function compareTable(days){
   const keys = ["pop","dur","agg","ml","pee","poo"];
@@ -1626,14 +1985,14 @@ function renderTrend(){
   h += `<div class="chartcard" style="--c:${KID(t).c}"><div class="cc-head"><div><div class="g-name">${esc(KID(t).name)}</div><div class="gs-age">${age || `<button class="linkbtn" data-goto="settings" style="padding:0">Add birth details in Settings</button>`}</div></div>
 </div>`;
   // signals
-  const sg = signals(t);
-  if (!thr.on) h += `<p class="note">Signals are turned off in Settings.</p>`;
+  const sg = thr.on ? signals(t) : signals(t).filter(x=>x.kind==="med");   // off: only organisational reminders
+  if (!thr.on) h += `<p class="note">Descriptive view: the app shows your entries without interpreting them. Signals can be turned on in Settings → Signals.</p>`;
   ["call","watch","good","tip"].forEach(lv=>{
     const list = sg.filter(x=>x.level===lv); if (!list.length) return;
     h += `<div class="sig ${LVL[lv][1]}"><div class="sig-h">${LVL[lv][0]}</div>${list.map(x=>`<div class="sig-i"><b>${x.title}</b>${x.text?`<span>${x.text}</span>`:""}</div>`).join("")}</div>`;
   });
-  if (!sg.length) h += `<p class="note">Nothing to flag right now.</p>`;
-  h += `<p class="note">Signals use the age-based thresholds in Settings. They are not a diagnosis: when in doubt, contact your paediatrician.</p></div>`;
+  if (!sg.length && thr.on) h += `<p class="note">Nothing to flag right now.</p>`;
+  h += thr.on ? `<p class="note">Signals use the age-based thresholds in Settings. They are not a diagnosis: when in doubt, contact your paediatrician.</p></div>` : `</div>`;
 
   // growth
   h += `<div class="chartcard growth" style="--c:${KID(t).c}"><div class="cc-head"><h3>Growth</h3><button class="linkbtn" id="addMeas">＋ Add</button></div>
@@ -1645,10 +2004,12 @@ function renderTrend(){
   const babyView = stageOf(t)!=="child";
   if (!babyView){ /* older children: growth, notes and reminders only */ }
   else {
+  h += completenessCard(t, days);
   // feeding + diapers
   GROUPS.forEach(([title, keys])=>{
     h += `<h3 class="sec">${title} <span class="muted">· daily average over ${pgRange==="all"?"all days":n+" days"}${prevDays?", arrows vs previous period":""}</span></h3><div class="mgrid">`;
-    keys.forEach(k=>{ h += metricCard(METRICS.find(m=>m.k===k), t, days, prevDays); });
+    keys.filter(k=>k==="pump" ? events.some(e=>e.kind==="pump") : k==="tw" ? events.some(e=>e.child===t && e.pre && e.post) : true)
+        .forEach(k=>{ h += metricCard(METRICS.find(m=>m.k===k), t, days, prevDays); });
     h += `</div>`;
   });
   h += `<p class="note">Tap a card to enlarge it. Intervals are measured from start to start of feeds.</p>`;
@@ -1672,13 +2033,13 @@ function renderTrend(){
 }
 
 /* ---------- settings ---------- */
-const APP_VERSION = "1.10.0";
+const APP_VERSION = "1.13.2";
 const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
 function renderSettings(){
   const el = $("#tab-settings"); if (!el) return;
   const sexTxt = p => p.sex==="f" ? "girl" : "boy";
-  const kidRow = k => `<li><i class="sw" style="--c:${KID(k.id).c}"></i><span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span></li>`;
+  const kidRow = k => `<li><i class="sw" style="--c:${KID(k.id).c}"></i><span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span></li>`;
   const pend = outbox.length;
   el.innerHTML = `
   <div class="sect"><h3>Children</h3>
@@ -1686,7 +2047,12 @@ function renderSettings(){
     <button class="btn ghost wide" id="setKids">${kids.length ? "Edit children" : "Add a child"}</button></div>
 
   <div class="sect"><h3>Appearance</h3>
+    <p class="row2" style="margin:4px 0 6px">Language</p>
+    <div class="seg" id="langSeg" style="margin-bottom:10px">${[["auto","Auto"],["it","Italiano"],["en","English"]].map(([v,l])=>{ let cur = "auto"; try { cur = localStorage.getItem("bl-lang") || "auto"; } catch(e) {} return `<button type="button" class="notr" data-v="${v}" aria-pressed="${cur===v}">${l}</button>`; }).join("")}</div>
     <label class="lbl2">Title shown at the top<input id="titleIn" maxlength="30" placeholder="Baby log" value="${esc(appTitle()==="Baby log" ? "" : appTitle())}"></label>
+    <p class="row2" style="margin:4px 0 6px">Night mode <small class="muted">· very dark and dim, bigger buttons</small></p>
+    <div class="seg" id="nightSeg" style="margin-bottom:10px">${[["off","Off"],["on","On"],["auto","22:00–6:00"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${night===v}">${l}</button>`).join("")}</div>
+    <p class="row2" style="margin:4px 0 6px">Theme</p>
     <div class="seg" id="themeSeg">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${theme===v}">${l}</button>`).join("")}</div></div>
 
   <div class="sect"><h3>Daily reminders</h3>
@@ -1700,14 +2066,17 @@ function renderSettings(){
 
   <div class="sect"><h3>Signals</h3>
     <label class="row2"><input type="checkbox" id="thrOn" ${thr.on?"checked":""}> Show signals in Progress</label>
+    <p class="note" style="margin:0 0 8px">Off by default. When on, the app compares your entries with age-based thresholds and shows "talk to your paediatrician / keep an eye on / going well / what may help". It is not a medical device: use it only if it helps you, and agree thresholds with your paediatrician.</p>
     <div class="seg" id="thrMode"><button type="button" data-v="auto" aria-pressed="${thr.auto}">Automatic by age</button><button type="button" data-v="custom" aria-pressed="${!thr.auto}">Custom</button></div>
-    ${thr.auto ? kids.map(k=>{ const b = ageBand(k.id); return `<div class="band" style="--c:${KID(k.id).c}"><b>${esc(k.name)}</b>${b ? ` · ${b.label}` : ""}
-        ${b ? `<table><tbody>${THR_KEYS.map(([key,l])=>`<tr><td>${l}</td><td>${b[key]==null ? "not checked" : b[key]}</td></tr>`).join("")}</tbody></table>${b.next?`<p class="note" style="margin:4px 0 0">Next update on ${fmtDate(b.next)}</p>`:""}` : `<p class="note">Add the date of birth to get suggestions for this age.</p>`}</div>`; }).join("")
+    ${thr.auto ? kids.filter(k=>stageOf(k.id)==="newborn").map(k=>{ const b = ageBand(k.id); return `<div class="band" style="--c:${KID(k.id).c}"><b>${esc(k.name)}</b>${b ? ` · ${b.label}` : ""}
+        ${b ? `<table><tbody>${THR_KEYS.map(([key,l])=>`<tr><td>${l}</td><td>${b[key]==null ? "not checked" : b[key]}</td></tr>`).join("")}</tbody></table>${b.next?`<p class="note" style="margin:4px 0 0">Next update on ${fmtDate(b.next)}</p>`:""}` : `<p class="note">Add the date of birth to get suggestions for this age.</p>`}</div>`; }).join("") + (()=>{ const o = kids.filter(k=>stageOf(k.id)!=="newborn");
+        return o.length ? `<p class="note" style="margin:0">${o.map(k=>`${esc(k.name)} (${STAGES.find(x=>x[0]===stageOf(k.id))[1]})`).join(", ")}: feed and diaper signals are not used at this stage.</p>` : ""; })()
       : `<div class="thr">${THR_KEYS.map(([key,l])=>`<label>${l}<input type="number" inputmode="decimal" step="${key==="gapH"?0.5:1}" min="0" max="200" data-thr="${key}" value="${thr.custom[key]}"></label>`).join("")}</div>
          <button class="btn ghost wide" id="thrSuggest">Fill with values suggested for ${esc(kids[0] ? kids[0].name : "the age")}</button>`}
     <p class="note">Automatic: thresholds change as the baby grows, following values commonly given in NHS, AAP and WHO guidance for healthy infants; for babies born early the age band follows the corrected age. Your paediatrician may advise different limits: in that case choose Custom.</p></div>
 
   <div class="sect"><h3>Sync and sharing</h3>
+    ${isDemo() ? `<p class="note" style="margin:0 0 8px">You are looking at <b>sample data</b>: nothing is shared.</p><button class="btn del wide" id="demoClear" style="margin-bottom:10px">Remove sample data and start</button>` : ""}
     ${isLocal() ? `<p class="row2">Using this device only${pend ? ` · ${pend} change${pend>1?"s":""} not shared yet` : ""}</p>
     <button class="btn wide" id="connectBtn">Connect to a shared log</button>
     <p class="note">Entries and children created here are uploaded when you connect.</p>` : `
@@ -1717,6 +2086,12 @@ function renderSettings(){
     <div class="two"><button class="btn ghost" id="shareApp">Share app link</button><button class="btn ghost" id="copyApi">Copy API address</button></div>
     <button class="btn del wide" id="discBtn">Disconnect this device</button>`}</div>
 
+  <div class="sect"><h3>Export</h3>
+    <div class="two"><button class="btn ghost" id="expCsv">Spreadsheet (CSV)</button><button class="btn ghost" id="expJson">Full backup (JSON)</button></div>
+    <p class="note">All entries, children and reminders on this device. The file contains personal data: keep it private.</p></div>
+
+  ${changelogHtml()}
+
   <div class="sect"><h3>About</h3>
     <p class="row2"><b>Baby log</b> ${APP_VERSION}</p>
     <p class="row2">Created by <b>Matteo Moschitta</b> · <a href="https://github.com/Xeroxi91" target="_blank" rel="noopener">Xeroxi91</a> · <a href="https://matteomoschitta.it" target="_blank" rel="noopener">matteomoschitta.it</a></p>
@@ -1724,12 +2099,17 @@ function renderSettings(){
     <p class="note">Not a medical device: charts support conversations with your paediatrician and do not replace clinical assessment.</p>
     <p class="note">License: PolyForm Noncommercial 1.0.0 · <a href="${REPO_URL}" target="_blank" rel="noopener">Source code</a></p></div>`;
   $("#setKids").onclick = openProfile;
+  el.querySelectorAll("#nightSeg button").forEach(b=>b.onclick=()=>setNight(b.dataset.v));
+  el.querySelectorAll("#langSeg button").forEach(b=>b.onclick=()=>{ try { b.dataset.v==="auto" ? localStorage.removeItem("bl-lang") : localStorage.setItem("bl-lang", b.dataset.v); } catch(e) {} location.reload(); });
   $("#titleIn").onchange = e=>{ const v = e.target.value.trim().slice(0,30); try { v ? localStorage.setItem("bl-title", v) : localStorage.removeItem("bl-title"); } catch(err) {} applyKids(); };
   if ($("#addMed")) $("#addMed").onclick = ()=>openMed(null);
   el.querySelectorAll("[data-medit]").forEach(b=>b.onclick=()=>openMed(b.dataset.medit));
   el.querySelectorAll("#themeSeg button").forEach(b=>b.onclick=()=>{ theme = b.dataset.v; try{ localStorage.setItem("bl-theme", theme); }catch(e){} applyTheme(); renderSettings(); });
   $("#alertSel").onchange = e=>{ alertH = Number(e.target.value); try{ localStorage.setItem("bl-alertH", alertH); }catch(err){} renderSince(); };
   if ($("#connectBtn")) $("#connectBtn").onclick = connectShared;
+  $("#expCsv").onclick = ()=>exportData("csv");
+  $("#expJson").onclick = ()=>exportData("json");
+  if ($("#demoClear")) $("#demoClear").onclick = ()=>{ if (confirm("Remove all sample data from this device?")) clearDemo(); };
   if (isLocal()){ ["syncNow","shareApp","copyApi","discBtn"].forEach(id=>{ const b = $("#"+id); if (b) b.remove(); }); }
   if ($("#syncNow")) $("#syncNow").onclick = ()=>{ refresh(); };
   $("#thrOn").onchange = e=>{ thr.on = e.target.checked; saveThr(); renderTrend(); };
@@ -1787,6 +2167,36 @@ $("#profForm").onsubmit = async e=>{
 };
 $("#profCancel").onclick = ()=>$("#profDlg").close();
 
+/* ---------- what's new ---------- */
+const CHANGELOG = [["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
+function changelogHtml(){
+  const it = LANG==="it", row = ([v,en,itx]) => `<li><b>${v}</b> ${esc(it ? itx : en)}</li>`;
+  return `<div class="sect notr"><h3>${it ? "Novità" : "What's new"}</h3><ul class="clog">${CHANGELOG.slice(0,3).map(row).join("")}</ul>
+    <details class="det"><summary>${it ? "Versioni precedenti" : "Earlier versions"}</summary><ul class="clog">${CHANGELOG.slice(3).map(row).join("")}</ul></details></div>`;
+}
+
+/* ---------- export ---------- */
+function exportData(kind){
+  const who = id => id==="parent" ? tr("Pumping") : (kids.find(k=>k.id===id)||{}).name || "";
+  const list = events.slice().sort((a,b)=>a.ts-b.ts);
+  let text, type, name;
+  const stamp = dayKey(Date.now());
+  if (kind==="json"){
+    text = JSON.stringify({app:"baby-log", version:APP_VERSION, exported:new Date().toISOString(), children:kids, reminders:meds, events:list}, null, 1);
+    type = "application/json"; name = `baby-log-${stamp}.json`;
+  } else {
+    const cols = ["date","time","child","event","type","ml","milk","minutes","side","grams","cm","before_g","after_g","tags","temperature","note","reminder"];
+    const q = v => { const x = v==null ? "" : String(v); return /[",;\n]/.test(x) ? '"'+x.replace(/"/g,'""')+'"' : x; };
+    const rows = list.map(e=>[dayKey(e.ts), hm(e.ts), who(e.child), e.kind, e.feedType||"", e.ml||"", e.milk==="e"?"expressed":e.milk==="f"?"formula":"", e.dur||"", e.side||"", e.grams||"", e.cm||"", e.pre||"", e.post||"", e.tags||"", e.temp||"", e.text||"", e.ref ? medName(e.ref) : ""].map(q).join(","));
+    text = "\ufeff" + cols.join(",") + "\n" + rows.join("\n"); type = "text/csv"; name = `baby-log-${stamp}.csv`;
+  }
+  const blob = new Blob([text], {type});
+  const file = typeof File==="function" ? new File([blob], name, {type}) : null;
+  if (file && navigator.canShare && navigator.canShare({files:[file]})){ navigator.share({files:[file], title:name}).catch(()=>{}); return; }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
 /* ---------- reminder dialog ---------- */
 let medEditing = null;
 $("#mDue").innerHTML = Array.from({length:24},(_,h)=>`<option value="${h}">${String(h).padStart(2,"0")}:00</option>`).join("");
@@ -1823,7 +2233,7 @@ $("#medForm").onsubmit = e=>{
   const who = $("#mKid").value, targets = who==="all" ? kidIds() : [who];
   let list = meds.slice();
   if (medEditing) list = list.map(m=>m.id===medEditing ? {...m, ...base, child: who} : m);
-  else targets.forEach(t=>list.push({id: "m"+uid().replace(/-/g,"").slice(0,10), child:t, ...base}));
+  else targets.forEach(t=>list.push({id: "m"+uid().replace(/-/g,"").slice(0,10), child:t, from: dayKey(Date.now()), ...base}));
   $("#medDlg").close(); saveMeds(list);
 };
 
@@ -1853,8 +2263,24 @@ function applyTheme(){
 }
 applyTheme();
 
+/* ---------- night mode: off / on / automatic 22–6 ---------- */
+let night = "off";
+try { night = localStorage.getItem("bl-night") || "off"; } catch(e) {}
+const isNightHour = () => { const h = new Date().getHours(); return h >= 22 || h < 6; };
+const nightOn = () => night==="on" || (night==="auto" && isNightHour());
+function applyNight(){
+  const on = nightOn();
+  if (on) document.documentElement.setAttribute("data-night",""); else document.documentElement.removeAttribute("data-night");
+  $("#nightBtn").setAttribute("aria-pressed", on);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ if (!m.dataset.orig) m.dataset.orig = m.getAttribute("content"); m.setAttribute("content", on ? "#000000" : m.dataset.orig); });
+}
+function setNight(v){ night = v; try { localStorage.setItem("bl-night", v); } catch(e) {} applyNight(); if (!$("#tab-settings").hidden) renderSettings(); }
+$("#nightBtn").onclick = ()=>setNight(nightOn() ? "off" : "on");
+setInterval(()=>{ if (night==="auto") applyNight(); }, 60000);
+applyNight();
+
 /* ---------- startup ---------- */
-loadCache(); applyKids(); render(); setStatus(); refresh();
+loadCache(); applyKids(); render(); setStatus(); translateTree(document.body); refresh();
 // ask the browser to keep this site's storage (address, code and local data) even under storage pressure
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 $("#sync").onclick = ()=>{ if (isLocal()) showTab("settings"); else refresh(); };
