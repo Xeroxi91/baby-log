@@ -3,7 +3,7 @@
  * Exposes a small JSON API, protected by access codes, for the static page (e.g. GitHub Pages).
  *
  * Sheet "events": id | kind | child | ts | feedType | grams | dateTime | ml | duration | running | cm
- *                 | side | milk | updatedAt | deleted | tags | text | temp | ref
+ *                 | side | milk | updatedAt | deleted | tags | text | temp | ref | pre | post
  * The "child" column holds an internal child key; the page only ever sees opaque child ids.
  * Sync model: the page keeps a local copy and an outbox of changes; one "sync" call sends the
  * outbox and receives everything changed since the last sync (deletions are kept as tombstones).
@@ -14,7 +14,7 @@
 const SHEET = 'events';
 const LEGACY_SHEETS = ['eventi'];   // older versions of this project used this sheet name
 const HEADER = ['id', 'kind', 'child', 'ts', 'feedType', 'grams', 'dateTime', 'ml', 'duration', 'running', 'cm',
-                'side', 'milk', 'updatedAt', 'deleted', 'tags', 'text', 'temp', 'ref'];
+                'side', 'milk', 'updatedAt', 'deleted', 'tags', 'text', 'temp', 'ref', 'pre', 'post'];
 const COL = {}; HEADER.forEach((h, i) => COL[h] = i);
 const FEED_TYPES = { seno: 'breast', art: 'bottle', breast: 'breast', bottle: 'bottle' }; // legacy values are normalised
 
@@ -132,6 +132,7 @@ function saveChildren_(list) {
 
 function toSheet_(e) {
   if (!e) return e;
+  if (e.kind === 'pump') { const o = Object.assign({}, e, { kidKey: PARENT }); delete o.child; return o; }
   const c = children_().find(x => x.id === e.child);
   if (!c) throw new Error('unknown child');
   const o = Object.assign({}, e, { kidKey: c.key });
@@ -141,7 +142,7 @@ function toSheet_(e) {
 
 function toClient_(e) {
   const c = children_().find(x => x.key === e.kidKey);
-  const o = Object.assign({}, e, { child: c ? c.id : null });
+  const o = Object.assign({}, e, { child: e.kidKey === PARENT ? PARENT : c ? c.id : null });
   delete o.kidKey;
   return o;
 }
@@ -165,7 +166,7 @@ function row_(id, e, updatedAt, deleted) {
   return [id, e.kind, e.kidKey, Number(e.ts), e.feedType || '', e.grams || '', new Date(Number(e.ts)),
           e.ml || '', e.dur || '', e.live ? 1 : '', e.cm || '', e.side || '', e.milk || '',
           updatedAt || '', deleted ? 1 : '', e.tags || '', e.text ? String(e.text).slice(0, 500) : '',
-          e.temp || '', e.ref || ''];
+          e.temp || '', e.ref || '', e.pre || '', e.post || ''];
 }
 
 function withLock_(fn) {
@@ -189,11 +190,14 @@ function rowToEvent_(r) {
   if (r[COL.text]) e.text = String(r[COL.text]);
   if (r[COL.temp]) e.temp = Number(r[COL.temp]);
   if (r[COL.ref]) e.ref = String(r[COL.ref]);
+  if (r[COL.pre]) e.pre = Number(r[COL.pre]);
+  if (r[COL.post]) e.post = Number(r[COL.post]);
   return e;
 }
 
 const validId_ = id => /^[A-Za-z0-9_-]{6,64}$/.test(String(id || ''));
-const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1 };
+const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1, pump: 1 };
+const PARENT = 'parent';   // pumping sessions belong to the parent, not to a child
 
 /**
  * Applies the client's outbox and returns everything changed since `since`
@@ -265,7 +269,8 @@ function saveMeds_(list) {
       times: Math.max(1, Math.min(12, Number(m.times) || 1)),
       due: Math.max(0, Math.min(23, Number(m.due) || 0)),
       every: Math.max(0, Math.min(48, Number(m.every) || 0)),          // hours between doses (0 = times a day)
-      until: /^\d{4}-\d{2}-\d{2}$/.test(String(m.until || '')) ? String(m.until) : ''
+      until: /^\d{4}-\d{2}-\d{2}$/.test(String(m.until || '')) ? String(m.until) : '',
+      from: /^\d{4}-\d{2}-\d{2}$/.test(String(m.from || '')) ? String(m.from) : ''           // first day it applies
     }));
     PropertiesService.getScriptProperties().setProperty('MEDS', JSON.stringify(out));
     return out;
