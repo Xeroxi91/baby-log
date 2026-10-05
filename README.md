@@ -27,6 +27,11 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Breast side (left / right / both) with a suggestion of the side to start from next time.
 - Bottle content: formula or expressed breast milk, with daily totals.
 - Duplicate warning (same event for the same child within 10 minutes) and 5-second undo.
+- **Pumping** (the parent's): ml, side and duration; daily total in *Day* and pumped ml/day in
+  *Progress*, next to the expressed milk given as top-up.
+- **Test weighing** (optional, in the breastfeed editor): weight before and after the feed gives the
+  milk taken at the breast (1 g ≈ 1 ml); shown on the feed and as "Intake at the breast" in *Progress*.
+  It needs an accurate baby scale and the same clothes and diaper.
 - **Notes**: quick tags (spit-up, vomit, yellowish skin, pale or green stool, hard to wake, unusual
   crying, rash), temperature and free text.
 - **Daily reminders** (e.g. vitamin D or medicines prescribed by your paediatrician): a checklist in
@@ -51,9 +56,16 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - The app suggests moving on (Newborn → Infant from about 3 months, Infant → Child from 1 year);
   the change is always the parent's choice.
 
+**Languages**: English and Italian (automatic from the phone's language, or chosen in *Settings →
+Appearance → Language*).
+
+**Getting started**: connect a shared log, use the app on one device only, or **try it with sample
+data** (removable from *Settings*; never uploaded).
+
 **Progress (one child at a time)**
 - Child selector and period: 7 / 14 / 30 days / all.
-- **Signals**, grouped as *Talk to your paediatrician*, *Keep an eye on*, *Going well*, *What may help*:
+- **Descriptive by default**: entries are shown without interpretation. **Signals** are **off by
+  default** and can be turned on in *Settings → Signals*; when on they are grouped as *Talk to your paediatrician*, *Keep an eye on*, *Going well*, *What may help*:
   feeds and wet diapers in the last 24 h, long stretches without feeding, stools, weight loss after birth,
   birth weight not regained, weight gain, centile crossing, missing weighings, top-up trend,
   notes (temperature of 38 °C or more, pale stool, hard to wake, prolonged jaundice, repeated vomiting),
@@ -71,10 +83,17 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - **Feeding** and **Diapers** cards with sparklines and change vs the previous period: feeds, breastfeed
   duration, % feeds with top-up, top-up volume, bottle ml, expressed milk, ml/kg, interval between feeds,
   longest stretch, pee, poo.
+- **Diary completeness**: days with entries, few entries or none; averages use only days with entries
+  (a missing entry does not mean nothing happened).
 - Feeding rhythm over 24 h, weekly summary and, as a secondary view, comparison between children.
 
 **Settings**
-- Children profiles, title shown at the top (default *Baby log*, per device), theme (auto / light / dark),
+- **What's new**: the changelog is in *Settings*.
+- **Export**: spreadsheet (CSV) or full backup (JSON) of everything on the device.
+- Weight in grams for babies and kilograms from 1 year; a warning when a weight or length is outside
+  the usual range for the child's age (WHO / INTERGROWTH −5…+5 SD).
+- Children profiles, title shown at the top (default *Baby log*, per device), **night mode** (off / on /
+  automatic 22:00–6:00: very dark warm colours, dimmed emoji, bigger buttons; also 🌙 at the top), theme (auto / light / dark),
   feed highlight threshold, signal thresholds (automatic by age or custom).
 - Sync status, *Sync now*, sharing (app link, API address), disconnect this device.
 - About: version, references, license and source code.
@@ -188,7 +207,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | Column | Content |
 |---|---|
 | `id` | unique id |
-| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med` |
+| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med`, `pump` (`child` = `parent`) |
 | `child` | internal child key (mapped to the child in the profile) |
 | `ts` | timestamp (milliseconds since 1970, UTC) |
 | `feedType` | `breast` or `bottle` |
@@ -206,6 +225,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | `text` | note text |
 | `temp` | temperature in °C |
 | `ref` | reminder id for a given reminder (`kind` = `med`) |
+| `pre` / `post` | test weighing before / after a breastfeed, in grams |
 
 Children profiles and access codes are stored in the script's **Script Properties**
 (`PROFILE`, `KEYS`, `MEDS`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.

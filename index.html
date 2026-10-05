@@ -336,6 +336,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .cday.c2{background:var(--ok);opacity:.75}
 .clog{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.9rem}
 .clog b{display:inline-block;min-width:3.4em;color:var(--muted);font-variant-numeric:tabular-nums}
+dialog:focus,dialog:focus-visible{outline:none}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:6px}
 </style>
 </head>
@@ -363,7 +364,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 
 </div>
 
-<dialog id="sheet" class="sheet"><div class="sheet-in">
+<dialog id="sheet" class="sheet" tabindex="-1" autofocus><div class="sheet-in">
   <div class="sheet-h"><b>Log an event</b><button type="button" class="linkbtn" id="sheetClose">Close</button></div>
   <div class="who" id="who" role="group" aria-label="Who" hidden></div>
 
@@ -392,7 +393,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 
 <div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="undoBtn">Undo</button></div>
 
-<dialog id="dlg"><form method="dialog" class="dlg" id="dlgForm">
+<dialog id="dlg" tabindex="-1" autofocus><form method="dialog" class="dlg" id="dlgForm">
   <h2 id="dlgTitle">Edit</h2>
   <label id="fKidWrap">Who<select id="fKid"></select></label>
   <label>What<select id="fKind"><option value="feed-breast">Breastfeed</option><option value="feed-bottle">Bottle</option><option value="pee">Pee</option><option value="poo">Poo</option><option value="weight">Weight</option><option value="len">Length</option><option value="hc">Head circumference</option><option value="note">Note</option><option value="pump">Pumping</option><option value="med">Given (reminder)</option></select></label>
@@ -437,7 +438,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
   </div>
 </form></dialog>
 
-<dialog id="keydlg"><form class="dlg" id="keyForm">
+<dialog id="keydlg" tabindex="-1" autofocus><form class="dlg" id="keyForm">
   <h2>Connect the log</h2>
   <p style="margin:0">Only once per device. The address and code are stored on this device only.</p>
   <label id="apiWrap">API address (web app URL, ends with /exec)<input id="apiIn" type="url" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
@@ -447,14 +448,14 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
   <p class="note" style="margin:0">Without connecting, entries stay on this device and can be sent to a shared log later.</p>
 </form></dialog>
 
-<dialog id="profDlg"><form class="dlg" id="profForm">
+<dialog id="profDlg" tabindex="-1" autofocus><form class="dlg" id="profForm">
   <h2>Profile</h2>
   <p class="note" style="margin:0">Used for corrected age and growth charts. Shared by all devices connected to the same log.</p>
   <div id="profBody"></div>
   <div class="row"><button type="button" class="btn ghost" id="profCancel">Close</button><button type="submit" class="btn">Save</button></div>
 </form></dialog>
 
-<dialog id="medDlg"><form class="dlg" id="medForm">
+<dialog id="medDlg" tabindex="-1" autofocus><form class="dlg" id="medForm">
   <h2 id="medTitle">Daily reminder</h2>
   <label>For<select id="mKid"></select></label>
   <label>What<input id="mName" maxlength="40" placeholder="e.g. Vitamin D" required></label>
@@ -469,7 +470,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
   <div class="row"><button type="button" class="btn del" id="mDel">Delete</button><button type="button" class="btn ghost" id="mCancel">Close</button><button type="submit" class="btn">Save</button></div>
 </form></dialog>
 
-<dialog id="cfm"><div class="dlg">
+<dialog id="cfm" tabindex="-1" autofocus><div class="dlg">
   <h2>Duplicate?</h2>
   <p id="cfmMsg" style="margin:0"></p>
   <div class="row">
@@ -484,7 +485,9 @@ let kids = [];                                   // [{id, name, sex, birth, gaW,
 const kidIds = () => kids.map(k=>k.id);
 const KID = id => { const i = kids.findIndex(k=>k.id===id); return i<0 ? {name:"?", c:"var(--muted)"} : {name:kids[i].name, c:`var(--k${i%PALETTE})`}; };
 const prof = id => kids.find(k=>k.id===id) || {};
-let picks = [];                       // children selected in the logging panel (one or more)
+let picks = [];                       // children selected in the logging panel (one or more), kept on this device
+try { picks = JSON.parse(localStorage.getItem("bl-picks") || "[]"); if (!Array.isArray(picks)) picks = []; } catch(e) { picks = []; }
+const savePicks = () => { try { localStorage.setItem("bl-picks", JSON.stringify(picks)); } catch(e) {} };
 const firstSel = () => sel==="multi" ? picks[0] : sel==="all" ? (logIds()[0] || (kids[0] ? kids[0].id : "")) : sel;
 const pickTargets = () => picks.filter(id=>stageOf(id)!=="child");
 const many = () => kids.length > 1;
@@ -504,6 +507,16 @@ let alertH = 3;
 try { alertH = Number(localStorage.getItem("bl-alertH")) || 3; } catch(e) {}
 
 const $ = s => document.querySelector(s);
+/* ---------- dialogs open without focusing (and opening) their first field ---------- */
+if (window.HTMLDialogElement){
+  const open = HTMLDialogElement.prototype.showModal;
+  HTMLDialogElement.prototype.showModal = function(){
+    open.call(this);
+    try { this.focus({preventScroll:true}); } catch(e) {}
+    if (document.activeElement && document.activeElement!==this && this.contains(document.activeElement)) document.activeElement.blur();
+  };
+}
+
 /* ---------- languages: English (source) and Italian ---------- */
 // The interface is written in English; Italian is applied by translating rendered text.
 let LANG = "en";
@@ -1435,6 +1448,7 @@ function stageActs(){   // older children: only weight, height and notes
 function applyKids(){
   picks = picks.filter(id=>kids.some(k=>k.id===id));
   if (!picks.length && kids.length) picks = [logIds()[0] || kids[0].id];
+  if (kids.length) savePicks();
   sel = picks.length > 1 ? "multi" : (picks[0] || "");
   $("#title").textContent = appTitle(); document.title = appTitle();
   const who = $("#who");
@@ -2033,7 +2047,7 @@ function renderTrend(){
 }
 
 /* ---------- settings ---------- */
-const APP_VERSION = "1.13.2";
+const APP_VERSION = "1.13.4";
 const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
 function renderSettings(){
@@ -2168,7 +2182,7 @@ $("#profForm").onsubmit = async e=>{
 $("#profCancel").onclick = ()=>$("#profDlg").close();
 
 /* ---------- what's new ---------- */
-const CHANGELOG = [["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
+const CHANGELOG = [["1.13.4", "Forms open without opening their first field.", "Le finestre si aprono senza aprire il primo campo."], ["1.13.3", "The children selected in the logging panel are remembered on this device; from Progress, ＋ opens on the child being viewed.", "La selezione dei figli nel pannello di inserimento resta memorizzata sul dispositivo; da Andamento il ＋ si apre sul figlio che stai guardando."], ["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
 function changelogHtml(){
   const it = LANG==="it", row = ([v,en,itx]) => `<li><b>${v}</b> ${esc(it ? itx : en)}</li>`;
   return `<div class="sect notr"><h3>${it ? "Novità" : "What's new"}</h3><ul class="clog">${CHANGELOG.slice(0,3).map(row).join("")}</ul>
@@ -2241,7 +2255,11 @@ $("#medForm").onsubmit = e=>{
 document.querySelectorAll("[data-w]").forEach(b=>b.onclick=()=>setWhen(b.dataset.w));
 document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{ $("#sheet").close(); log(b.dataset.a); });
 setInterval(()=>{ if (!document.hidden && meds.some(m=>Number(m.every)>0) && !document.querySelector("dialog[open]")){ renderLog(); fillDayDetails(); } }, 60000);
-$("#fab").onclick = ()=>$("#sheet").showModal();
+$("#fab").onclick = ()=>{
+  // from Progress, the panel opens on the child being viewed
+  if (!$("#tab-trend").hidden){ const t = curKid(); if (t && !picks.includes(t) || picks.length > 1 && t){ picks = [t]; applyKids(); } }
+  $("#sheet").showModal();
+};
 $("#sheetClose").onclick = ()=>$("#sheet").close();
 $("#sheet").addEventListener("click", e=>{ if (e.target.id==="sheet") $("#sheet").close(); });   // tap outside closes
 document.addEventListener("toggle", e=>{ if (e.target.classList && e.target.classList.contains("daydet")) detOpen = e.target.open; }, true);
