@@ -33,6 +33,7 @@ function doPost(e) {
       const args = req.args || [];
       const api = {
         sync:         () => sync_(args[0] || {}),
+        history:      () => history_(args[0] || {}),
         getProfile:   () => ({ children: children_().map(publicChild_) }),
         saveMeds:     () => ({ meds: saveMeds_((args[0] && args[0].meds) || []) }),
         saveProfile:  () => ({ children: saveChildren_((args[0] && args[0].children) || []).map(publicChild_) })
@@ -125,6 +126,7 @@ function saveChildren_(list) {
     sheet_().getDataRange().getValues().slice(1).forEach(r => used[String(r[2])] = true);
     cur.forEach(c => { if (used[c.key] && !out.some(o => o.id === c.id)) out.push(c); });
     PropertiesService.getScriptProperties().setProperty('PROFILE', JSON.stringify({ children: out }));
+    bump_(Date.now());
     CHILDREN_CACHE_ = out;
     return out;
   });
@@ -199,13 +201,25 @@ const validId_ = id => /^[A-Za-z0-9_-]{6,64}$/.test(String(id || ''));
 const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1, pump: 1 };
 const PARENT = 'parent';   // pumping sessions belong to the parent, not to a child
 
+/* Revision: time of the last write (events, children or reminders). Lets a sync with nothing to
+   send answer without opening the spreadsheet when nothing changed. Edits made by hand in the
+   sheet do not move it: clients force a full check now and then. */
+function rev_() { return Number(PropertiesService.getScriptProperties().getProperty('REV')) || 0; }
+function bump_(t) { PropertiesService.getScriptProperties().setProperty('REV', String(t)); }
+
 /**
- * Applies the client's outbox and returns everything changed since `since`
- * (or every non-deleted event when since = 0), plus the children profile.
+ * Applies the client's outbox and returns what changed since `since`, plus children and reminders.
+ * First load (since = 0): only events from `from` on (older ones via the "history" action).
+ * Nothing to send and nothing changed: quick answer, no lock, no sheet access, `since` kept.
  */
 function sync_(p) {
+  const since0 = Number(p.since) || 0, ops0 = p.ops || [];
+  if (!ops0.length && since0 > 0 && !p.force && rev_() < since0) {
+    return { serverTime: since0, events: [], unchanged: true };
+  }
   return withLock_(() => {
     const now = Date.now();
+    if ((p.ops || []).length) bump_(now);              // before writing: concurrent quick checks see the change
     const s = sheet_();
     const data = s.getRange(1, 1, Math.max(1, s.getLastRow()), HEADER.length).getValues();
     const idx = {};
@@ -227,17 +241,35 @@ function sync_(p) {
     Object.keys(dirty).forEach(k => { const i = Number(k); if (i < firstNew) s.getRange(i + 1, 1, 1, HEADER.length).setValues([data[i]]); });
     if (data.length > firstNew) s.getRange(firstNew + 1, 1, data.length - firstNew, HEADER.length).setValues(data.slice(firstNew));
 
-    const since = Number(p.since) || 0;
+    const since = Number(p.since) || 0, from = since === 0 ? Number(p.from) || 0 : 0;
     const events = [];
+    let older = false;
     for (let i = 1; i < data.length; i++) {
       const r = data[i];
       if (!r[0]) continue;
-      if (since === 0 ? r[COL.deleted] : (Number(r[COL.updatedAt]) || 0) < since) continue;
+      if (since === 0) {
+        if (r[COL.deleted]) continue;
+        if (from && (Number(r[COL.ts]) || 0) < from) { older = true; continue; }
+      } else if ((Number(r[COL.updatedAt]) || 0) < since) continue;
       const e = toClient_(rowToEvent_(r));
       if (e.child) events.push(e);
     }
-    return { serverTime: now, events: events, children: children_().map(publicChild_), meds: meds_() };
+    return { serverTime: now, events: events, children: children_().map(publicChild_), meds: meds_(), older: older };
   });
+}
+
+/** Events that happened before `before` (loaded on request: earlier days, Progress, export). */
+function history_(p) {
+  const before = Number(p.before) || 0;
+  const s = sheet_(), data = s.getRange(1, 1, Math.max(1, s.getLastRow()), HEADER.length).getValues();
+  const events = [];
+  for (let i = 1; i < data.length; i++) {
+    const r = data[i];
+    if (!r[0] || r[COL.deleted] || (before && (Number(r[COL.ts]) || 0) >= before)) continue;
+    const e = toClient_(rowToEvent_(r));
+    if (e.child) events.push(e);
+  }
+  return { events: events };
 }
 
 /**
@@ -273,6 +305,7 @@ function saveMeds_(list) {
       from: /^\d{4}-\d{2}-\d{2}$/.test(String(m.from || '')) ? String(m.from) : ''           // first day it applies
     }));
     PropertiesService.getScriptProperties().setProperty('MEDS', JSON.stringify(out));
+    bump_(Date.now());
     return out;
   });
 }
