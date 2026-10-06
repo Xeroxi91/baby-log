@@ -1,7 +1,7 @@
 /* Service worker: keeps the app shell on the device so the app opens instantly, even offline.
    Same-origin GET requests are served from the cache and refreshed in the background
    (the new version is used at the next launch). API calls to Apps Script are never cached. */
-const CACHE = "baby-log-v26";
+const CACHE = "baby-log-v27";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "favicon.png"];
 
 self.addEventListener("install", e => {
