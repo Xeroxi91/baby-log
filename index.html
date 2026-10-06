@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -342,6 +342,26 @@ dialog:focus,dialog:focus-visible{outline:none}
 .remw.late{background:var(--warn-soft)}
 .remg{display:flex;flex-wrap:wrap;gap:6px;padding:0 12px 8px 50px}
 .remg button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:4px 10px;font-size:.8rem;font-variant-numeric:tabular-nums}
+/* ===== behave like an installed app: no zoom, no text selection or callouts, no rubber band ===== */
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+*{touch-action:manipulation}
+input,textarea,select,[contenteditable]{-webkit-user-select:text;user-select:text;font-size:16px}
+img,svg{-webkit-user-drag:none}
+/* ===== sync state always visible: bar at the very top + line over the bottom bar ===== */
+#syncbar{position:fixed;left:0;right:0;top:0;height:3px;z-index:60;pointer-events:none;background:transparent;overflow:hidden}
+#syncbar.busy::after{content:"";position:absolute;top:0;bottom:0;width:35%;background:var(--both);animation:sbar 1.1s ease-in-out infinite}
+@keyframes sbar{0%{left:-35%}100%{left:100%}}
+.bottomnav{border-top-width:2px}
+.bottomnav.ok{border-top-color:var(--ok)}
+.bottomnav.busy{border-top-color:var(--both)}
+.bottomnav.stale,.bottomnav.off{border-top-color:var(--warn)}
+.bottomnav.err{border-top-color:var(--danger)}
+.sync.stale::before{background:var(--warn)}
+.sync.local::before{background:var(--muted)}
+.sync.stale{color:var(--warn);border-color:var(--warn)}
+.rdiv{grid-column:1/-1;text-align:center;font-size:.8rem;font-weight:700;color:var(--muted);padding:8px 0;border-top:1px solid var(--line);margin-top:4px}
+.histnote{font-size:.85rem;color:var(--muted);text-align:center;padding:8px}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:6px}
 </style>
 </head>
@@ -396,6 +416,7 @@ dialog:focus,dialog:focus-visible{outline:none}
 
 </div></dialog>
 
+<div id="syncbar" aria-hidden="true"></div>
 <div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="undoBtn">Undo</button></div>
 
 <dialog id="dlg" tabindex="-1" autofocus><form method="dialog" class="dlg" id="dlgForm">
@@ -512,6 +533,13 @@ let alertH = 3;
 try { alertH = Number(localStorage.getItem("bl-alertH")) || 3; } catch(e) {}
 
 const $ = s => document.querySelector(s);
+/* ---------- no browser gestures: pinch zoom, double-tap zoom, long-press menu outside fields ---------- */
+["gesturestart","gesturechange","gestureend"].forEach(t=>document.addEventListener(t, e=>e.preventDefault(), {passive:false}));
+document.addEventListener("touchmove", e=>{ if (e.touches && e.touches.length > 1) e.preventDefault(); }, {passive:false});
+let lastTouchEnd = 0;
+document.addEventListener("touchend", e=>{ const n = Date.now(); if (n - lastTouchEnd < 350 && !e.target.closest("input,textarea,select")) e.preventDefault(); lastTouchEnd = n; }, {passive:false});
+document.addEventListener("contextmenu", e=>{ if (!e.target.closest("input,textarea")) e.preventDefault(); });
+
 /* ---------- dialogs open without focusing (and opening) their first field ---------- */
 if (window.HTMLDialogElement){
   const open = HTMLDialogElement.prototype.showModal;
@@ -576,7 +604,7 @@ const IT = {
 "In babies under 3 months a temperature of 38 °C or more needs prompt medical advice: contact your paediatrician or out-of-hours service now.":"Sotto i 3 mesi una temperatura di 38 °C o più richiede un parere medico tempestivo: contatta subito il pediatra o la guardia medica.",
 "In the first weeks frequent stools are a sign of good intake. Mention it to your paediatrician if it continues.":"Nelle prime settimane feci frequenti sono segno di una buona alimentazione. Parlane con il pediatra se continua.",
 // settings
-"Children":"Figli","Edit children":"Modifica figli","Appearance":"Aspetto","Theme":"Tema","Light":"Chiaro","Dark":"Scuro","Night mode":"Modalità notte","· very dark and dim, bigger buttons":"· molto scura e attenuata, pulsanti più grandi","Title shown at the top":"Titolo in alto","Language":"Lingua","3rd":"3°","16th":"16°","50th":"50°","84th":"84°","97th":"97°",
+"Children":"Figli","Edit children":"Modifica figli","Appearance":"Aspetto","Theme":"Tema","Light":"Chiaro","Dark":"Scuro","Night mode":"Modalità notte","· very dark and dim, bigger buttons":"· molto scura e attenuata, pulsanti più grandi","Title shown at the top":"Titolo in alto","Language":"Lingua","Updated just now":"Aggiornato ora","Loading earlier days…":"Caricamento dei giorni precedenti…","3rd":"3°","16th":"16°","50th":"50°","84th":"84°","97th":"97°",
 "Try with sample data":"Prova con dati di esempio","You are looking at":"Stai guardando","sample data":"dati di esempio",": nothing is shared.":": niente viene condiviso.","Remove sample data and start":"Rimuovi i dati di esempio e inizia","Remove all sample data from this device?":"Rimuovere tutti i dati di esempio da questo dispositivo?","Remove the sample data before connecting to a shared log?":"Rimuovere i dati di esempio prima di collegarti a un diario condiviso?",
 "Descriptive view: the app shows your entries without interpreting them. Signals can be turned on in Settings → Signals.":"Vista descrittiva: l'app mostra le registrazioni senza interpretarle. I segnali si possono attivare in Impostazioni → Segnali.",
 "Off by default. When on, the app compares your entries with age-based thresholds and shows \"talk to your paediatrician / keep an eye on / going well / what may help\". It is not a medical device: use it only if it helps you, and agree thresholds with your paediatrician.":"Disattivati di default. Se attivi, l'app confronta le registrazioni con soglie per età e mostra \"parlane con il pediatra / da tenere d'occhio / va bene / cosa può aiutare\". Non è un dispositivo medico: usali solo se ti sono utili e concorda le soglie con il pediatra.",
@@ -634,7 +662,7 @@ const IT_T = [
 ["Next dose of {x} for {x} is at {x}. Log a dose now anyway?","La prossima dose di {x} per {x} è alle {x}. Registrare comunque una dose ora?"],
 ["Fill with values suggested for {x}","Compila con i valori suggeriti per {x}"],["{x}: feed and diaper signals are not used at this stage.","{x}: in questa fase i segnali su poppate e pannolini non sono usati."],
 ["Edit dose at {x}","Modifica dose delle {x}"],["Edit {x} at {x}","Modifica {x} delle {x}"],["{x} of {x} on WHO curves","{x} di {x} sulle curve OMS"],["{x} of {x} on reference curves","{x} di {x} sulle curve di riferimento"],
-["All measurements ({x})","Tutte le misure ({x})"],["Updated {x}","Aggiornato {x}"],["{x} to send","{x} da inviare"],["Stop all ({x})","Ferma tutti ({x})"],["Stopped {x} feeds","Fermate {x} poppate"],
+["All measurements ({x})","Tutte le misure ({x})"],["Updated {x} ago","Aggiornato {x} fa"],["Not updated for {x}","Non aggiornato da {x}"],["Yesterday evening · {x}","Ieri sera · {x}"],["Updated {x}","Aggiornato {x}"],["{x} to send","{x} da inviare"],["Stop all ({x})","Ferma tutti ({x})"],["Stopped {x} feeds","Fermate {x} poppate"],
 ["Breastfeed · {x} · {x} min","Allattamento · {x} · {x} min"],["Not saved: {x}","Non salvato: {x}"],["Profile not saved: {x}","Profilo non salvato: {x}"],
 ["{x} feeds in the last 24 h","{x} poppate nelle ultime 24 h"],["{x} vomits in the last 24 h","{x} episodi di vomito nelle ultime 24 h"],["{x} wet diapers in the last 24 h","{x} pannolini bagnati nelle ultime 24 h"],
 ["Fewer feeds need a top-up ({x} vs {x})","Meno poppate con aggiunta ({x} contro {x})"],["Last weighing {x} days ago","Ultima pesata {x} giorni fa"],["No poo for {x} h","Niente cacca da {x} h"],["Stretch of {x} h without feeding","{x} h senza poppare"],
@@ -867,15 +895,18 @@ async function run(action, ...args){
 // base: events confirmed by the server (id → event). outbox: local changes not sent yet.
 // What the app shows = base with the outbox applied on top, so it works the same online and offline.
 let base = {}, outbox = [], since = 0, synced = false, lastSync = 0, syncing = false, syncErr = "", failures = 0;
+// first load brings only recent events (RECENT); earlier ones come on request. histFrom: oldest time loaded (0 = all)
+const RECENT = 48*36e5;
+let histFrom = 0, histLoading = null, lastActivity = Date.now(), syncCount = 0, syncShownAt = 0;
 function loadCache(){
   try {
     const c = JSON.parse(localStorage.getItem("bl-cache") || "null");
-    if (c && (isLocal() || c.api === apiUrl)){ base = c.base || {}; since = c.since || 0; kids = c.kids || []; meds = c.meds || []; lastSync = c.lastSync || 0; synced = !!c.since; }
+    if (c && (isLocal() || c.api === apiUrl)){ base = c.base || {}; since = c.since || 0; kids = c.kids || []; meds = c.meds || []; lastSync = c.lastSync || 0; synced = !!c.since; histFrom = c.histFrom || 0; }
     outbox = JSON.parse(localStorage.getItem("bl-outbox") || "[]");
   } catch(e) {}
   rebuild();
 }
-function saveCache(){ try { localStorage.setItem("bl-cache", JSON.stringify({api:apiUrl, base, since, kids, meds, lastSync})); } catch(e) {} }
+function saveCache(){ try { localStorage.setItem("bl-cache", JSON.stringify({api:apiUrl, base, since, kids, meds, lastSync, histFrom})); } catch(e) {} }
 function saveOutbox(){ try { localStorage.setItem("bl-outbox", JSON.stringify(outbox)); } catch(e) {} }
 function rebuild(){
   const m = Object.assign({}, base);
@@ -887,17 +918,35 @@ const uid = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
 function queue(ops){ outbox.push(...ops); saveOutbox(); rebuild(); render(); setStatus(); scheduleSync(); }
 let syncTimer = null, syncAgain = false;
 function scheduleSync(ms=300){ clearTimeout(syncTimer); syncTimer = setTimeout(refresh, ms); }
+let forceNext = false;
+/* earlier days, loaded on request (previous days, Progress, export) */
+function loadHistory(){
+  if (isLocal() || !histFrom) return Promise.resolve();
+  if (histLoading) return histLoading;
+  histLoading = run("history", {before: histFrom}).then(r=>{
+    for (const e of r.events) if (!base[e.id]) base[e.id] = e;
+    histFrom = 0; saveCache(); rebuild(); render();
+  }).catch(()=>{}).finally(()=>{ histLoading = null; render(); });
+  render();                                   // shows "loading earlier days"
+  return histLoading;
+}
+const needsHistory = ts => histFrom > 0 && ts < histFrom;
 async function refresh(){
   if (isLocal()){ setStatus(); if (!kids.length && !$("#profDlg").open) openProfile(); return; }
   if (syncing){ syncAgain = true; return; }
   syncing = true; setStatus();
   const ops = outbox.slice(0, 200);
   try {
-    const r = await run("sync", {since: synced ? since : 0, ops});
+    const first = !synced, from = first ? Date.now() - RECENT : 0;
+    syncCount++;
+    const r = await run("sync", {since: first ? 0 : since, ops, from, force: forceNext || syncCount % 20 === 0});
+    forceNext = false;
     outbox = outbox.slice(ops.length); saveOutbox();
-    if (!synced) base = {};
+    if (r.unchanged){ lastSync = Date.now(); syncErr = ""; failures = 0; saveCache(); return; }     // nothing new: no re-render
+    if (first){ base = {}; histFrom = r.older ? from : 0; }
     for (const e of r.events){ if (e.deleted) delete base[e.id]; else base[e.id] = e; }
-    since = r.serverTime; synced = true; lastSync = Date.now(); kids = r.children || []; meds = r.meds || []; syncErr = "";
+    since = r.serverTime; synced = true; lastSync = Date.now(); syncErr = "";
+    if (r.children) kids = r.children; if (r.meds) meds = r.meds;
     saveCache(); rebuild(); applyKids(); render();
     if (!kids.length && !$("#profDlg").open) openProfile();
     if (outbox.length) syncAgain = true;
@@ -923,15 +972,23 @@ function setStatus(){
   const el = $("#sync"); if (!el) return;
   const n = outbox.length, pend = n ? ` · ${n} to send` : "";
   let cls, txt;
-  if (isLocal()){ cls = "off"; txt = "This device only"; }
+  if (isLocal()){ cls = "local"; txt = "This device only"; }
   else if (syncing){ cls = "busy"; txt = "Syncing…"; }
   else if (syncErr === "offline"){ cls = "off"; txt = "Offline" + pend; }
   else if (syncErr === "server"){ cls = "off"; txt = "Retrying" + pend; }
   else if (syncErr){ cls = "err"; txt = "Sync error" + pend; }
   else if (n){ cls = "busy"; txt = `${n} to send`; }
-  else if (lastSync){ cls = "ok"; txt = "Updated " + hm(lastSync); }
+  else if (lastSync){
+    const age = Date.now() - lastSync;
+    if (age > 10*60000 && navigator.onLine !== false){ cls = "stale"; txt = `Not updated for ${dur(age)}`; }
+    else { cls = "ok"; txt = age < 60000 ? "Updated just now" : `Updated ${dur(age)} ago`; }
+  }
   else { cls = "busy"; txt = "Connecting…"; }
   el.className = "sync " + cls; el.textContent = txt;
+  const nav = document.querySelector(".bottomnav"); if (nav){ nav.classList.remove("ok","busy","stale","off","err"); nav.classList.add(cls); }
+  // top bar only if a sync lasts more than a moment (no flicker on quick checks)
+  const bar = $("#syncbar");
+  if (bar){ clearTimeout(setStatus.t); if (syncing) setStatus.t = setTimeout(()=>{ if (syncing) bar.className = "busy"; }, 250); else bar.className = ""; }
 }
 async function addEvents(evs){
   const full = evs.map(e=>({...e, id: uid()}));
@@ -1287,7 +1344,8 @@ function fillDayDetails(){   // Day and Log merged: the day's cards go into a co
 }
 function shiftDay(d){
   const n = dayOffset + d; if (n>0) return;
-  dayOffset = n; renderDay(); renderLog(); fillDayDetails();
+  dayOffset = n;
+  if (needsHistory(new Date(dayKey(Date.now() + n*864e5)+"T00:00").getTime())) loadHistory(); renderDay(); renderLog(); fillDayDetails();
 }
 function medName(id){ const m = meds.find(x=>x.id===id); return m ? m.name : ""; }
 const noteTxt = e => [ (e.tags||"").split(",").filter(Boolean).map(t=>tr(TAG[t]||t)).join(", "), e.temp ? fmtNum(Number(e.temp),1)+" °C" : "", e.text ? "“"+(e.text.length>40?e.text.slice(0,40)+"…":e.text)+"”" : "" ].filter(Boolean).join(" · ") || "note";
@@ -1374,8 +1432,11 @@ function renderLog(){
   ${remindersBlock(key, isToday)}
   ${pumpBlock(key)}
   <details class="det daydet"${detOpen?" open":""}><summary>Day details</summary><div id="dayDetails"></div></details>`;
-  // rows: moments of different children close in time share a row
-  const items = logIds().flatMap(t=>dayItems(t,key)).sort((a,b)=>b.ts-a.ts);
+  if (histLoading && needsHistory(new Date(key+"T00:00").getTime())) h += `<p class="histnote">Loading earlier days…</p>`;
+  // at night (0–6) today also shows yesterday from 18:00, so recent events are at hand
+  const todayStart = new Date(key+"T00:00").getTime(), night = isToday && new Date(Date.now()).getHours() < 6;
+  const yKey = dayKey(todayStart - 12*36e5);
+  const items = logIds().flatMap(t=>dayItems(t,key).concat(night ? dayItems(t,yKey).filter(it=>it.ts >= todayStart - 6*36e5) : [])).sort((a,b)=>b.ts-a.ts);
   const rows = [];
   for (const it of items){
     // same row only for events of the same type of another child within 15 min: the closest is chosen
@@ -1395,8 +1456,9 @@ function renderLog(){
     const lastEnd = []; for (let i=rows.length-1, m=-Infinity; i>=0; i--){ m = Math.max(m, rows[i].end); lastEnd[i] = m; }
     const now = Date.now();
     rows.forEach((r,i)=>r.gapAbove = (i===0 ? (isToday ? now : null) : rows[i-1].ts));
-    let ri = 0;
+    let ri = 0, divDone = false;
     for (const r of rows){
+      if (night && !divDone && r.ts < todayStart){ divDone = true; h += `<div class="rdiv">Yesterday evening · ${new Date(yKey+"T12:00").toLocaleDateString(LOC(),{weekday:"short",day:"numeric",month:"short"})}</div>`; }
       const upper = r.gapAbove, g = upper==null ? 0 : upper - lastEnd[ri];
       if (g >= 2*36e5) h += `<div class="rgap">${ri===0 && isToday ? "no events for " : ""}${dur(g)}${ri===0 && isToday ? "" : " without events"}</div>`;
       ri++;
@@ -2023,6 +2085,7 @@ function renderTrend(){
   const rn = events.filter(e=>e.child===t && e.kind==="note" && e.ts > now-14*864e5).sort((a,b)=>b.ts-a.ts);
   if (rn.length) h += `<div class="chartcard"><h3>Notes <span class="muted">· last 14 days</span></h3><ul class="notes">${rn.map(e=>`<li><button data-edit="${esc(e.id)}"><small>${fmtDate(e.ts)} ${hm(e.ts)}</small>${esc(noteTxt(e))}</button></li>`).join("")}</ul></div>`;
 
+  if (histLoading) h += `<p class="histnote">Loading earlier days…</p>`;
   const babyView = stageOf(t)!=="child";
   if (!babyView){ /* older children: growth, notes and reminders only */ }
   else {
@@ -2055,7 +2118,7 @@ function renderTrend(){
 }
 
 /* ---------- settings ---------- */
-const APP_VERSION = "1.13.5";
+const APP_VERSION = "1.14.0";
 const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
 function renderSettings(){
@@ -2133,7 +2196,7 @@ function renderSettings(){
   $("#expJson").onclick = ()=>exportData("json");
   if ($("#demoClear")) $("#demoClear").onclick = ()=>{ if (confirm("Remove all sample data from this device?")) clearDemo(); };
   if (isLocal()){ ["syncNow","shareApp","copyApi","discBtn"].forEach(id=>{ const b = $("#"+id); if (b) b.remove(); }); }
-  if ($("#syncNow")) $("#syncNow").onclick = ()=>{ refresh(); };
+  if ($("#syncNow")) $("#syncNow").onclick = ()=>{ forceNext = true; refresh(); };
   $("#thrOn").onchange = e=>{ thr.on = e.target.checked; saveThr(); renderTrend(); };
   el.querySelectorAll("#thrMode button").forEach(b=>b.onclick=()=>{ thr.auto = b.dataset.v==="auto"; saveThr(); renderSettings(); renderTrend(); });
   el.querySelectorAll("[data-thr]").forEach(i=>i.onchange=()=>{ const v = i.value==="" ? null : Number(i.value); if (v==null || v>=0){ thr.custom[i.dataset.thr] = v; saveThr(); renderTrend(); } });
@@ -2190,7 +2253,7 @@ $("#profForm").onsubmit = async e=>{
 $("#profCancel").onclick = ()=>$("#profDlg").close();
 
 /* ---------- what's new ---------- */
-const CHANGELOG = [["1.13.5", "Each dose given appears under its reminder: tap its time to change or delete it.", "Ogni dose data compare sotto il suo promemoria: tocca l'orario per modificarla o eliminarla."], ["1.13.4", "Forms open without opening their first field.", "Le finestre si aprono senza aprire il primo campo."], ["1.13.3", "The children selected in the logging panel are remembered on this device; from Progress, ＋ opens on the child being viewed.", "La selezione dei figli nel pannello di inserimento resta memorizzata sul dispositivo; da Andamento il ＋ si apre sul figlio che stai guardando."], ["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
+const CHANGELOG = [["1.14.0", "Feels like an app (no zoom or browser gestures); sync state always visible; faster sync: recent days first, earlier ones on request, quick checks when nothing changed; at night today also shows yesterday evening.", "Si comporta come un'app (niente zoom né gesti del browser); stato della sincronizzazione sempre visibile; sincronizzazione più veloce: prima i giorni recenti, i precedenti su richiesta, controlli rapidi quando non cambia nulla; di notte oggi mostra anche la sera precedente."], ["1.13.5", "Each dose given appears under its reminder: tap its time to change or delete it.", "Ogni dose data compare sotto il suo promemoria: tocca l'orario per modificarla o eliminarla."], ["1.13.4", "Forms open without opening their first field.", "Le finestre si aprono senza aprire il primo campo."], ["1.13.3", "The children selected in the logging panel are remembered on this device; from Progress, ＋ opens on the child being viewed.", "La selezione dei figli nel pannello di inserimento resta memorizzata sul dispositivo; da Andamento il ＋ si apre sul figlio che stai guardando."], ["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
 function changelogHtml(){
   const it = LANG==="it", row = ([v,en,itx]) => `<li><b>${v}</b> ${esc(it ? itx : en)}</li>`;
   return `<div class="sect notr"><h3>${it ? "Novità" : "What's new"}</h3><ul class="clog">${CHANGELOG.slice(0,3).map(row).join("")}</ul>
@@ -2198,7 +2261,8 @@ function changelogHtml(){
 }
 
 /* ---------- export ---------- */
-function exportData(kind){
+async function exportData(kind){
+  if (histFrom) { toast("Loading earlier days…", false); await loadHistory(); }
   const who = id => id==="parent" ? tr("Pumping") : (kids.find(k=>k.id===id)||{}).name || "";
   const list = events.slice().sort((a,b)=>a.ts-b.ts);
   let text, type, name;
@@ -2274,7 +2338,7 @@ document.addEventListener("toggle", e=>{ if (e.target.classList && e.target.clas
 function showTab(name){
   document.querySelectorAll("[role=tab]").forEach(x=>x.setAttribute("aria-selected", x.dataset.tab===name));
   ["day","log","trend","settings"].forEach(t=>$("#tab-"+t).hidden = t!==name || t==="day");
-  if (name==="trend") renderTrend(); else if (name==="log"){ renderLog(); fillDayDetails(); }   // times and signals stay current
+  if (name==="trend"){ loadHistory(); renderTrend(); } else if (name==="log"){ renderLog(); fillDayDetails(); }   // times and signals stay current
   measureSticky();
   window.scrollTo(0, 0);
 }
@@ -2309,13 +2373,29 @@ applyNight();
 loadCache(); applyKids(); render(); setStatus(); translateTree(document.body); refresh();
 // ask the browser to keep this site's storage (address, code and local data) even under storage pressure
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
-$("#sync").onclick = ()=>{ if (isLocal()) showTab("settings"); else refresh(); };
+$("#sync").onclick = ()=>{ if (isLocal()) showTab("settings"); else { forceNext = true; refresh(); } };
 window.addEventListener("online", ()=>refresh());
 window.addEventListener("offline", ()=>{ syncErr = "offline"; setStatus(); });
-setInterval(()=>{ renderSince(); if (document.visibilityState==="visible") refresh(); }, 20000);
+// sync when the app is in front: every 30 s if used in the last 5 minutes, otherwise every 2 minutes;
+// most checks get a quick "nothing changed" answer from the server
+let lastAuto = 0, lastDay = dayKey(Date.now());
+setInterval(()=>{
+  renderSince(); setStatus();
+  const today = dayKey(Date.now());
+  if (today !== lastDay){ lastDay = today; if (dayOffset===0) render(); }        // midnight: "Today" moves on
+  if (document.visibilityState!=="visible") return;
+  const every = Date.now() - lastActivity < 5*60000 || outbox.length ? 30000 : 120000;
+  if (Date.now() - lastAuto >= every - 1000){ lastAuto = Date.now(); refresh(); }
+}, 15000);
+["pointerdown","keydown"].forEach(t=>document.addEventListener(t, ()=>{ lastActivity = Date.now(); }, {passive:true}));
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
 setInterval(()=>{ if (liveFeeds().length) renderLive(); }, 5000);
-document.addEventListener("visibilitychange", ()=>{ if (document.visibilityState==="visible") refresh(); });
+document.addEventListener("visibilitychange", ()=>{
+  if (document.visibilityState!=="visible") return;
+  lastActivity = Date.now();
+  const today = dayKey(Date.now()); if (today !== lastDay){ lastDay = today; dayOffset = 0; render(); }   // reopened on a new day: back to today
+  if (Date.now() - lastSync > 5000){ lastAuto = Date.now(); refresh(); }
+});
 </script>
 </body>
 </html>

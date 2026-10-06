@@ -89,6 +89,15 @@ data** (removable from *Settings*; never uploaded).
 
 **Settings**
 - **What's new**: the changelog is in *Settings*.
+- **Feels like an app**: no zoom, no text selection or long-press menus outside fields, no rubber band.
+- **Sync state always visible**: status at the top (updated just now / … ago, syncing, offline, not updated for …),
+  a coloured line over the bottom bar and a progress bar at the very top while syncing.
+- **Fast sync**: the first load brings the last 48 hours; earlier days are loaded on request (previous days,
+  *Progress*, export). Checks run every 30 s while the app is used (2 min otherwise) and get a quick
+  "nothing changed" answer without reading the sheet; a full check runs every 10 minutes or with *Sync now*
+  (needed only for edits made by hand in the sheet).
+- **Night**: between 0:00 and 6:00 *Today* also shows yesterday from 18:00; the app moves to the new day
+  by itself at midnight.
 - **Export**: spreadsheet (CSV) or full backup (JSON) of everything on the device.
 - Weight in grams for babies and kilograms from 1 year; a warning when a weight or length is outside
   the usual range for the child's age (WHO / INTERGROWTH −5…+5 SD).
@@ -228,7 +237,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | `pre` / `post` | test weighing before / after a breastfeed, in grams |
 
 Children profiles and access codes are stored in the script's **Script Properties**
-(`PROFILE`, `KEYS`, `MEDS`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
+(`PROFILE`, `KEYS`, `MEDS`, `REV`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
 
 ---
 
