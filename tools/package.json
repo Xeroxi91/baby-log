@@ -1,0 +1,7 @@
+{
+  "name": "baby-log-tools",
+  "private": true,
+  "description": "Local test harness for Baby log (not used by the app)",
+  "scripts": { "test": "node smoke.test.js" },
+  "devDependencies": { "jsdom": "^24.0.0" }
+}
