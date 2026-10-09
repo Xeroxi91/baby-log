@@ -1,4 +1,4 @@
-// Minimal Google Apps Script mock: runs ../apps-script/Code.gs against an in-memory sheet and script properties.
+// Minimal Google Apps Script mock: runs ../apps-script/*.gs against an in-memory sheet and script properties.
 const fs=require('fs'), vm=require('vm'), crypto=require('crypto');
 module.exports=function(rows){
   const props={KEYS:'GOOD'};
@@ -19,6 +19,9 @@ module.exports=function(rows){
     console, Date, JSON, Math, Number, String, Object, Array, Boolean, RegExp, isFinite, parseInt, parseFloat
   };
   vm.createContext(ctx);
-  vm.runInContext(fs.readFileSync(require('path').join(__dirname,'..','apps-script','Code.gs'),'utf8')+';this.doPost=doPost;',ctx);
+  // all .gs files share one global scope, as in an Apps Script project
+  const dir=require('path').join(__dirname,'..','apps-script');
+  const gs=fs.readdirSync(dir).filter(f=>f.endsWith('.gs')).sort((a,b)=>(b==='Code.gs')-(a==='Code.gs')||a.localeCompare(b));
+  vm.runInContext(gs.map(f=>fs.readFileSync(require('path').join(dir,f),'utf8')).join('\n')+';this.doPost=doPost;',ctx);
   return {api:{doPost:e=>ctx.doPost(e)},data,props};
 };

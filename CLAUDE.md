@@ -17,7 +17,7 @@ Script used as API + a Google Sheet as database. No build step, no dependencies 
 |---|---|
 | `index.html` | the whole app: HTML + CSS + JS in one file (~2.5k lines, sections marked `/* ---------- name ---------- */`) |
 | `sw.js` | service worker: app shell cache, stale-while-revalidate. **Bump `CACHE` on every release** |
-| `apps-script/Code.gs` | backend (copied by hand into Apps Script; not deployed from GitHub) |
+| `apps-script/*.gs` | backend (copied by hand into Apps Script; not deployed from GitHub): `Code.gs` API/sheet/sync, `Children.gs`, `Reminders.gs`, `Features.gs` — one global scope |
 | `manifest.webmanifest`, icons | PWA install |
 | `README.md` | user documentation (English) |
 | `NOTICE.md`, `LICENSE.md`, `CITATION.cff` | credits, third-party data, license |
@@ -36,6 +36,11 @@ Script used as API + a Google Sheet as database. No build step, no dependencies 
 - Modes: shared (URL + access code), local only (`bl-mode=local`), sample data (`bl-demo=1`).
 - Stages per child: `newborn` / `infant` / `child` (`stageOf`, `logIds()` = children shown in the log).
 - Signals (interpretive, "talk to your paediatrician"…) are **off by default** (descriptive view).
+- Features (Settings → Features): `FEATURES` registry, `featOn(k)`. Family-wide choices `feats.on` come from the
+  server (`features` in the sync answer; local mode: cache); switches changed offline wait in `featPending`
+  and are sent by `pushFeatures()` (`saveFeatures` merges keys). A key never chosen is on if `def` or if
+  its kinds are already used (`feats.used` from the server, `usedHere()` locally). Off = hidden only:
+  `events` excludes entries of modules turned off (`KIND_FEAT`), `allEvents` keeps everything (export).
 - i18n: UI strings are written in English; Italian is applied by translating rendered text
   (`IT` exact strings, `IT_T` templates with `{x}`, `IT_P` phrase replacements, `tr()`,
   MutationObserver). **Every new user-visible English string needs an IT entry.**
@@ -43,7 +48,7 @@ Script used as API + a Google Sheet as database. No build step, no dependencies 
   Forms use `novalidate`: the app validates (browser validation rejected valid values on iOS).
 - App-like: no zoom/gestures/callouts; 16 px fields; status pill + bottom-nav line + top bar.
 
-**Backend (`Code.gs`)**
+**Backend (`apps-script/*.gs`, one Apps Script project; `tools/gasmock.js` loads all files)**
 - `doPost` with `{action, key, args}`; access codes in Script Properties `KEYS` (`createAccessCodes(n)`,
   `addAccessCode()`).
 - Sheet `events` columns: `id kind child ts feedType grams dateTime ml duration running cm side milk
@@ -53,13 +58,15 @@ Script used as API + a Google Sheet as database. No build step, no dependencies 
 - `REV` property = time of last write. A sync with no ops and `since > REV` returns `{unchanged:true}`
   without lock or sheet access, **keeping `since`** (avoids losing concurrent writes).
 - Reminders: `MEDS` (children; fields `id child name dose times due every until from group`).
+- Features: `FEATURES` = `{on:{key:bool}}` (only explicit choices); sync returns `{on, used}` where `used`
+  lists kinds present in the sheet (plus `tw`), so updates never hide what a family uses.
 - Parents' reminders: `PMEDS` = `{v, salt, check, items:[{id, enc}]}`, **encrypted on the phone**
   (AES-GCM, key from a family passphrase via PBKDF2); the server stores opaque text only.
 
 ## Conventions
 - Each release: bump `APP_VERSION` (index.html), add a `CHANGELOG` entry **in EN and IT**
   (shown in Settings → What's new), bump `CACHE` in `sw.js`, update README if behaviour changes.
-- If `Code.gs` changes, say so explicitly: it must be pasted into Apps Script and deployed
+- If a `.gs` file changes, say so explicitly: it must be pasted into Apps Script and deployed
   (Manage deployments → edit → **New version**) **before** the page is updated.
 - Commits: Conventional Commits in English (`feat(scope): …`, `fix(scope): …`), body with bullets.
 - Branches: `main` = what the phones use (GitHub Pages). Work on `dev` / `feature/*`, PR to `main`.
@@ -78,7 +85,7 @@ cd tools && npm install && npm test
 Also check the UI with Playwright/Chromium screenshots at 390×844 (iPhone size), in EN and IT.
 
 ## Roadmap (agreed order)
-1. **v2.0 modules**: Settings → Features with on/off switches, **family-wide** (stored on the server),
+1. **v2.0 modules** (switches and the `.gs` split done in 2.0.0): Settings → Features with on/off switches, **family-wide** (stored on the server),
    disabling hides and never deletes; existing users keep what they use. Then move modules to
    `modules/*.js` loaded with dynamic `import()` only when enabled (cache them in `sw.js`), and split
    `Code.gs` into several `.gs` files.

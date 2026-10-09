@@ -10,6 +10,12 @@
  *
  * Setup: 1) run createAccessCodes()  2) Deploy > New deployment > Web app,
  *        Execute as: Me, Who has access: Anyone.
+ *
+ * Files (one Apps Script project, all in the same global scope; paste each into a file with the same name):
+ *   Code.gs       API, access codes, sheet, sync
+ *   Children.gs   children profile
+ *   Reminders.gs  children's reminders and parents' encrypted reminders
+ *   Features.gs   modules switched on and off for the whole family
  */
 const SHEET = 'events';
 const LEGACY_SHEETS = ['eventi'];   // older versions of this project used this sheet name
@@ -37,6 +43,7 @@ function doPost(e) {
         getProfile:   () => ({ children: children_().map(publicChild_) }),
         saveMeds:     () => ({ meds: saveMeds_((args[0] && args[0].meds) || []) }),
         savePMeds:    () => ({ pmeds: savePMeds_((args[0] && args[0].pmeds) || null) }),
+        saveFeatures: () => ({ features: saveFeatures_((args[0] && args[0].on) || {}) }),
         saveProfile:  () => ({ children: saveChildren_((args[0] && args[0].children) || []).map(publicChild_) })
       };
       out = api[req.action] ? { result: api[req.action]() } : { error: 'unknown action' };
@@ -77,77 +84,6 @@ function addAccessCode() {
   keys.push(k);
   props.setProperty('KEYS', keys.join(','));
   console.log('New access code (' + keys.length + ' active): ' + k);
-}
-
-/* ---------- children ---------- */
-// Each child has an opaque id (seen by the page) and a key (value of the "child" column, never sent).
-const CHILD_FIELDS = ['name', 'sex', 'birth', 'gaW', 'gaD', 'bw', 'bl', 'bh', 'stage'];
-const newId_ = () => 'c' + Utilities.getUuid().replace(/-/g, '').slice(0, 10);
-
-let CHILDREN_CACHE_ = null;
-function children_() {
-  if (CHILDREN_CACHE_) return CHILDREN_CACHE_;
-  const props = PropertiesService.getScriptProperties();
-  const raw = props.getProperty('PROFILE');
-  const p = raw ? JSON.parse(raw) : null;
-  if (p && Array.isArray(p.children)) return (CHILDREN_CACHE_ = p.children);
-  // migration: build the children from the keys already in the sheet (and from a legacy profile, if any)
-  const keys = {};
-  sheet_().getDataRange().getValues().slice(1).forEach(r => { if (r[2]) keys[String(r[2])] = true; });
-  const ch = Object.keys(keys).map(k => {
-    const old = (p && p[k]) || {};
-    return { id: newId_(), key: k, name: old.name || (k.charAt(0).toUpperCase() + k.slice(1)), sex: old.sex || 'm',
-             birth: old.birth || '', gaW: old.gaW || 40, gaD: old.gaD || 0, bw: old.bw || '', bl: old.bl || '', bh: old.bh || '' };
-  });
-  props.setProperty('PROFILE', JSON.stringify({ children: ch }));
-  return (CHILDREN_CACHE_ = ch);
-}
-
-function publicChild_(c) {
-  const o = { id: c.id };
-  CHILD_FIELDS.forEach(f => o[f] = c[f]);
-  return o;
-}
-
-function saveChildren_(list) {
-  return withLock_(() => {
-    const cur = children_(), byId = {};
-    cur.forEach(c => byId[c.id] = c);
-    const out = list.slice(0, 12).map(x => {
-      const prev = x.id && byId[x.id];
-      // new children keep the id created on the device (local mode), so their entries can be uploaded
-      const ok = x.id && /^c[a-z0-9]{6,20}$/.test(String(x.id)) && !byId[x.id];
-      const c = prev ? Object.assign({}, prev) : { id: ok ? String(x.id) : newId_() };
-      if (!prev) c.key = c.id;
-      CHILD_FIELDS.forEach(f => { if (x[f] !== undefined) c[f] = String(x[f]).slice(0, 60); });
-      return c;
-    });
-    // a child that already has events is never removed
-    const used = {};
-    sheet_().getDataRange().getValues().slice(1).forEach(r => used[String(r[2])] = true);
-    cur.forEach(c => { if (used[c.key] && !out.some(o => o.id === c.id)) out.push(c); });
-    PropertiesService.getScriptProperties().setProperty('PROFILE', JSON.stringify({ children: out }));
-    bump_(Date.now());
-    CHILDREN_CACHE_ = out;
-    return out;
-  });
-}
-
-function toSheet_(e) {
-  if (!e) return e;
-  if (e.kind === 'pump' || e.kind === 'pmed') { const o = Object.assign({}, e, { kidKey: PARENT }); delete o.child; return o; }
-  const c = children_().find(x => x.id === e.child);
-  if (!c) throw new Error('unknown child');
-  const o = Object.assign({}, e, { kidKey: c.key });
-  delete o.child;
-  return o;
-}
-
-function toClient_(e) {
-  const c = children_().find(x => x.key === e.kidKey);
-  const o = Object.assign({}, e, { child: e.kidKey === PARENT ? PARENT : c ? c.id : null });
-  delete o.kidKey;
-  return o;
 }
 
 /* ---------- sheet ---------- */
@@ -202,7 +138,7 @@ const validId_ = id => /^[A-Za-z0-9_-]{6,64}$/.test(String(id || ''));
 const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1, pump: 1, pmed: 1 };
 const PARENT = 'parent';   // pumping sessions belong to the parent, not to a child
 
-/* Revision: time of the last write (events, children or reminders). Lets a sync with nothing to
+/* Revision: time of the last write (events, children, reminders or features). Lets a sync with nothing to
    send answer without opening the spreadsheet when nothing changed. Edits made by hand in the
    sheet do not move it: clients force a full check now and then. */
 function rev_() { return Number(PropertiesService.getScriptProperties().getProperty('REV')) || 0; }
@@ -255,7 +191,7 @@ function sync_(p) {
       const e = toClient_(rowToEvent_(r));
       if (e.child) events.push(e);
     }
-    return { serverTime: now, events: events, children: children_().map(publicChild_), meds: meds_(), pmeds: pmeds_(), older: older };
+    return { serverTime: now, events: events, children: children_().map(publicChild_), meds: meds_(), pmeds: pmeds_(), features: features_(data), older: older };
   });
 }
 
@@ -282,54 +218,4 @@ function normaliseLegacyValues() {
   if (n < 1) return;
   const rng = s.getRange(2, 5, n, 1), v = rng.getValues();
   rng.setValues(v.map(r => [FEED_TYPES[r[0]] || r[0]]));
-}
-
-/* ---------- daily reminders (vitamin D, prescribed medicines…) ---------- */
-function meds_() {
-  const raw = PropertiesService.getScriptProperties().getProperty('MEDS');
-  return raw ? JSON.parse(raw) : [];
-}
-
-function saveMeds_(list) {
-  return withLock_(() => {
-    const ids = {};
-    children_().forEach(c => ids[c.id] = true);
-    const out = list.slice(0, 30).filter(m => m && ids[m.child] && String(m.name || '').trim()).map(m => ({
-      id: /^m[a-z0-9]{6,20}$/.test(String(m.id)) ? String(m.id) : 'm' + Utilities.getUuid().replace(/-/g, '').slice(0, 10),
-      child: String(m.child),
-      name: String(m.name).trim().slice(0, 40),
-      dose: String(m.dose || '').slice(0, 40),
-      times: Math.max(1, Math.min(12, Number(m.times) || 1)),
-      due: Math.max(0, Math.min(23, Number(m.due) || 0)),
-      every: Math.max(0, Math.min(48, Number(m.every) || 0)),          // hours between doses (0 = times a day)
-      until: /^\d{4}-\d{2}-\d{2}$/.test(String(m.until || '')) ? String(m.until) : '',
-      from: /^\d{4}-\d{2}-\d{2}$/.test(String(m.from || '')) ? String(m.from) : '',          // first day it applies
-      group: /^g[a-z0-9]{6,20}$/.test(String(m.group || '')) ? String(m.group) : ''       // same reminder for several children
-    }));
-    PropertiesService.getScriptProperties().setProperty('MEDS', JSON.stringify(out));
-    bump_(Date.now());
-    return out;
-  });
-}
-
-/* ---------- parents' reminders, end-to-end encrypted ----------
-   The app encrypts them on the phone with a family passphrase; here they are opaque text:
-   neither the sheet nor these properties contain readable names or doses. */
-function pmeds_() {
-  const raw = PropertiesService.getScriptProperties().getProperty('PMEDS');
-  return raw ? JSON.parse(raw) : null;
-}
-
-function savePMeds_(pm) {
-  return withLock_(() => {
-    const ok = s => typeof s === 'string' && s.length <= 4000 && /^[A-Za-z0-9+/=]*$/.test(s);
-    if (!pm || !ok(pm.salt) || !ok(pm.check)) throw new Error('invalid');
-    const items = (pm.items || []).slice(0, 50)
-      .filter(x => x && /^p[a-z0-9]{6,20}$/.test(String(x.id)) && ok(x.enc))
-      .map(x => ({ id: String(x.id), enc: x.enc }));
-    const out = { v: 1, salt: pm.salt, check: pm.check, items: items };
-    PropertiesService.getScriptProperties().setProperty('PMEDS', JSON.stringify(out));
-    bump_(Date.now());
-    return out;
-  });
 }

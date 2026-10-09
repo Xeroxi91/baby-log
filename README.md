@@ -41,6 +41,15 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
   **One reminder for several children** (same dose and times): choose more than one child; *Day* shows one
   card with a row per child and *Give to all*; editing or deleting applies to all of them.
 
+**Features: the family chooses what the app shows**
+- *Settings → Features* switches modules on and off for **everyone using the log** (the choice is stored
+  with the data and reaches the other phones at the next sync): notes, children's reminders, pumping,
+  test weighing, detailed progress, signals, night mode, export.
+- Turning a feature off **only hides it**: entries stay in the sheet and in the export, and come back as
+  they were when it is turned on again.
+- Defaults: everything is on except pumping and test weighing, which start on only if the family already
+  used them. Signals still have to be turned on separately on each phone (*Settings → Signals*).
+
 **Day**
 - Time since the end of the last feed for each child, with a configurable highlight threshold.
 - Per-day counters. A feed is one breastfeed (both sides count once if logged within 15 minutes)
@@ -154,7 +163,9 @@ data** (removable from *Settings*; never uploaded).
 1. Create a new, empty **Google Sheet** (any name). Do not share it.
 2. In the Sheet open **Extensions → Apps Script**. The script must be created from the Sheet
    (container-bound), otherwise it cannot find it.
-3. Replace the content of `Code.gs` with [`apps-script/Code.gs`](apps-script/Code.gs) and save.
+3. Replace the content of `Code.gs` with [`apps-script/Code.gs`](apps-script/Code.gs). Then, for each
+   other file in [`apps-script/`](apps-script/) (`Children.gs`, `Features.gs`, `Reminders.gs`), click
+   **＋ → Script**, give it the same name (without `.gs`) and paste its content. Save.
 4. Select the function **`createAccessCodes`** and click **Run**. Authorise the script when asked
    (*Advanced → Go to … (unsafe)* is expected for your own scripts).
    The **access codes** appear in the execution log — by default two, one per person.
@@ -239,7 +250,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | `pre` / `post` | test weighing before / after a breastfeed, in grams |
 
 Children profiles and access codes are stored in the script's **Script Properties**
-(`PROFILE`, `KEYS`, `MEDS`, `REV`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
+(`PROFILE`, `KEYS`, `MEDS`, `FEATURES`, `REV`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
 
 ---
 
@@ -270,8 +281,12 @@ Optionally run `normaliseLegacyValues()` once to rewrite them in the sheet.
 - **Page**: in your fork use *Sync fork*, or replace `index.html` / `sw.js`. GitHub Pages republishes
   automatically. Installed apps pick up the new version at the **next launch** (the service worker
   refreshes it in the background); close and reopen the app to apply it.
-- **Backend**: if `apps-script/Code.gs` changed, paste it into Apps Script, then
-  *Deploy → Manage deployments → ✏️ → Version: New version → Deploy*. The URL stays the same.
+- **Backend**: if a file in `apps-script/` changed, paste it into the file with the same name in Apps Script
+  (create the files that are missing), then *Deploy → Manage deployments → ✏️ → Version: New version → Deploy*.
+  The URL stays the same. Update the backend **before** the page.
+  - **From 1.x to 2.0**: the backend is now split into several files. Replace `Code.gs` completely with the
+    new one and add `Children.gs`, `Features.gs` and `Reminders.gs`; keeping old code in `Code.gs` would
+    define the same functions twice and the script would not run.
 
 ---
 
