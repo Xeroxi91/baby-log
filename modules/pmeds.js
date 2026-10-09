@@ -161,21 +161,19 @@ export function init(app){
     else app.delEvents([d.id]);
   }
 
-  /* ---------- Day: "For you" card ---------- */
+  /* ---------- Day: one card per reminder, like a child's, with "For you" as its owner ---------- */
   function dayHtml(k, isToday){
     const list = all().filter(m => shows(m, k));
     const lk = isToday ? locked() : 0;
-    if (!list.length && !lk) return "";
-    const row = m => {
+    const card = m => {
       const g = givenOn(m, k), n = Number(m.times || 1), done = g.length >= n, lt = late(m, k);
-      const sub = parts([m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
-      return `<div class="remw sub${lt ? " late" : ""}" style="--c:var(--both)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
-        <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b class="rkid">${app.esc(m.name)}</b>${sub ? `<small>${sub}</small>` : ""}</span></button>
+      const sub = parts(["For you", m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
+      return `<div class="remw${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
+        <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b>${app.esc(m.name)}</b><small>${sub}</small></span></button>
         ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Remove the dose given at ${app.hm(e.ts)}?">✓ ${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
     };
-    return `<div class="rem"><div class="remgrp" style="border-left:4px solid var(--both)"><div class="remh"><span><b>For you</b></span></div>
-      ${list.map(row).join("")}
-      ${lk ? `<div class="remh"><small>Shared reminders locked on this phone (${lk})</small><button class="btn ghost" data-pmunlock>Unlock</button></div>` : ""}</div></div>`;
+    return list.map(card).join("")
+      + (lk ? `<div class="remw pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "");
   }
   function bindDay(root){
     root.querySelectorAll("[data-pmgive]").forEach(b => b.onclick = () => { const m = all().find(x => x.id === b.dataset.pmgive); if (m) give(m); });
@@ -191,7 +189,7 @@ export function init(app){
     const st = app.isLocal() ? "Shared reminders need a shared log." : !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
     const lk = locked();
     return `<div class="sect"><h3>Parents' reminders</h3>
-      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--both)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
+      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--parent)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
         : `<p class="note" style="margin:0">Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.</p>`}
       ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}
       <button class="btn ghost wide" id="pmAdd">＋ Add reminder for you</button>
@@ -209,6 +207,10 @@ export function init(app){
   }
 
   /* ---------- dialogs ---------- */
+  document.head.insertAdjacentHTML("beforeend", `<style>
+.remw.pmlock{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 6px 12px;font-size:.85rem;color:var(--muted)}
+.remw.pmlock .btn{min-height:36px;padding:4px 12px;font-size:.85rem;flex:none}
+</style>`);
   document.body.insertAdjacentHTML("beforeend", `
 <dialog id="pmDlg" tabindex="-1"><form class="dlg" id="pmForm" novalidate>
   <h2 id="pmTitle">New reminder for you</h2>
