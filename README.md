@@ -40,15 +40,24 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
   highlighted when due). Optional end date for a course of medicine.
   **One reminder for several children** (same dose and times): choose more than one child; *Day* shows one
   card with a row per child and *Give to all*; editing or deleting applies to all of them.
+- **Parents' reminders** (off by default: *Settings → Features*): your own medicines or supplements, with the
+  same schedules, in a **For you** card in *Day*, and a badge on the *Day* tab when something is due.
+  Each reminder is either kept **on this phone only** (default: neither the reminder nor its doses leave the
+  device) or **shared, encrypted** with the other parent: it is encrypted on the phone (AES-GCM, key derived
+  from a **family passphrase** with PBKDF2) and the server stores only unreadable text. Tell the passphrase in
+  person; it **cannot be recovered** (*Forgot it? Start over* removes the shared reminders). The app does not
+  check doses and gives no advice on medicines.
 
 **Features: the family chooses what the app shows**
 - *Settings → Features* switches modules on and off for **everyone using the log** (the choice is stored
   with the data and reaches the other phones at the next sync): notes, children's reminders, pumping,
-  test weighing, detailed progress, signals, night mode, export.
+  test weighing, detailed progress, signals, night mode, export, parents' reminders.
 - Turning a feature off **only hides it**: entries stay in the sheet and in the export, and come back as
   they were when it is turned on again.
 - Defaults: everything is on except pumping and test weighing, which start on only if the family already
-  used them. Signals still have to be turned on separately on each phone (*Settings → Signals*).
+  used them, and parents' reminders (off).
+- Some features are separate files (`modules/*.js`) loaded only when they are on; the service worker keeps
+  them on the device, so they work offline too. Signals still have to be turned on separately on each phone (*Settings → Signals*).
 
 **Day**
 - Time since the end of the last feed for each child, with a configurable highlight threshold.
@@ -229,7 +238,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | Column | Content |
 |---|---|
 | `id` | unique id |
-| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med`, `pump` (`child` = `parent`) |
+| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med`, `pump` and `pmed` (`child` = `parent`) |
 | `child` | internal child key (mapped to the child in the profile) |
 | `ts` | timestamp (milliseconds since 1970, UTC) |
 | `feedType` | `breast` or `bottle` |
@@ -246,11 +255,12 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | `tags` | note tags (comma-separated) |
 | `text` | note text |
 | `temp` | temperature in °C |
-| `ref` | reminder id for a given reminder (`kind` = `med`) |
+| `ref` | reminder id for a given reminder (`kind` = `med`, or `pmed` for a parent's shared reminder: id only) |
 | `pre` / `post` | test weighing before / after a breastfeed, in grams |
 
 Children profiles and access codes are stored in the script's **Script Properties**
-(`PROFILE`, `KEYS`, `MEDS`, `FEATURES`, `REV`). **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
+(`PROFILE`, `KEYS`, `MEDS`, `PMEDS` (encrypted), `FEATURES`, `REV`). Parents' reminders kept on
+one phone only are in that phone's local storage. **Backup**: *File → Download* in Google Sheets, or *File → Make a copy*.
 
 ---
 
