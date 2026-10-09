@@ -1010,7 +1010,7 @@ function updateBadge(){            // Day tab: how many things are due now
 const appApi = {
   get events(){ return allEvents; }, get pmeds(){ return pmedsBlob; },
   setPmeds(p){ pmedsBlob = p; saveCache(); },
-  addEvents, delEvents, run, NetError, isLocal, render, esc, hm, dayKey, inTxt, tr,
+  addEvents, delEvents, setEvent, run, NetError, isLocal, render, esc, hm, dayKey, inTxt, tr,
   uid: () => uid(), fmtDate: ts => fmtDate(ts),          // declared further down
   renderSettings(){ renderSettings(); },
   toast(msg, undo){ toast(msg, !!undo); undoFn = undo || null; },

@@ -100,6 +100,14 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   d.querySelector('[data-pmgive]').click(); await sleep(50);
   assert.ok(d.querySelector('#dayBadge').hidden, 'badge gone once taken');
   assert.strictEqual(JSON.parse(A.localStorage.getItem('bl-pmeds-given')).length, 1, 'dose kept on this phone');
+  // a dose taken can be edited (time) like a child's
+  const hhmm = ts => { const x = new Date(ts); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}:${String(x.getMinutes()).padStart(2,'0')}`; };
+  const earlier = Date.now() - 60*60000;
+  d.querySelector('[data-pmdose]').click(); await sleep(20);
+  assert.ok(d.querySelector('#pdDlg').open, 'dose editor opens');
+  d.querySelector('#pdTs').value = hhmm(earlier);
+  d.querySelector('#pdForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(50);
+  assert.strictEqual(hhmm(JSON.parse(A.localStorage.getItem('bl-pmeds-given'))[0].ts), hhmm(earlier), 'dose time changed on this phone');
   // shared, encrypted: the passphrase is asked the first time
   d.querySelector('[data-tab="settings"]').click(); await sleep(20);
   await addPm(A, 'Vitamin B12', true);
@@ -108,7 +116,9 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   d.querySelector('#ppForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(4000);
   const pm = JSON.parse(props.PMEDS);
   assert.strictEqual(pm.items.length, 1, 'shared reminder stored');
-  assert.ok(!props.PMEDS.includes('B12') && !props.PMEDS.includes('Vitamin'), 'server stores only encrypted text');
+  // the name must not be readable, neither as text nor inside the base64 (a random "B12" in base64 is fine)
+  const plain = s => s.includes('Vitamin');
+  assert.ok(!plain(props.PMEDS) && !pm.items.some(x=>plain(Buffer.from(x.enc, 'base64').toString('latin1'))), 'server stores only encrypted text');
   // the other parent: locked until the passphrase is entered
   await B.__t.refresh(); await sleep(300);
   const b = B.document;
@@ -123,8 +133,12 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   const gv = b.querySelector('[data-pmgive]');
   assert.ok(gv && gv.textContent.includes('Vitamin B12') && !b.body.textContent.includes('Iron'), 'device B sees the shared reminder only');
   gv.click(); await sleep(400);
+  b.querySelector('[data-pmdose]').click(); await sleep(20);
+  b.querySelector('#pdTs').value = hhmm(earlier);
+  b.querySelector('#pdForm').dispatchEvent(new B.Event('submit', {cancelable:true})); await sleep(400);
   await A.__t.refresh(); await sleep(100);
-  assert.ok(A.__t.allEvents.some(e=>e.kind==='pmed'), 'dose of a shared reminder reaches device A');
+  const pd = A.__t.allEvents.find(e=>e.kind==='pmed');
+  assert.ok(pd && hhmm(pd.ts) === hhmm(earlier), 'dose of a shared reminder, edited on B, reaches device A');
   console.log('smoke test passed');
   process.exit(0);
 })().catch(e=>{ console.error('FAILED:', e.stack); process.exit(1); });
