@@ -38,6 +38,8 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
   *Day*, one tap to mark as given. Two schedules: *times a day* (highlighted when not given after the
   set hour) or *every few hours* (e.g. a syrup every 8 h: shows the next dose time and a countdown,
   highlighted when due). Optional end date for a course of medicine.
+  **One reminder for several children** (same dose and times): choose more than one child; *Day* shows one
+  card with a row per child and *Give to all*; editing or deleting applies to all of them.
 
 **Day**
 - Time since the end of the last feed for each child, with a configurable highlight threshold.

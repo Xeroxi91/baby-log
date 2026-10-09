@@ -302,7 +302,8 @@ function saveMeds_(list) {
       due: Math.max(0, Math.min(23, Number(m.due) || 0)),
       every: Math.max(0, Math.min(48, Number(m.every) || 0)),          // hours between doses (0 = times a day)
       until: /^\d{4}-\d{2}-\d{2}$/.test(String(m.until || '')) ? String(m.until) : '',
-      from: /^\d{4}-\d{2}-\d{2}$/.test(String(m.from || '')) ? String(m.from) : ''           // first day it applies
+      from: /^\d{4}-\d{2}-\d{2}$/.test(String(m.from || '')) ? String(m.from) : '',          // first day it applies
+      group: /^g[a-z0-9]{6,20}$/.test(String(m.group || '')) ? String(m.group) : ''       // same reminder for several children
     }));
     PropertiesService.getScriptProperties().setProperty('MEDS', JSON.stringify(out));
     bump_(Date.now());
