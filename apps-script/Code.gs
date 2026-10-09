@@ -36,6 +36,7 @@ function doPost(e) {
         history:      () => history_(args[0] || {}),
         getProfile:   () => ({ children: children_().map(publicChild_) }),
         saveMeds:     () => ({ meds: saveMeds_((args[0] && args[0].meds) || []) }),
+        savePMeds:    () => ({ pmeds: savePMeds_((args[0] && args[0].pmeds) || null) }),
         saveProfile:  () => ({ children: saveChildren_((args[0] && args[0].children) || []).map(publicChild_) })
       };
       out = api[req.action] ? { result: api[req.action]() } : { error: 'unknown action' };
@@ -134,7 +135,7 @@ function saveChildren_(list) {
 
 function toSheet_(e) {
   if (!e) return e;
-  if (e.kind === 'pump') { const o = Object.assign({}, e, { kidKey: PARENT }); delete o.child; return o; }
+  if (e.kind === 'pump' || e.kind === 'pmed') { const o = Object.assign({}, e, { kidKey: PARENT }); delete o.child; return o; }
   const c = children_().find(x => x.id === e.child);
   if (!c) throw new Error('unknown child');
   const o = Object.assign({}, e, { kidKey: c.key });
@@ -198,7 +199,7 @@ function rowToEvent_(r) {
 }
 
 const validId_ = id => /^[A-Za-z0-9_-]{6,64}$/.test(String(id || ''));
-const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1, pump: 1 };
+const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1, pump: 1, pmed: 1 };
 const PARENT = 'parent';   // pumping sessions belong to the parent, not to a child
 
 /* Revision: time of the last write (events, children or reminders). Lets a sync with nothing to
@@ -254,7 +255,7 @@ function sync_(p) {
       const e = toClient_(rowToEvent_(r));
       if (e.child) events.push(e);
     }
-    return { serverTime: now, events: events, children: children_().map(publicChild_), meds: meds_(), older: older };
+    return { serverTime: now, events: events, children: children_().map(publicChild_), meds: meds_(), pmeds: pmeds_(), older: older };
   });
 }
 
@@ -306,6 +307,28 @@ function saveMeds_(list) {
       group: /^g[a-z0-9]{6,20}$/.test(String(m.group || '')) ? String(m.group) : ''       // same reminder for several children
     }));
     PropertiesService.getScriptProperties().setProperty('MEDS', JSON.stringify(out));
+    bump_(Date.now());
+    return out;
+  });
+}
+
+/* ---------- parents' reminders, end-to-end encrypted ----------
+   The app encrypts them on the phone with a family passphrase; here they are opaque text:
+   neither the sheet nor these properties contain readable names or doses. */
+function pmeds_() {
+  const raw = PropertiesService.getScriptProperties().getProperty('PMEDS');
+  return raw ? JSON.parse(raw) : null;
+}
+
+function savePMeds_(pm) {
+  return withLock_(() => {
+    const ok = s => typeof s === 'string' && s.length <= 4000 && /^[A-Za-z0-9+/=]*$/.test(s);
+    if (!pm || !ok(pm.salt) || !ok(pm.check)) throw new Error('invalid');
+    const items = (pm.items || []).slice(0, 50)
+      .filter(x => x && /^p[a-z0-9]{6,20}$/.test(String(x.id)) && ok(x.enc))
+      .map(x => ({ id: String(x.id), enc: x.enc }));
+    const out = { v: 1, salt: pm.salt, check: pm.check, items: items };
+    PropertiesService.getScriptProperties().setProperty('PMEDS', JSON.stringify(out));
     bump_(Date.now());
     return out;
   });
