@@ -1,1 +1,6 @@
-tools/node_modules/
+node_modules/
+.DS_Store
+*.xlsx
+*.csv
+baby-log-*.json
+CLAUDE.local.md
