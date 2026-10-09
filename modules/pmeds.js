@@ -41,15 +41,14 @@ const IT = {
     "Bloccare i promemoria condivisi su questo telefono? Per rivederli servirà la frase segreta.",
   "Delete this reminder?": "Eliminare questo promemoria?",
   "Shared reminders need a connection": "Per i promemoria condivisi serve la connessione",
-  "Not saved": "Non salvato", "due now": "da prendere",
+  "Not saved": "Non salvato", "due now": "da prendere", "Dose taken": "Dose presa", "Edit reminder": "Modifica promemoria",
   "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.":
     "I tuoi promemoria, per esempio farmaci o integratori. Compaiono in Giorno sotto “Per te”; l'app non controlla le dosi."
 };
 const IT_T = [
   ["Shared reminders locked on this phone ({x})", "Promemoria condivisi bloccati su questo telefono ({x})"],
-  ["due at {x}", "da prendere dalle {x}"], ["every {x} h", "ogni {x} h"], ["{x}× a day", "{x}× al giorno"],
+  ["due at {x}", "da prendere dalle {x}"], ["Edit the dose of {x} at {x}", "Modifica la dose di {x} delle {x}"], ["every {x} h", "ogni {x} h"], ["{x}× a day", "{x}× al giorno"],
   ["remind after {x}", "ricorda dopo le {x}"], ["until {x}", "fino al {x}"],
-  ["Remove the dose given at {x}?", "Rimuovere la dose data alle {x}?"],
   ["{x} already given today. Undo the last one?", "{x} già preso oggi. Annullare l'ultimo?"],
   ["Next dose of {x} is at {x}. Log a dose now anyway?", "La prossima dose di {x} è alle {x}. Registrare comunque una dose ora?"]
 ];
@@ -161,28 +160,23 @@ export function init(app){
     else app.delEvents([d.id]);
   }
 
-  /* ---------- Day: "For you" card ---------- */
+  /* ---------- Day: one card per reminder, like a child's, with "For you" as its owner ---------- */
   function dayHtml(k, isToday){
     const list = all().filter(m => shows(m, k));
     const lk = isToday ? locked() : 0;
-    if (!list.length && !lk) return "";
-    const row = m => {
+    const card = m => {
       const g = givenOn(m, k), n = Number(m.times || 1), done = g.length >= n, lt = late(m, k);
-      const sub = parts([m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
-      return `<div class="remw sub${lt ? " late" : ""}" style="--c:var(--both)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
-        <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b class="rkid">${app.esc(m.name)}</b>${sub ? `<small>${sub}</small>` : ""}</span></button>
-        ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Remove the dose given at ${app.hm(e.ts)}?">✓ ${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
+      const sub = parts(["For you", m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
+      return `<div class="remw${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
+        <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b>${app.esc(m.name)}</b><small>${sub}</small></span></button>
+        ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Edit the dose of ${app.esc(m.name)} at ${app.hm(e.ts)}">✓ ${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
     };
-    return `<div class="rem"><div class="remgrp" style="border-left:4px solid var(--both)"><div class="remh"><span><b>For you</b></span></div>
-      ${list.map(row).join("")}
-      ${lk ? `<div class="remh"><small>Shared reminders locked on this phone (${lk})</small><button class="btn ghost" data-pmunlock>Unlock</button></div>` : ""}</div></div>`;
+    return list.map(card).join("")
+      + (lk ? `<div class="remw pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "");
   }
   function bindDay(root){
     root.querySelectorAll("[data-pmgive]").forEach(b => b.onclick = () => { const m = all().find(x => x.id === b.dataset.pmgive); if (m) give(m); });
-    root.querySelectorAll("[data-pmdose]").forEach(b => b.onclick = () => {
-      const d = all().flatMap(given).find(x => x.id === b.dataset.pmdose); if (!d) return;
-      if (confirm(`Remove the dose given at ${app.hm(d.ts)}?`)) removeDose(d);
-    });
+    root.querySelectorAll("[data-pmdose]").forEach(b => b.onclick = () => editDose(b.dataset.pmdose));
     root.querySelectorAll("[data-pmunlock]").forEach(b => b.onclick = () => askPass());
   }
 
@@ -191,7 +185,7 @@ export function init(app){
     const st = app.isLocal() ? "Shared reminders need a shared log." : !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
     const lk = locked();
     return `<div class="sect"><h3>Parents' reminders</h3>
-      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--both)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
+      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--parent)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
         : `<p class="note" style="margin:0">Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.</p>`}
       ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}
       <button class="btn ghost wide" id="pmAdd">＋ Add reminder for you</button>
@@ -209,6 +203,10 @@ export function init(app){
   }
 
   /* ---------- dialogs ---------- */
+  document.head.insertAdjacentHTML("beforeend", `<style>
+.remw.pmlock{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 8px 6px 12px;font-size:.85rem;color:var(--muted)}
+.remw.pmlock .btn{min-height:36px;padding:4px 12px;font-size:.85rem;flex:none}
+</style>`);
   document.body.insertAdjacentHTML("beforeend", `
 <dialog id="pmDlg" tabindex="-1"><form class="dlg" id="pmForm" novalidate>
   <h2 id="pmTitle">New reminder for you</h2>
@@ -223,6 +221,12 @@ export function init(app){
   <div class="lblc"><span>Kept</span><div class="seg" id="pmWhere"><button type="button" data-v="local">This phone only</button><button type="button" data-v="shared">Shared, encrypted</button></div></div>
   <p class="note" id="pmWhereNote" style="margin:-4px 0 0"></p>
   <div class="row"><button type="button" class="btn del" id="pmDel">Delete</button><button type="button" class="btn ghost" id="pmCancel">Close</button><button type="submit" class="btn">Save</button></div>
+</form></dialog>
+<dialog id="pdDlg" tabindex="-1"><form class="dlg" id="pdForm" novalidate>
+  <h2 id="pdTitle">Dose taken</h2>
+  <label>When<input type="datetime-local" id="pdTs"></label>
+  <button type="button" class="linkbtn" id="pdRem" style="align-self:flex-start;padding-left:0">Edit reminder</button>
+  <div class="row"><button type="button" class="btn del" id="pdDel">Delete</button><button type="button" class="btn ghost" id="pdCancel">Close</button><button type="submit" class="btn">Save</button></div>
 </form></dialog>
 <dialog id="ppDlg" tabindex="-1"><form class="dlg" id="ppForm" novalidate>
   <h2>Family passphrase</h2>
@@ -242,6 +246,32 @@ export function init(app){
   document.querySelectorAll("#pmWhere button").forEach(b => b.onclick = () => setWhere(b.dataset.v));
   $("#pmCancel").onclick = () => $("#pmDlg").close();
   $("#ppCancel").onclick = () => $("#ppDlg").close();
+
+  // a dose already taken: change its time, delete it, or edit the reminder (as for the children's doses)
+  const pad = n => String(n).padStart(2, "0");
+  const toInput = ts => { const d = new Date(ts); return `${app.dayKey(ts)}T${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  let doseEditing = null;
+  function editDose(id){
+    const d = all().flatMap(given).find(x => x.id === id); if (!d) return;
+    const m = all().find(x => x.id === d.ref);
+    doseEditing = d;
+    $("#pdTitle").textContent = m ? m.name : "Dose taken";
+    $("#pdTs").value = toInput(d.ts); $("#pdTs").classList.remove("invalid");
+    $("#pdRem").hidden = !m; $("#pdRem").onclick = () => { $("#pdDlg").close(); openEdit(m.id); };
+    $("#pdDlg").showModal();
+  }
+  $("#pdCancel").onclick = () => $("#pdDlg").close();
+  $("#pdDel").onclick = () => { if (doseEditing) removeDose(doseEditing); $("#pdDlg").close(); };
+  $("#pdForm").onsubmit = e => {
+    e.preventDefault();
+    const d = doseEditing, ts = new Date($("#pdTs").value).getTime();
+    if (!d || !(ts > 0)){ $("#pdTs").classList.add("invalid"); return; }
+    if (ts > Date.now() + 5*60000 && !confirm(`This time is in the future (${app.fmtDate(ts)} ${app.hm(ts)}). Save anyway?`)) return;
+    $("#pdDlg").close();
+    const l = localGiven.find(g => g.id === d.id);
+    if (l){ l.ts = ts; saveLocal(); app.render(); }
+    else { const {id, ...ev} = d; app.setEvent(id, {...ev, ts}); }
+  };
 
   let editing = null;
   function openEdit(id){

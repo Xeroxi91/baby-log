@@ -46,7 +46,8 @@ Script used as API + a Google Sheet as database. No build step, no dependencies 
   `settingsHtml/bindSettings`, `due` (badge on the Day tab), `synced`. Loaded by `loadModules()` in
   `render()`; add their IT strings with `app.addIT()`; list each file in `SHELL` in `sw.js`.
   jsdom has no `import()`: `smoke.test.js` replaces it and evaluates the file in the window.
-- Parents' reminders (`modules/pmeds.js`): per reminder, this phone only (`bl-pmeds`, doses `bl-pmeds-given`)
+- Parents' reminders (`modules/pmeds.js`): one card per reminder inside the children's reminders block
+  (`remindersBlock(key, isToday, extra)`), owner "For you", colour `--parent` (outside the children's palette); per reminder, this phone only (`bl-pmeds`, doses `bl-pmeds-given`)
   or shared encrypted (`PMEDS` items, doses = `pmed` events). Key from PBKDF2-SHA-256 (600k) over the family
   passphrase, AES-GCM; `check` verifies it; raw key kept in `bl-pkey` with its salt (a new salt = locked).
 - i18n: UI strings are written in English; Italian is applied by translating rendered text
