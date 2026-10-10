@@ -64,6 +64,9 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
   notifications for reminders due (children's and parents'), a feed gap over the threshold set in *Feeds*,
   and a breastfeeding timer still running after 45 minutes. Each type can be turned off; optional quiet
   hours 22:00–7:00 (no phone notifications at night). Each event is notified once.
+- **Frequency per reminder** (children's and parents', set in the reminder, the same for the whole family):
+  no notification, once (default), or every 15 min / 30 min / hour until it is given. Reminders that repeat
+  are treated as urgent and also ring in quiet hours.
 - The *Day* tab, and the app icon when notifications are on, show how many reminders are due.
 - For now they arrive while the app is open, or in the background while the phone keeps it running
   (Android, computers). On iPhone, phone notifications need the app on the Home Screen (iOS 16.4+).
