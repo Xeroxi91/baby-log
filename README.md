@@ -288,13 +288,6 @@ one phone only are in that phone's local storage. **Backup**: *File → Download
 
 ---
 
-## Upgrading from an earlier version
-
-The backend migrates automatically: a sheet named `eventi` is renamed to `events`, the header row is
-rewritten in English (new columns are added at the end) and legacy feed values (`seno`, `art`) are
-read as `breast` / `bottle`. Existing rows need no changes.
-Optionally run `normaliseLegacyValues()` once to rewrite them in the sheet.
-
 ## Updating
 
 - **Page**: in your fork use *Sync fork*, or replace `index.html` / `sw.js`. GitHub Pages republishes
