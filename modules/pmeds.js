@@ -41,13 +41,14 @@ const IT = {
     "Bloccare i promemoria condivisi su questo telefono? Per rivederli servirà la frase segreta.",
   "Delete this reminder?": "Eliminare questo promemoria?",
   "Shared reminders need a connection": "Per i promemoria condivisi serve la connessione",
-  "Not saved": "Non salvato", "due now": "da prendere", "Dose taken": "Dose presa", "Edit reminder": "Modifica promemoria",
+  "Not saved": "Non salvato", "no notifications": "nessuna notifica", "also at night": "anche di notte",
+  "Every 15 min until taken": "Ogni 15 min finché non è preso", "Every 30 min until taken": "Ogni 30 min finché non è preso", "Every hour until taken": "Ogni ora finché non è preso", "due now": "da prendere", "Dose taken": "Dose presa", "Edit reminder": "Modifica promemoria",
   "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.":
     "I tuoi promemoria, per esempio farmaci o integratori. Compaiono in Giorno sotto “Per te”; l'app non controlla le dosi."
 };
 const IT_T = [
   ["Shared reminders locked on this phone ({x})", "Promemoria condivisi bloccati su questo telefono ({x})"],
-  ["{x} (for you): due now", "{x} (per te): da prendere ora"], ["due at {x}", "da prendere dalle {x}"], ["Edit the dose of {x} at {x}", "Modifica la dose di {x} delle {x}"], ["every {x} h", "ogni {x} h"], ["{x}× a day", "{x}× al giorno"],
+  ["{x} (for you): due now", "{x} (per te): da prendere ora"], ["notify every {x} min", "notifica ogni {x} min"], ["due at {x}", "da prendere dalle {x}"], ["Edit the dose of {x} at {x}", "Modifica la dose di {x} delle {x}"], ["every {x} h", "ogni {x} h"], ["{x}× a day", "{x}× al giorno"],
   ["remind after {x}", "ricorda dopo le {x}"], ["until {x}", "fino al {x}"],
   ["{x} already given today. Undo the last one?", "{x} già preso oggi. Annullare l'ultimo?"],
   ["Next dose of {x} is at {x}. Log a dose now anyway?", "La prossima dose di {x} è alle {x}. Registrare comunque una dose ora?"]
@@ -135,7 +136,9 @@ export function init(app){
   // one text node per part, so that each part is translated on its own
   const parts = list => list.filter(Boolean).map(x => `<span>${x}</span>`).join("<span> · </span>");
   const schedParts = m => (Number(m.every) > 0 ? [`every ${m.every} h`, m.times ? `${m.times}× a day` : ""] : [`${m.times}× a day`, `remind after ${String(m.due).padStart(2, "0")}:00`])
-    .concat(m.until ? [`until ${app.fmtDate(new Date(m.until + "T12:00").getTime())}`] : []);
+    .concat(m.until ? [`until ${app.fmtDate(new Date(m.until + "T12:00").getTime())}`] : [])
+    .concat(Number(m.notify) < 0 ? ["no notifications"] : Number(m.notify) > 0 ? [`notify every ${m.notify} min`] : [])
+    .concat(m.night && Number(m.notify) >= 0 ? ["also at night"] : []);
 
   /* ---------- giving a dose ---------- */
   async function give(m){
@@ -169,7 +172,7 @@ export function init(app){
       const sub = parts(["For you", m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
       return `<div class="remw${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
         <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b>${app.esc(m.name)}</b><small>${sub}</small></span></button>
-        ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Edit the dose of ${app.esc(m.name)} at ${app.hm(e.ts)}">✓ ${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
+        ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Edit the dose of ${app.esc(m.name)} at ${app.hm(e.ts)}">${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
     };
     return list.map(card).join("")
       + (lk ? `<div class="remw pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "");
@@ -184,15 +187,15 @@ export function init(app){
   function settingsHtml(){
     const st = app.isLocal() ? "Shared reminders need a shared log." : !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
     const lk = locked();
-    return `<div class="sect"><h3>Parents' reminders</h3>
+    return `<div class="sect">${app.sh("Parents' reminders", "pmeds", all().length ? "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app." : "",
+        "Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.")}
       ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--parent)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
         : `<p class="note" style="margin:0">Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.</p>`}
       ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}
       <button class="btn ghost wide" id="pmAdd">＋ Add reminder for you</button>
       <p class="row2" style="margin:4px 0 0">${st}</p>
       ${app.isLocal() ? "" : !app.pmeds ? `<button class="btn ghost wide" data-pmunlock>Set passphrase</button>`
-        : key ? `<button class="btn ghost wide" id="pmLock">Lock on this phone</button>` : `<button class="btn ghost wide" data-pmunlock>Unlock</button>`}
-      <p class="note">Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.</p></div>`;
+        : key ? `<button class="btn ghost wide" id="pmLock">Lock on this phone</button>` : `<button class="btn ghost wide" data-pmunlock>Unlock</button>`}</div>`;
   }
   function bindSettings(root){
     if (root.querySelector("#pmAdd")) root.querySelector("#pmAdd").onclick = () => openEdit(null);
@@ -218,6 +221,8 @@ export function init(app){
   <div class="two" id="pmEveryWrap"><label>Every (hours)<input type="number" id="pmEvery" inputmode="decimal" min="1" max="48" step="0.5" placeholder="8"></label>
   <label>Doses a day<input type="number" id="pmTimesE" inputmode="numeric" min="1" max="12" placeholder="3"></label></div>
   <label>Until (optional)<input type="date" id="pmUntil"></label>
+  <label>Notifications<select id="pmNotify"><option value="0">Once</option><option value="-1">No notification</option><option value="15">Every 15 min until taken</option><option value="30">Every 30 min until taken</option><option value="60">Every hour until taken</option></select></label>
+  <label class="chk" id="pmNightWrap"><input type="checkbox" id="pmNight"> Also at night</label>
   <div class="lblc"><span>Kept</span><div class="seg" id="pmWhere"><button type="button" data-v="local">This phone only</button><button type="button" data-v="shared">Shared, encrypted</button></div></div>
   <p class="note" id="pmWhereNote" style="margin:-4px 0 0"></p>
   <div class="row"><button type="button" class="btn del" id="pmDel">Delete</button><button type="button" class="btn ghost" id="pmCancel">Close</button><button type="submit" class="btn">Save</button></div>
@@ -240,6 +245,7 @@ export function init(app){
   const $ = s => document.querySelector(s);
   const seg = (sel, v) => document.querySelectorAll(sel + " button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === v));
   const segV = sel => { const b = document.querySelector(sel + ' button[aria-pressed="true"]'); return b ? b.dataset.v : ""; };
+  $("#pmNotify").onchange = () => { $("#pmNightWrap").hidden = Number($("#pmNotify").value) < 0; };
   const setMode = v => { seg("#pmMode", v); $("#pmDayWrap").hidden = v !== "day"; $("#pmEveryWrap").hidden = v !== "every"; };
   const setWhere = v => { seg("#pmWhere", v); $("#pmWhereNote").textContent = v === "shared" ? "It cannot be recovered: if it is forgotten, the shared reminders are lost." : ""; };
   document.querySelectorAll("#pmMode button").forEach(b => b.onclick = () => setMode(b.dataset.v));
@@ -278,7 +284,7 @@ export function init(app){
     editing = id;
     const m = all().find(x => x.id === id) || {name: "", dose: "", times: 1, due: 9};
     $("#pmName").value = m.name; $("#pmDose").value = m.dose || ""; $("#pmTimes").value = m.times || 1; $("#pmDue").value = m.due ?? 9;
-    $("#pmEvery").value = m.every || ""; $("#pmTimesE").value = Number(m.every) > 0 ? (m.times || "") : ""; $("#pmUntil").value = m.until || "";
+    $("#pmEvery").value = m.every || ""; $("#pmTimesE").value = Number(m.every) > 0 ? (m.times || "") : ""; $("#pmUntil").value = m.until || ""; $("#pmNotify").value = String(Number(m.notify) || 0); $("#pmNight").checked = !!m.night; $("#pmNightWrap").hidden = Number(m.notify) < 0;
     setMode(Number(m.every) > 0 ? "every" : "day");
     setWhere(m.shared ? "shared" : "local");
     $("#pmWhere").hidden = app.isLocal();                 // sharing needs a shared log
@@ -302,7 +308,7 @@ export function init(app){
     const prev = all().find(x => x.id === editing);
     const m = {id: prev ? prev.id : "p" + app.uid().replace(/-/g, "").slice(0, 10), name, dose: $("#pmDose").value.trim().slice(0, 40),
       times: every ? Math.max(1, Math.min(12, parseInt($("#pmTimesE").value, 10) || Math.round(24/every))) : Math.max(1, Math.min(6, parseInt($("#pmTimes").value, 10) || 1)),
-      due: every ? 0 : Number($("#pmDue").value), every, until: $("#pmUntil").value || "", from: prev ? (prev.from || today()) : today()};
+      due: every ? 0 : Number($("#pmDue").value), every, until: $("#pmUntil").value || "", notify: Number($("#pmNotify").value) || 0, night: $("#pmNight").checked && Number($("#pmNotify").value) >= 0, from: prev ? (prev.from || today()) : today()};
     const toShared = !app.isLocal() && segV("#pmWhere") === "shared";
     if (toShared && !key){ if (!await askPass()) return; }
     $("#pmDlg").close();
@@ -378,8 +384,9 @@ export function init(app){
   return {
     dayHtml, bindDay, settingsHtml, bindSettings,
     due: () => all().filter(m => late(m)).length,
-    notices: () => all().filter(m => late(m)).map(m => ({key: "pmed:" + m.id + ":" + (Number(m.every) > 0 ? nextDose(m) : today() + ":" + givenOn(m, today()).length),
-      text: app.tr(`${m.name} (for you): due now`)})),
+    // frequency chosen in each reminder: -1 none, 0 once, N every N min until taken
+    notices: () => all().filter(m => late(m) && Number(m.notify) >= 0).map(m => ({key: "pmed:" + m.id + ":" + (Number(m.every) > 0 ? nextDose(m) : today() + ":" + givenOn(m, today()).length),
+      repeat: Number(m.notify) || 0, night: !!m.night, text: app.tr(`${m.name} (for you): due now`)})),
     synced: refresh
   };
 }
