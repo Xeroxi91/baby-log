@@ -59,6 +59,16 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Some features are separate files (`modules/*.js`) loaded only when they are on; the service worker keeps
   them on the device, so they work offline too.
 
+**Notifications (on each phone)**
+- *Settings → Notifications*, off by default: a banner in the app and, if the phone allows them, phone
+  notifications for reminders due (children's and parents'), a feed gap over the threshold set in *Feeds*,
+  and a breastfeeding timer still running after 45 minutes. Each type can be turned off; optional quiet
+  hours 22:00–7:00 (no phone notifications at night). Each event is notified once.
+- The *Day* tab, and the app icon when notifications are on, show how many reminders are due.
+- For now they arrive while the app is open, or in the background while the phone keeps it running
+  (Android, computers). On iPhone, phone notifications need the app on the Home Screen (iOS 16.4+).
+  Notifications with the app closed (Web Push) will come in a later version.
+
 **Day**
 - Time since the end of the last feed for each child, with a configurable highlight threshold.
 - Per-day counters. A feed is one breastfeed (both sides count once if logged within 15 minutes)

@@ -47,7 +47,7 @@ const IT = {
 };
 const IT_T = [
   ["Shared reminders locked on this phone ({x})", "Promemoria condivisi bloccati su questo telefono ({x})"],
-  ["due at {x}", "da prendere dalle {x}"], ["Edit the dose of {x} at {x}", "Modifica la dose di {x} delle {x}"], ["every {x} h", "ogni {x} h"], ["{x}× a day", "{x}× al giorno"],
+  ["{x} (for you): due now", "{x} (per te): da prendere ora"], ["due at {x}", "da prendere dalle {x}"], ["Edit the dose of {x} at {x}", "Modifica la dose di {x} delle {x}"], ["every {x} h", "ogni {x} h"], ["{x}× a day", "{x}× al giorno"],
   ["remind after {x}", "ricorda dopo le {x}"], ["until {x}", "fino al {x}"],
   ["{x} already given today. Undo the last one?", "{x} già preso oggi. Annullare l'ultimo?"],
   ["Next dose of {x} is at {x}. Log a dose now anyway?", "La prossima dose di {x} è alle {x}. Registrare comunque una dose ora?"]
@@ -378,6 +378,8 @@ export function init(app){
   return {
     dayHtml, bindDay, settingsHtml, bindSettings,
     due: () => all().filter(m => late(m)).length,
+    notices: () => all().filter(m => late(m)).map(m => ({key: "pmed:" + m.id + ":" + (Number(m.every) > 0 ? nextDose(m) : today() + ":" + givenOn(m, today()).length),
+      text: app.tr(`${m.name} (for you): due now`)})),
     synced: refresh
   };
 }
