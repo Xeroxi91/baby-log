@@ -65,8 +65,8 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
   and a breastfeeding timer still running after 45 minutes. Each type can be turned off; optional quiet
   hours 22:00–7:00 (no phone notifications at night). Each event is notified once.
 - **Frequency per reminder** (children's and parents', set in the reminder, the same for the whole family):
-  no notification, once (default), or every 15 min / 30 min / hour until it is given. Reminders that repeat
-  are treated as urgent and also ring in quiet hours.
+  no notification, once (default), or every 15 min / 30 min / hour until it is given; **Also at night** makes
+  it ring in quiet hours too (e.g. a medicine every 8 hours).
 - The *Day* tab, and the app icon when notifications are on, show how many reminders are due.
 - For now they arrive while the app is open, or in the background while the phone keeps it running
   (Android, computers). On iPhone, phone notifications need the app on the Home Screen (iOS 16.4+).
@@ -122,6 +122,9 @@ data** (removable from *Settings*; never uploaded).
 - Feeding rhythm over 24 h, weekly summary and, as a secondary view, comparison between children.
 
 **Settings**
+- **Grouped by who they apply to**, most used first: *Family* (shared with everyone using the log: reminders,
+  children, features), *This phone* (notifications, feed alert, signal thresholds, appearance) and *Data and app*
+  (sync and sharing, export, what's new, about). Longer explanations are behind an ⓘ button.
 - **What's new**: the changelog is in *Settings*.
 - **Feels like an app**: no zoom, no text selection or long-press menus outside fields, no rubber band.
 - **Sync state always visible**: status at the top (updated just now / … ago, syncing, offline, not updated for …),

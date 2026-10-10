@@ -22,7 +22,8 @@ function saveMeds_(list) {
       until: /^\d{4}-\d{2}-\d{2}$/.test(String(m.until || '')) ? String(m.until) : '',
       from: /^\d{4}-\d{2}-\d{2}$/.test(String(m.from || '')) ? String(m.from) : '',          // first day it applies
       group: /^g[a-z0-9]{6,20}$/.test(String(m.group || '')) ? String(m.group) : '',      // same reminder for several children
-      notify: [-1, 0, 15, 30, 60].indexOf(Number(m.notify)) >= 0 ? Number(m.notify) : 0  // -1 none, 0 once, N: every N min until given
+      notify: [-1, 0, 15, 30, 60].indexOf(Number(m.notify)) >= 0 ? Number(m.notify) : 0, // -1 none, 0 once, N: every N min until given
+      night: m.night === true                                                            // rings in quiet hours too
     }));
     PropertiesService.getScriptProperties().setProperty('MEDS', JSON.stringify(out));
     bump_(Date.now());
