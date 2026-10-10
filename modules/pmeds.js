@@ -171,7 +171,7 @@ export function init(app){
       const sub = parts(["For you", m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
       return `<div class="remw${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
         <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b>${app.esc(m.name)}</b><small>${sub}</small></span></button>
-        ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Edit the dose of ${app.esc(m.name)} at ${app.hm(e.ts)}">✓ ${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
+        ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Edit the dose of ${app.esc(m.name)} at ${app.hm(e.ts)}">${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
     };
     return list.map(card).join("")
       + (lk ? `<div class="remw pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "");
@@ -186,15 +186,15 @@ export function init(app){
   function settingsHtml(){
     const st = app.isLocal() ? "Shared reminders need a shared log." : !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
     const lk = locked();
-    return `<div class="sect"><h3>Parents' reminders</h3>
+    return `<div class="sect">${app.sh("Parents' reminders", "pmeds", all().length ? "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app." : "",
+        "Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.")}
       ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--parent)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
         : `<p class="note" style="margin:0">Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.</p>`}
       ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}
       <button class="btn ghost wide" id="pmAdd">＋ Add reminder for you</button>
       <p class="row2" style="margin:4px 0 0">${st}</p>
       ${app.isLocal() ? "" : !app.pmeds ? `<button class="btn ghost wide" data-pmunlock>Set passphrase</button>`
-        : key ? `<button class="btn ghost wide" id="pmLock">Lock on this phone</button>` : `<button class="btn ghost wide" data-pmunlock>Unlock</button>`}
-      <p class="note">Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.</p></div>`;
+        : key ? `<button class="btn ghost wide" id="pmLock">Lock on this phone</button>` : `<button class="btn ghost wide" data-pmunlock>Unlock</button>`}</div>`;
   }
   function bindSettings(root){
     if (root.querySelector("#pmAdd")) root.querySelector("#pmAdd").onclick = () => openEdit(null);
