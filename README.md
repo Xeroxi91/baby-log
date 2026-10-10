@@ -10,8 +10,6 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - 🔒 Your data stays in **your own Google Sheet**; this repository contains no data and no backend address.
 - 💸 Free: GitHub Pages + Google Apps Script.
 
-> The user interface is in **English**. Italian localisation is planned.
-
 ---
 
 ## Features
