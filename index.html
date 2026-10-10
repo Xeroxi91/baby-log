@@ -381,6 +381,11 @@ img,svg{-webkit-user-drag:none}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:6px}
 .bottomnav button{position:relative}
 .nbadge{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--danger);color:#fff;font-size:.7rem;font-weight:700;line-height:18px;text-align:center;font-variant-numeric:tabular-nums}
+.notice{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top,0px));z-index:30;max-width:536px;margin:0 auto;display:flex;align-items:center;gap:8px;
+  background:var(--surface);color:var(--ink);border-radius:14px;border-left:5px solid var(--warn);padding:10px 8px 10px 12px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.notice>span{flex:1;font-size:.9rem;line-height:1.35}
+.notice .btn{min-height:40px;padding:6px 14px}
+.notice .linkbtn{color:var(--muted);min-width:36px;min-height:40px}
 .feats{list-style:none;margin:0;padding:0}
 .feat{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
 .feats li:first-child .feat{border-top:0}
@@ -445,6 +450,7 @@ img,svg{-webkit-user-drag:none}
 </div></dialog>
 
 <div id="syncbar" aria-hidden="true"></div>
+<div class="notice" id="notice" role="alert" hidden><span id="noticeTxt" class="notr"></span><button class="btn" id="noticeGo">Open</button><button class="linkbtn" id="noticeX" aria-label="Close">✕</button></div>
 <div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="undoBtn">Undo</button></div>
 
 <dialog id="dlg" tabindex="-1" autofocus><form method="dialog" class="dlg" id="dlgForm" novalidate>
@@ -653,6 +659,16 @@ const IT = {
 "About":"Informazioni","Created by":"Creato da","Source code":"Codice sorgente",
 "Not a medical device: charts support conversations with your paediatrician and do not replace clinical assessment.":"Non è un dispositivo medico: i grafici aiutano il dialogo con il pediatra e non sostituiscono la valutazione clinica.",
 "Growth references: WHO Child Growth Standards (2006); INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), reference tables via the open-source gigs package (LSHTM).":"Riferimenti di crescita: OMS Child Growth Standards (2006) e Growth Reference 2007; INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), tabelle tramite il pacchetto open source gigs (LSHTM).",
+// notifications
+"Notifications":"Notifiche","Notifications on this phone":"Notifiche su questo telefono","Open":"Apri","Allow phone notifications":"Consenti le notifiche del telefono",
+"A banner in the app and, if allowed, notifications from the phone; on the app icon, the number of reminders due.":"Un avviso nell'app e, se consentite, le notifiche del telefono; sull'icona dell'app, il numero di promemoria da dare.",
+"Phone notifications: allowed.":"Notifiche del telefono: consentite.",
+"Phone notifications are blocked for this app: allow them in the phone settings.":"Le notifiche del telefono sono bloccate per questa app: consentile nelle impostazioni del telefono.",
+"Phone notifications are not available here. On iPhone, add the app to the Home Screen first (iOS 16.4 or later).":"Qui le notifiche del telefono non sono disponibili. Su iPhone aggiungi prima l'app alla schermata Home (iOS 16.4 o successivo).",
+"When a reminder is due.":"Quando c'è un promemoria da dare.","When one of your reminders is due.":"Quando c'è un tuo promemoria da prendere.",
+"Feed gap":"Pausa tra le poppate","Breastfeeding timer":"Timer dell'allattamento","When a timer is still running after 45 min.":"Quando un timer è ancora acceso dopo 45 min.",
+"Quiet hours 22:00–7:00":"Silenzio 22:00–7:00","No phone notifications at night; the banner and the number on the icon stay.":"Di notte niente notifiche del telefono; l'avviso nell'app e il numero sull'icona restano.",
+"They arrive while the app is open, or in the background while the phone keeps it running. Notifications with the app closed will come in a later version.":"Arrivano con l'app aperta, o in background finché il telefono la tiene attiva. Le notifiche ad app chiusa arriveranno in una versione successiva.",
 // features
 "Features":"Funzioni","Children's reminders":"Promemoria dei figli","Test weighing":"Doppia pesata","Detailed progress":"Andamento dettagliato",
 "Quick tags, temperature and free text.":"Etichette rapide, temperatura e testo libero.",
@@ -683,6 +699,9 @@ const IT = {
 };
 // templates: {x} matches any text
 const IT_T = [
+["{x} for {x}: due now","{x} per {x}: da dare ora"],["{x}: {x} since the end of the last feed","{x}: {x} dalla fine dell'ultima poppata"],
+["{x}: breastfeeding timer running for {x}","{x}: timer dell'allattamento acceso da {x}"],
+["When a child passes {x} h from the end of the last feed (Settings → Feeds).","Quando un figlio supera {x} h dalla fine dell'ultima poppata (Impostazioni → Poppate)."],
 ["Today, {x}","Oggi, {x}"],["Yesterday, {x}","Ieri, {x}"],
 ["{x} feeds · {x} pee · {x} poo · {x} ml","{x} poppate · {x} pipì · {x} cacca · {x} ml"],
 ["{x} breast+top-up · {x} breast","{x} seno+aggiunta · {x} seno"],["{x} ml bottle ({x} expressed)","{x} ml biberon ({x} estratto)"],["{x} ml bottle","{x} ml biberon"],
@@ -1001,10 +1020,11 @@ function loadModules(){
 const modsOn = () => FEATURES.filter(f=>f.file && featOn(f.k) && mods[f.k] && mods[f.k]!=="loading").map(f=>mods[f.k]);
 const modHtml = (hook, ...a) => modsOn().map(m=>m[hook] ? m[hook](...a) : "").join("");
 const modRun = (hook, ...a) => modsOn().forEach(m=>{ if (m[hook]) m[hook](...a); });
-function updateBadge(){            // Day tab: how many things are due now
+function updateBadge(){            // Day tab (and app icon, if notifications are on): reminders due now
   const b = $("#dayBadge"); if (!b) return;
-  const n = modsOn().reduce((a,m)=>a + (m.due ? m.due() : 0), 0);
+  const n = dueReminders().length + modsOn().reduce((a,m)=>a + (m.due ? m.due() : 0), 0);
   b.hidden = !n; b.textContent = n || ""; b.setAttribute("aria-label", tr(`${n} due`));
+  if (navigator.setAppBadge){ (notif.on && n ? navigator.setAppBadge(n) : navigator.clearAppBadge()).catch(()=>{}); }
 }
 // what a module can use from the app
 const appApi = {
@@ -1078,7 +1098,7 @@ async function refresh(){
     if (r.children) kids = r.children; if (r.meds) meds = r.meds;
     if (r.features) feats = {on: r.features.on || {}, used: r.features.used || []};
     if (r.pmeds !== undefined) pmedsBlob = r.pmeds;
-    saveCache(); rebuild(); applyKids(); applyNight(); render(); modRun("synced");
+    saveCache(); rebuild(); applyKids(); applyNight(); render(); modRun("synced"); checkNotices();
     if (!kids.length && !$("#profDlg").open) openProfile();
     if (outbox.length) syncAgain = true;
     failures = 0;
@@ -2283,7 +2303,7 @@ function renderTrend(){
 }
 
 /* ---------- settings ---------- */
-const APP_VERSION = "2.2.0";
+const APP_VERSION = "2.3.0";
 const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
 function renderSettings(){
@@ -2314,6 +2334,8 @@ function renderSettings(){
     ${meds.length ? `<ul class="kids">${medGroups(meds.filter(m=>kids.some(k=>k.id===m.child))).map(ms=>[ms[0], ms.map(x=>KID(x.child).name).join(", ")]).map(([m, names])=>`<li><i class="sw" style="--c:${KID(m.child).c}"></i><span><b>${esc(m.name)}</b><small>${esc(names)}${m.dose?" · "+esc(m.dose):""} · ${Number(m.every)>0 ? `every ${m.every} h${m.times?` · ${m.times}× a day`:""}` : `${m.times}× a day · remind after ${String(m.due).padStart(2,"0")}:00`}${m.until?` · until ${fmtDate(new Date(m.until+"T12:00").getTime())}${medActive(m)?"":" (ended)"}`:""}</small></span><button class="linkbtn" data-medit="${esc(m.id)}">Edit</button></li>`).join("")}</ul>` : `<p class="note">For example vitamin D or other medicines prescribed by your paediatrician. They appear in Day as a daily checklist.</p>`}
     ${kids.length ? `<button class="btn ghost wide" id="addMed">＋ Add reminder</button>` : ""}</div>
   ${modHtml("settingsHtml")}
+
+  ${notifHtml()}
 
   <div class="sect"><h3>Feeds</h3>
     <label class="row2">Highlight a child when the last feed ended more than
@@ -2356,6 +2378,7 @@ function renderSettings(){
   $("#setKids").onclick = openProfile;
   el.querySelectorAll("[data-feat]").forEach(i=>i.onchange=()=>setFeature(i.dataset.feat, i.checked));
   modRun("bindSettings", el);
+  bindNotif(el);
   el.querySelectorAll("#nightSeg button").forEach(b=>b.onclick=()=>setNight(b.dataset.v));
   el.querySelectorAll("#langSeg button").forEach(b=>b.onclick=()=>{ try { b.dataset.v==="auto" ? localStorage.removeItem("bl-lang") : localStorage.setItem("bl-lang", b.dataset.v); } catch(e) {} location.reload(); });
   $("#titleIn").onchange = e=>{ const v = e.target.value.trim().slice(0,30); try { v ? localStorage.setItem("bl-title", v) : localStorage.removeItem("bl-title"); } catch(err) {} applyKids(); };
@@ -2434,7 +2457,7 @@ $("#profForm").onsubmit = async e=>{
 $("#profCancel").onclick = ()=>$("#profDlg").close();
 
 /* ---------- what's new ---------- */
-const CHANGELOG = [["2.2.0", "Signals have one switch, in Settings → Features: off by default, the same on every phone of the family; the Signals section appears only when they are on. If a phone had them on, they stay on.", "I segnali hanno un solo interruttore, in Impostazioni → Funzioni: disattivati di default, uguali su tutti i telefoni della famiglia; la sezione Segnali compare solo quando sono attivi. Se un telefono li aveva attivi, restano attivi."], ["2.1.1", "Parents' reminders in Day read like the children's: one card per reminder, marked “For you” in a colour no child uses, after the children's reminders. A dose taken can be edited (time or delete) and the reminder can be changed from Day.", "I promemoria dei genitori in Giorno si leggono come quelli dei figli: una scheda per promemoria, indicata “Per te” con un colore che nessun figlio usa, dopo i promemoria dei figli. Una dose presa si può modificare (orario o eliminazione) e il promemoria si può cambiare anche da Giorno."], ["2.1.0", "Parents' reminders (off by default, Settings → Features): a “For you” card in Day and a badge on the Day tab when something is due. Each reminder is kept on this phone only, or shared with the other parent encrypted with a family passphrase that cannot be recovered.", "Promemoria dei genitori (disattivati di default, Impostazioni → Funzioni): una scheda “Per te” in Giorno e un badge sulla scheda Giorno quando c'è qualcosa da prendere. Ogni promemoria resta solo su questo telefono, oppure è condiviso con l'altro genitore cifrato con una frase segreta della famiglia che non si può recuperare."], ["2.0.0", "Settings → Features: switch modules on and off for the whole family (notes, children's reminders, pumping, test weighing, detailed progress, signals, night mode, export). Turning one off only hides it; nothing is deleted. Pumping and test weighing start off unless already used.", "Impostazioni → Funzioni: attiva e disattiva i moduli per tutta la famiglia (note, promemoria dei figli, tiralatte, doppia pesata, andamento dettagliato, segnali, modalità notte, esportazione). Disattivarne uno lo nasconde soltanto; non viene eliminato nulla. Tiralatte e doppia pesata partono disattivati se non sono già in uso."], ["1.15.0", "One reminder for several children: same dose and times, one card in Day with a row per child and “Give to all”; edits apply to all.", "Un promemoria per più figli: stessa dose e stessi orari, una sola scheda in Giorno con una riga per figlio e “Dai a tutti”; le modifiche valgono per tutti."], ["1.14.4", "Event form: the browser no longer validates fields (it could reject a valid weight); the app checks values itself.", "Finestra evento: il browser non convalida più i campi (poteva rifiutare un peso valido); i valori li controlla l'app."], ["1.14.3", "Children's profile: decimals with a comma (e.g. 34,5 cm) are accepted; invalid values are shown in red with the allowed range.", "Profilo dei figli: accettati i decimali con la virgola (es. 34,5 cm); i valori non validi sono evidenziati in rosso con l'intervallo ammesso."], ["1.14.2", "Weight in grams could be refused as \"not valid\": fixed.", "Il peso in grammi poteva essere rifiutato come \"valore non valido\": corretto."], ["1.14.1", "A time in the future is caught when saving (with the option to use the day before); future entries no longer distort the gaps in the log.", "Un orario nel futuro viene segnalato al salvataggio (con la possibilità di usare il giorno prima); gli eventi futuri non falsano più le pause nel registro."], ["1.14.0", "Feels like an app (no zoom or browser gestures); sync state always visible; faster sync: recent days first, earlier ones on request, quick checks when nothing changed; at night today also shows yesterday evening.", "Si comporta come un'app (niente zoom né gesti del browser); stato della sincronizzazione sempre visibile; sincronizzazione più veloce: prima i giorni recenti, i precedenti su richiesta, controlli rapidi quando non cambia nulla; di notte oggi mostra anche la sera precedente."], ["1.13.5", "Each dose given appears under its reminder: tap its time to change or delete it.", "Ogni dose data compare sotto il suo promemoria: tocca l'orario per modificarla o eliminarla."], ["1.13.4", "Forms open without opening their first field.", "Le finestre si aprono senza aprire il primo campo."], ["1.13.3", "The children selected in the logging panel are remembered on this device; from Progress, ＋ opens on the child being viewed.", "La selezione dei figli nel pannello di inserimento resta memorizzata sul dispositivo; da Andamento il ＋ si apre sul figlio che stai guardando."], ["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
+const CHANGELOG = [["2.3.0", "Notifications, chosen on each phone in Settings → Notifications (off by default): reminders due, a feed gap over the threshold, a breastfeeding timer still running after 45 min; a banner in the app and phone notifications while the app is open or in the background; optional quiet hours 22:00–7:00. The Day tab and the app icon show how many reminders are due.", "Notifiche, scelte su ogni telefono in Impostazioni → Notifiche (disattivate di default): promemoria da dare, pausa tra le poppate oltre la soglia, timer dell'allattamento ancora acceso dopo 45 min; un avviso nell'app e le notifiche del telefono con l'app aperta o in background; silenzio 22:00–7:00 facoltativo. La scheda Giorno e l'icona dell'app mostrano quanti promemoria ci sono da dare."], ["2.2.0", "Signals have one switch, in Settings → Features: off by default, the same on every phone of the family; the Signals section appears only when they are on. If a phone had them on, they stay on.", "I segnali hanno un solo interruttore, in Impostazioni → Funzioni: disattivati di default, uguali su tutti i telefoni della famiglia; la sezione Segnali compare solo quando sono attivi. Se un telefono li aveva attivi, restano attivi."], ["2.1.1", "Parents' reminders in Day read like the children's: one card per reminder, marked “For you” in a colour no child uses, after the children's reminders. A dose taken can be edited (time or delete) and the reminder can be changed from Day.", "I promemoria dei genitori in Giorno si leggono come quelli dei figli: una scheda per promemoria, indicata “Per te” con un colore che nessun figlio usa, dopo i promemoria dei figli. Una dose presa si può modificare (orario o eliminazione) e il promemoria si può cambiare anche da Giorno."], ["2.1.0", "Parents' reminders (off by default, Settings → Features): a “For you” card in Day and a badge on the Day tab when something is due. Each reminder is kept on this phone only, or shared with the other parent encrypted with a family passphrase that cannot be recovered.", "Promemoria dei genitori (disattivati di default, Impostazioni → Funzioni): una scheda “Per te” in Giorno e un badge sulla scheda Giorno quando c'è qualcosa da prendere. Ogni promemoria resta solo su questo telefono, oppure è condiviso con l'altro genitore cifrato con una frase segreta della famiglia che non si può recuperare."], ["2.0.0", "Settings → Features: switch modules on and off for the whole family (notes, children's reminders, pumping, test weighing, detailed progress, signals, night mode, export). Turning one off only hides it; nothing is deleted. Pumping and test weighing start off unless already used.", "Impostazioni → Funzioni: attiva e disattiva i moduli per tutta la famiglia (note, promemoria dei figli, tiralatte, doppia pesata, andamento dettagliato, segnali, modalità notte, esportazione). Disattivarne uno lo nasconde soltanto; non viene eliminato nulla. Tiralatte e doppia pesata partono disattivati se non sono già in uso."], ["1.15.0", "One reminder for several children: same dose and times, one card in Day with a row per child and “Give to all”; edits apply to all.", "Un promemoria per più figli: stessa dose e stessi orari, una sola scheda in Giorno con una riga per figlio e “Dai a tutti”; le modifiche valgono per tutti."], ["1.14.4", "Event form: the browser no longer validates fields (it could reject a valid weight); the app checks values itself.", "Finestra evento: il browser non convalida più i campi (poteva rifiutare un peso valido); i valori li controlla l'app."], ["1.14.3", "Children's profile: decimals with a comma (e.g. 34,5 cm) are accepted; invalid values are shown in red with the allowed range.", "Profilo dei figli: accettati i decimali con la virgola (es. 34,5 cm); i valori non validi sono evidenziati in rosso con l'intervallo ammesso."], ["1.14.2", "Weight in grams could be refused as \"not valid\": fixed.", "Il peso in grammi poteva essere rifiutato come \"valore non valido\": corretto."], ["1.14.1", "A time in the future is caught when saving (with the option to use the day before); future entries no longer distort the gaps in the log.", "Un orario nel futuro viene segnalato al salvataggio (con la possibilità di usare il giorno prima); gli eventi futuri non falsano più le pause nel registro."], ["1.14.0", "Feels like an app (no zoom or browser gestures); sync state always visible; faster sync: recent days first, earlier ones on request, quick checks when nothing changed; at night today also shows yesterday evening.", "Si comporta come un'app (niente zoom né gesti del browser); stato della sincronizzazione sempre visibile; sincronizzazione più veloce: prima i giorni recenti, i precedenti su richiesta, controlli rapidi quando non cambia nulla; di notte oggi mostra anche la sera precedente."], ["1.13.5", "Each dose given appears under its reminder: tap its time to change or delete it.", "Ogni dose data compare sotto il suo promemoria: tocca l'orario per modificarla o eliminarla."], ["1.13.4", "Forms open without opening their first field.", "Le finestre si aprono senza aprire il primo campo."], ["1.13.3", "The children selected in the logging panel are remembered on this device; from Progress, ＋ opens on the child being viewed.", "La selezione dei figli nel pannello di inserimento resta memorizzata sul dispositivo; da Andamento il ＋ si apre sul figlio che stai guardando."], ["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
 function changelogHtml(){
   const it = LANG==="it", row = ([v,en,itx]) => `<li><b>${v}</b> ${esc(it ? itx : en)}</li>`;
   return `<div class="sect notr"><h3>${it ? "Novità" : "What's new"}</h3><ul class="clog">${CHANGELOG.slice(0,3).map(row).join("")}</ul>
@@ -2564,6 +2587,89 @@ $("#nightBtn").onclick = ()=>setNight(nightOn() ? "off" : "on");
 setInterval(()=>{ if (night==="auto") applyNight(); }, 60000);
 applyNight();
 
+/* ---------- notifications (this phone): banner in the app, phone notifications, number on the app icon ----------
+   Phase 1: they work while the app is open, or in the background while the phone keeps it running (Android,
+   computers); with the app closed they need Web Push (a later version). Off by default, chosen on each phone.
+   Each event is notified once (keys in bl-notified); several at once become one notification. */
+const NOTIFY_TYPES = [["meds","Children's reminders","When a reminder is due."],["pmeds","Parents' reminders","When one of your reminders is due."],
+                      ["gap","Feed gap",""],["timer","Breastfeeding timer","When a timer is still running after 45 min."]];
+const TIMER_NOTICE = 45*60000;        // before the live bar (with Stop) disappears at LIVE_MAX
+let notif = {on:false, types:{meds:true, pmeds:true, gap:true, timer:true}, quiet:true};
+try { const v = JSON.parse(localStorage.getItem("bl-notify") || "null"); if (v) notif = {on: v.on===true, types: Object.assign({}, notif.types, v.types), quiet: v.quiet!==false}; } catch(e) {}
+const saveNotif = () => { try { localStorage.setItem("bl-notify", JSON.stringify(notif)); } catch(e) {} };
+let notified = {};                    // event key → when it was notified
+try { notified = JSON.parse(localStorage.getItem("bl-notified") || "{}") || {}; } catch(e) {}
+let noticeLater = [];                 // not shown yet (app in the background, quiet hours or no permission)
+const quietNow = () => { const h = new Date().getHours(); return notif.quiet && (h >= 22 || h < 7); };
+const sysPerm = () => window.Notification ? Notification.permission : "unsupported";
+const typeOn = k => notif.types[k] !== false && (k==="meds" ? featOn("meds") : k==="pmeds" ? featOn("pmeds") : true);
+function dueReminders(){              // children's reminders due now, as highlighted in Day
+  if (!featOn("meds")) return [];
+  const key = dayKey(Date.now());
+  return meds.filter(m=>kids.some(k=>k.id===m.child) && medLate(m, key));
+}
+function notices(){                   // what deserves a notification now: [{key, text}]
+  const out = [], now = Date.now(), today = dayKey(now);
+  if (typeOn("meds")) dueReminders().forEach(m=>out.push({key: "med:"+m.id+":"+(Number(m.every)>0 ? nextDose(m) : today+":"+givenOn(m,today).length),
+    text: tr(`${m.name} for ${KID(m.child).name}: due now`)}));
+  if (typeOn("pmeds")) modsOn().forEach(m=>{ if (m.notices) out.push(...m.notices()); });
+  if (typeOn("gap")) logIds().forEach(t=>{
+    if (events.some(e=>e.child===t && isBreast(e) && e.live && !e.dur)) return;
+    const s = sessions(t).filter(x=>x.start<=now).pop(); if (!s) return;
+    const end = Math.min(sessionEnd(s), now);
+    if (now-end > alertH*36e5 && now-end < 12*36e5) out.push({key:"gap:"+t+":"+end, text: tr(`${KID(t).name}: ${dur(now-end)} since the end of the last feed`)});
+  });
+  if (typeOn("timer")) events.filter(e=>isBreast(e) && e.live && !e.dur && now-e.ts >= TIMER_NOTICE && now-e.ts < 4*36e5)
+    .forEach(e=>out.push({key:"timer:"+e.id, text: tr(`${KID(e.child).name}: breastfeeding timer running for ${dur(now-e.ts)}`)}));
+  return out;
+}
+function checkNotices(){
+  if (!notif.on) return;
+  if (!isLocal() && Date.now() - lastSync > 5*60000) return;     // old data: the other parent may have logged it already
+  const fresh = notices().filter(n=>!notified[n.key]); if (!fresh.length) return;
+  const now = Date.now();
+  fresh.forEach(n=>notified[n.key] = now);
+  Object.keys(notified).forEach(k=>{ if (now - notified[k] > 3*864e5) delete notified[k]; });
+  try { localStorage.setItem("bl-notified", JSON.stringify(notified)); } catch(e) {}
+  const lines = fresh.map(n=>n.text);
+  if (document.visibilityState==="visible") showNotice(lines);
+  else if (!quietNow() && sysPerm()==="granted") sysNotify(lines);
+  else noticeLater.push(...lines);
+}
+function showNotice(lines){
+  const el = $("#notice"), t = $("#noticeTxt");
+  t.innerHTML = lines.slice(0, 4).map(l=>`<span style="display:block">${esc(l)}</span>`).join("") + (lines.length > 4 ? `<span style="display:block">…</span>` : "");
+  el.hidden = false; clearTimeout(showNotice.t); showNotice.t = setTimeout(()=>{ el.hidden = true; }, 15000);
+}
+function sysNotify(lines){
+  const opt = {body: lines.join("\n"), tag: "baby-log", renotify: true, icon: "icon-192.png", badge: "icon-192.png"};
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.ready.then(r=>r.showNotification(appTitle(), opt)).catch(()=>{});
+  else { try { new Notification(appTitle(), opt); } catch(e) {} }
+}
+$("#noticeGo").onclick = ()=>{ $("#notice").hidden = true; showTab("log"); };
+$("#noticeX").onclick = ()=>{ $("#notice").hidden = true; };
+function notifHtml(){
+  const p = sysPerm();
+  const st = p==="granted" ? "Phone notifications: allowed." : p==="denied" ? "Phone notifications are blocked for this app: allow them in the phone settings."
+    : p==="unsupported" ? "Phone notifications are not available here. On iPhone, add the app to the Home Screen first (iOS 16.4 or later)." : "";
+  const sw = (on, name, desc, attr) => `<li><label class="feat"><span class="notr"><b>${tr(name)}</b>${desc?`<small>${tr(desc)}</small>`:""}</span><input type="checkbox" class="tgl" role="switch" ${attr} ${on?"checked":""}></label></li>`;
+  return `<div class="sect"><h3>Notifications</h3>
+    <ul class="feats">${sw(notif.on, "Notifications on this phone", "A banner in the app and, if allowed, notifications from the phone; on the app icon, the number of reminders due.", 'id="ntOn"')}</ul>
+    ${notif.on ? `${p==="default" ? `<button class="btn ghost wide" id="ntAllow">Allow phone notifications</button>` : `<p class="note" style="margin:0">${st}</p>`}
+    <ul class="feats">${NOTIFY_TYPES.filter(([k])=>k==="meds" ? featOn("meds") : k==="pmeds" ? featOn("pmeds") : true)
+        .map(([k,n,d])=>sw(notif.types[k]!==false, n, k==="gap" ? `When a child passes ${alertH} h from the end of the last feed (Settings → Feeds).` : d, `data-nt="${k}"`)).join("")}
+      ${sw(notif.quiet, "Quiet hours 22:00–7:00", "No phone notifications at night; the banner and the number on the icon stay.", 'id="ntQuiet"')}</ul>` : ""}
+    <p class="note" style="margin:0">They arrive while the app is open, or in the background while the phone keeps it running. Notifications with the app closed will come in a later version.</p></div>`;
+}
+function bindNotif(el){
+  const ask = ()=>{ if (window.Notification && Notification.permission==="default") Notification.requestPermission().then(()=>{ renderSettings(); updateBadge(); }).catch(()=>{}); };
+  if ($("#ntOn")) $("#ntOn").onchange = e=>{ notif.on = e.target.checked; saveNotif(); if (notif.on) ask(); renderSettings(); updateBadge(); checkNotices(); };
+  if ($("#ntAllow")) $("#ntAllow").onclick = ask;
+  if ($("#ntQuiet")) $("#ntQuiet").onchange = e=>{ notif.quiet = e.target.checked; saveNotif(); };
+  el.querySelectorAll("[data-nt]").forEach(i=>i.onchange=()=>{ notif.types[i.dataset.nt] = i.checked; saveNotif(); });
+}
+if (navigator.serviceWorker) navigator.serviceWorker.addEventListener("message", e=>{ if (e.data && e.data.go) showTab(e.data.go); });   // tap on a notification
+
 /* ---------- startup ---------- */
 loadCache();
 // up to 2.1: signals were turned on per phone. A phone that had them on switches them on for the family
@@ -2579,7 +2685,7 @@ window.addEventListener("offline", ()=>{ syncErr = "offline"; setStatus(); });
 // most checks get a quick "nothing changed" answer from the server
 let lastAuto = 0, lastDay = dayKey(Date.now());
 setInterval(()=>{
-  renderSince(); setStatus(); updateBadge();
+  renderSince(); setStatus(); updateBadge(); checkNotices();
   const today = dayKey(Date.now());
   if (today !== lastDay){ lastDay = today; if (dayOffset===0) render(); }        // midnight: "Today" moves on
   if (document.visibilityState!=="visible") return;
@@ -2592,6 +2698,7 @@ setInterval(()=>{ if (liveFeeds().length) renderLive(); }, 5000);
 document.addEventListener("visibilitychange", ()=>{
   if (document.visibilityState!=="visible") return;
   lastActivity = Date.now();
+  if (noticeLater.length){ showNotice(noticeLater); noticeLater = []; }
   const today = dayKey(Date.now()); if (today !== lastDay){ lastDay = today; dayOffset = 0; render(); }   // reopened on a new day: back to today
   if (Date.now() - lastSync > 5000){ lastAuto = Date.now(); refresh(); }
 });

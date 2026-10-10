@@ -104,9 +104,13 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.strictEqual(JSON.parse(A.localStorage.getItem('bl-pmeds'))[0].name, 'Iron', 'kept on this phone');
   assert.ok(!props.PMEDS, 'nothing sent to the server');
   d.querySelector('[data-tab="log"]').click(); await sleep(50);
-  assert.ok(d.querySelector('[data-pmgive]') && d.querySelector('#dayBadge').textContent === '1', '"For you" card and badge on the Day tab');
+  // badge on the Day tab = reminders due now (children's and parents'), the rows highlighted in Day
+  const lateRows = () => d.querySelectorAll('#tab-log .remi.late').length;
+  const badge = () => d.querySelector('#dayBadge').hidden ? 0 : Number(d.querySelector('#dayBadge').textContent);
+  assert.ok(d.querySelector('[data-pmgive].late') && badge() === lateRows() && badge() >= 1, '"For you" reminder and badge on the Day tab');
+  const before = badge();
   d.querySelector('[data-pmgive]').click(); await sleep(50);
-  assert.ok(d.querySelector('#dayBadge').hidden, 'badge gone once taken');
+  assert.strictEqual(badge(), before - 1, 'one less once taken');
   assert.strictEqual(JSON.parse(A.localStorage.getItem('bl-pmeds-given')).length, 1, 'dose kept on this phone');
   // a dose taken can be edited (time) like a child's
   const hhmm = ts => { const x = new Date(ts); return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}T${String(x.getHours()).padStart(2,'0')}:${String(x.getMinutes()).padStart(2,'0')}`; };
@@ -147,6 +151,34 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   await A.__t.refresh(); await sleep(100);
   const pd = A.__t.allEvents.find(e=>e.kind==='pmed');
   assert.ok(pd && hhmm(pd.ts) === hhmm(earlier), 'dose of a shared reminder, edited on B, reaches device A');
+  // notifications (this phone): off by default; banner in the app, once per event; phone notification in the background
+  const banner = () => d.querySelector('#notice').hidden ? '' : d.querySelector('#noticeTxt').textContent;
+  A.checkNotices(); assert.strictEqual(banner(), '', 'notifications off by default');
+  d.querySelector('[data-tab="settings"]').click(); await sleep(20);
+  d.querySelector('#ntOn').checked = true; d.querySelector('#ntOn').dispatchEvent(new A.Event('change')); await sleep(20);
+  const [k1, k2] = JSON.parse(props.PROFILE).children.map(c=>c.id);
+  await A.addEvents([{kind:'feed', feedType:'breast', child:k1, ts:Date.now()-4*36e5, dur:10}]); await sleep(400);
+  A.checkNotices();
+  assert.ok(banner().includes('since the end of the last feed'), 'banner for a feed gap over the threshold: ' + banner());
+  d.querySelector('#noticeX').click(); A.checkNotices();
+  assert.strictEqual(banner(), '', 'each event is notified once');
+  await A.addEvents([{kind:'feed', feedType:'breast', child:k2, ts:Date.now()-50*60000, live:1}]); await sleep(400);
+  A.checkNotices();
+  assert.ok(banner().includes('breastfeeding timer running'), 'banner for a timer still running: ' + banner());
+  d.querySelector('#noticeX').click();
+  // in the background: a phone notification (quiet hours off so that the test does not depend on the time)
+  const sent = []; A.Notification = class { constructor(t, o){ sent.push(o.body); } }; A.Notification.permission = 'granted';
+  d.querySelector('#ntQuiet').checked = false; d.querySelector('#ntQuiet').dispatchEvent(new A.Event('change'));
+  Object.defineProperty(d, 'visibilityState', {value:'hidden', configurable:true});
+  await A.addEvents([{kind:'feed', feedType:'breast', child:k1, ts:Date.now()-50*60000, live:1}]); await sleep(400);
+  A.checkNotices();
+  assert.ok(sent.length === 1 && sent[0].includes('breastfeeding timer running') && banner() === '', 'phone notification when the app is in the background');
+  // a type turned off
+  d.querySelector('[data-nt="timer"]').checked = false; d.querySelector('[data-nt="timer"]').dispatchEvent(new A.Event('change'));
+  await A.addEvents([{kind:'feed', feedType:'breast', child:k2, ts:Date.now()-55*60000, live:1}]); await sleep(400);
+  A.checkNotices();
+  assert.strictEqual(sent.length, 1, 'no notification for a type turned off');
+  delete d.visibilityState;
   console.log('smoke test passed');
   process.exit(0);
 })().catch(e=>{ console.error('FAILED:', e.stack); process.exit(1); });
