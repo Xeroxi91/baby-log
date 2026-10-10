@@ -3,12 +3,13 @@ const {JSDOM} = require('jsdom'), fs = require('fs'), path = require('path'), as
 const {api, props} = require('./gasmock')([]);
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const calls = [];
-function device(){
+function device(pre){
   const dom = new JSDOM(html, {runScripts:'outside-only', url:'https://example.test/', pretendToBeVisual:true});
   const w = dom.window;
   w.HTMLDialogElement.prototype.showModal = function(){ this.open = true; };
   w.HTMLDialogElement.prototype.close = function(){ this.open = false; };
   w.onerror = m => { throw new Error(m); }; w.scrollTo = ()=>{}; w.confirm = ()=>true;
+  if (pre) pre(w.localStorage);
   w.localStorage.setItem('bl-key', 'GOOD'); w.localStorage.setItem('bl-api', 'https://script.google.com/macros/s/TEST/exec');
   w.fetch = async (u, o) => { const b = JSON.parse(o.body); const r = JSON.parse(api.doPost({postData:{contents:o.body}}).t);
     calls.push(b.action + (r.result && r.result.unchanged ? ':unchanged' : '')); return {json: async()=>r}; };
@@ -83,6 +84,13 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   props.FEATURES = JSON.stringify({on:{}}); props.REV = String(Date.now() + 1);
   await B.__t.refresh(); await sleep(50);
   assert.ok(B.__t.featOn('pump'), 'pumping already used: on without a choice');
+  // signals: one family switch, off by default; a phone that had them on (up to 2.1) brings them on
+  assert.ok(!A.__t.featOn('signals') && d.querySelector('#thrMode').closest('.sect').hidden, 'signals off, Signals section hidden');
+  const C = device(ls => ls.setItem('bl-thr', JSON.stringify({on:true, auto:true}))); await sleep(400);
+  assert.strictEqual(JSON.parse(props.FEATURES).on.signals, true, 'old per-phone choice migrated to the family');
+  assert.strictEqual(JSON.parse(C.localStorage.getItem('bl-thr')).on, false, 'migrated once');
+  await A.__t.refresh(); await sleep(50);
+  assert.ok(A.__t.featOn('signals') && !d.querySelector('#thrMode').closest('.sect').hidden, 'Signals section shown on the other phone');
   // parents' reminders: off by default; a module loaded only when switched on
   assert.ok(!A.__t.featOn('pmeds') && !d.querySelector('#pmAdd'), "parents' reminders off by default");
   d.querySelector('[data-tab="settings"]').click();

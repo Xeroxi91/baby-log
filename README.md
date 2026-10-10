@@ -55,9 +55,9 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Turning a feature off **only hides it**: entries stay in the sheet and in the export, and come back as
   they were when it is turned on again.
 - Defaults: everything is on except pumping and test weighing, which start on only if the family already
-  used them, and parents' reminders (off).
+  used them, and signals and parents' reminders (off).
 - Some features are separate files (`modules/*.js`) loaded only when they are on; the service worker keeps
-  them on the device, so they work offline too. Signals still have to be turned on separately on each phone (*Settings → Signals*).
+  them on the device, so they work offline too.
 
 **Day**
 - Time since the end of the last feed for each child, with a configurable highlight threshold.
@@ -85,7 +85,8 @@ data** (removable from *Settings*; never uploaded).
 **Progress (one child at a time)**
 - Child selector and period: 7 / 14 / 30 days / all.
 - **Descriptive by default**: entries are shown without interpretation. **Signals** are **off by
-  default** and can be turned on in *Settings → Signals*; when on they are grouped as *Talk to your paediatrician*, *Keep an eye on*, *Going well*, *What may help*:
+  default** and can be turned on for the family in *Settings → Features* (then *Settings → Signals* shows the
+  thresholds); when on they are grouped as *Talk to your paediatrician*, *Keep an eye on*, *Going well*, *What may help*:
   feeds and wet diapers in the last 24 h, long stretches without feeding, stools, weight loss after birth,
   birth weight not regained, weight gain, centile crossing, missing weighings, top-up trend,
   notes (temperature of 38 °C or more, pale stool, hard to wake, prolonged jaundice, repeated vomiting),
