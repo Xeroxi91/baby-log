@@ -136,7 +136,9 @@ data** (removable from *Settings*; never uploaded).
 - **Export**: spreadsheet (CSV) or full backup (JSON) of everything on the device.
 - **Restore** from a JSON backup (*Settings → Data and backup*): a preview with what will be added, then only
   what is missing is added (children, reminders and entries matched by id); nothing is overwritten or deleted, and the
-  address and access code are never read from the file.
+  address and access code are never read from the file. The backup also holds what is kept only on the phone (parents'
+  reminders kept on this phone, with their doses), so they can move to another phone or another address of the app;
+  the family passphrase is never in the file.
 - Weight in grams for babies and kilograms from 1 year; a warning when a weight or length is outside
   the usual range for the child's age (WHO / INTERGROWTH −5…+5 SD).
 - Children profiles, title shown at the top (default *Baby log*, per device), **night mode** (off / on /

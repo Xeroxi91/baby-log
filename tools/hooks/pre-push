@@ -3,7 +3,7 @@
 # 1. The public remote receives only main → main: no other branch, no tags, no deletions.
 # 2. A main that contains private files is refused on every remote. Always private:
 #    modules/private.js and docs/private/; more paths may be listed, one per line, in
-#    docs/private/private-paths on the local "modules" branch (that file never reaches main).
+#    docs/private/private-paths on the local "family" branch (that file never reaches main).
 remote="$1"; url="$2"
 zero=0000000000000000000000000000000000000000
 public=0
@@ -11,7 +11,7 @@ public=0
 echo "$url" | grep -Eq 'Xeroxi91/baby-log(\.git)?$' && public=1
 
 private="modules/private.js docs/private/"
-extra=$(git show refs/heads/modules:docs/private/private-paths 2>/dev/null | grep -v '^#' | tr '\n' ' ')
+extra=$(git show refs/heads/family:docs/private/private-paths 2>/dev/null | grep -v '^#' | tr '\n' ' ')
 private="$private $extra"
 
 status=0
