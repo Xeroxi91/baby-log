@@ -169,7 +169,7 @@ button{touch-action:manipulation}
 .regsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
 .regsum>div{background:var(--surface);border-radius:12px;padding:8px 10px;border-left:4px solid var(--c);font-size:.85rem;line-height:1.3}
 .regsum b{display:block;color:var(--c)}
-.regsum span{color:var(--muted)}
+.regsum span:not(.mono){color:var(--muted)}
 .addmiss{width:100%;border:1px dashed var(--line);background:transparent;border-radius:12px;padding:12px;font-weight:700;color:var(--ink);margin-bottom:12px;min-height:48px}
 .reg{display:grid;grid-template-columns:3.1em 1fr 1fr;column-gap:6px;align-items:stretch}
 .reg .rh{font-size:.8rem;font-weight:700;padding:6px 4px;position:sticky;top:calc(env(safe-area-inset-top,0px) + var(--tabsH,45px) - 14px + var(--ctlH,0px));background:var(--bg);z-index:4}
@@ -219,12 +219,12 @@ button{touch-action:manipulation}
 #profBody .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
 .topr{display:flex;gap:6px;align-items:center}
-.sync{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px 6px 22px;font-size:.78rem;color:var(--muted);white-space:nowrap;min-height:36px;position:relative}
-.sync::before{content:"";position:absolute;left:9px;top:50%;width:8px;height:8px;margin-top:-4px;border-radius:50%;background:var(--muted)}
-.sync.ok::before{background:var(--ok)}
-.sync.busy::before{background:var(--both);animation:pulse 1s ease-in-out infinite}
-.sync.off::before{background:var(--warn)}
-.sync.err::before{background:var(--danger)}
+.sync{border:0;background:none;padding:0 6px 0 20px;font-size:.82rem;color:var(--muted);white-space:nowrap;min-height:var(--hit);position:relative}
+.sync::before{content:"";position:absolute;left:4px;top:50%;width:10px;height:10px;margin-top:-5px;border-radius:50%;border:2px solid var(--muted);box-sizing:border-box}
+.sync.ok::before{border-color:var(--live)}
+.sync.busy::before{border-color:var(--muted);animation:pulse 1s ease-in-out infinite}
+.sync.off::before{border-color:var(--warn)}
+.sync.err::before{border-color:var(--danger)}
 @keyframes pulse{50%{opacity:.3}}
 .live .sides{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--surface2);border-radius:14px;padding:4px}
 .live .sides button{border:0;background:transparent;color:var(--ink);border-radius:11px;min-height:44px;padding:0 8px;font-size:.95rem;font-weight:600}
@@ -361,9 +361,22 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 :root[data-night] .scard .big{font-size:1.7rem}
 :root[data-night] .fab{box-shadow:none}
 :root[data-night] img, :root[data-night] svg{opacity:.85}
-.nightbtn{border:1px solid var(--line);background:var(--surface);border-radius:999px;width:40px;height:40px;font-size:1.1rem;margin-right:6px}
+/* header buttons: language and night, 48 px (56 at night), border only; night on = filled */
+.hbtn{flex:none;width:var(--hit);height:var(--hit);border-radius:50%;border:1.5px solid var(--line2);background:none;color:var(--ink);font-weight:700;font-size:.88rem;display:grid;place-items:center;padding:0}
+.nightbtn{font-size:1.25rem}
 .nightbtn[aria-pressed="true"]{background:var(--fill);border-color:var(--fill);color:var(--on-fill)}
-.topr{display:flex;align-items:center}
+.topr{display:flex;align-items:center;gap:8px}
+/* Settings: big title on the index; on a page "‹ Settings" and the title in the middle */
+.top.tset h1{font-family:inherit;font-size:1.85rem;font-weight:700}
+.top.tsub{display:grid;grid-template-columns:auto minmax(0,1fr)}
+.top.tsub h1{font-size:1.05rem;text-align:center;padding-right:96px;margin:0}
+.back{border:0;background:none;color:var(--ink);font-weight:600;font-size:1rem;text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:0 4px}
+.sgroup{background:var(--surface);border-radius:16px;margin-bottom:16px;overflow:hidden}
+.srow{display:grid;grid-template-columns:minmax(0,1fr) auto 14px;gap:8px;align-items:center;width:100%;min-height:56px;padding:0 16px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:1.06rem;text-align:left}
+.srow:last-child{border-bottom:0}
+.srow .sv{font-size:.94rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55vw}
+.srow .chev{color:var(--faint);font-size:1.2rem}
+.sintro{margin:0 0 12px}
 .cdays{display:flex;flex-wrap:wrap;gap:3px;margin-top:6px}
 .cday{width:16px;height:16px;border-radius:4px;display:inline-block}
 .cday.c0{background:transparent;border:1.5px dashed var(--muted)}
@@ -394,9 +407,8 @@ img,svg{-webkit-user-drag:none}
 .bottomnav.busy{border-top-color:var(--both)}
 .bottomnav.stale,.bottomnav.off{border-top-color:var(--warn)}
 .bottomnav.err{border-top-color:var(--danger)}
-.sync.stale::before{background:var(--warn)}
-.sync.local::before{background:var(--muted)}
-.sync.stale{color:var(--warn);border-color:var(--warn)}
+.sync.stale::before{border-color:var(--warn)}
+.sync.stale{color:var(--warn)}
 .rdiv{grid-column:1/-1;text-align:center;font-size:.8rem;font-weight:700;color:var(--muted);padding:8px 0;border-top:1px solid var(--line);margin-top:4px}
 .histnote{font-size:.85rem;color:var(--muted);text-align:center;padding:8px}
 .dlg input.invalid{border-color:var(--danger);box-shadow:0 0 0 2px var(--danger)}
@@ -454,8 +466,8 @@ img,svg{-webkit-user-drag:none}
 <body>
 <div class="wrap">
   <div class="top">
-    <h1 id="title">Baby log</h1>
-    <div class="topr"><button class="nightbtn" id="nightBtn" aria-pressed="false" title="Night mode">🌙</button><button class="sync busy" id="sync" aria-live="polite" title="Sync now">Connecting…</button></div>
+    <button type="button" class="back" id="backBtn" hidden>‹ Settings</button><h1 id="title">Baby log</h1>
+    <div class="topr"><button class="sync busy" id="sync" aria-live="polite" title="Sync now">…</button><button class="hbtn notr" id="langBtn" aria-label="Language"></button><button class="hbtn nightbtn" id="nightBtn" aria-pressed="false" aria-label="Night mode">☾</button></div>
   </div>
 
   <div id="livebar"></div>
@@ -475,6 +487,7 @@ img,svg{-webkit-user-drag:none}
 
 </div>
 
+<dialog id="langDlg" class="sheet" tabindex="-1"></dialog>
 <dialog id="sheet" class="sheet" tabindex="-1" autofocus><div class="sheet-in">
   <div class="sheet-h"><b>Log an event</b><button type="button" class="linkbtn" id="sheetClose">Close</button></div>
   <div class="who hs" id="who" role="group" aria-label="Who" hidden></div>
@@ -771,7 +784,7 @@ const IT = {
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
 "7 days":"7 g","14 days":"14 g","30 days":"30 g",
-"Colour":"Colore","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"Colour":"Colore","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active · quiet 22–7":"Attive · silenzio 22–7","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
 "Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
 "scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
 "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
@@ -779,7 +792,7 @@ const IT = {
 };
 // templates: {x} matches any text
 const IT_T = [
-["birth {x}","nascita {x}"],["No measurements of {x} yet.","Ancora nessuna misura di {x}."],
+["birth {x}","nascita {x}"],["{x} children","{x} figli"],["{x} on","{x} attive"],["threshold {x} h","soglia {x} h"],["last {x}","ultimo {x}"],["{x} ago","{x} fa"],["No measurements of {x} yet.","Ancora nessuna misura di {x}."],
 ["{x} · {x} change not shared yet","{x} · {x} modifica non ancora condivisa"],["{x} · {x} changes not shared yet","{x} · {x} modifiche non ancora condivise"],
 ["{x} · {x} change waiting to be sent","{x} · {x} modifica in attesa di invio"],["{x} · {x} changes waiting to be sent","{x} · {x} modifiche in attesa di invio"],
 ["{x} for {x}: due now","{x} per {x}: da dare ora"],["{x}: {x} since the end of the last feed","{x}: {x} dalla fine dell'ultima poppata"],
@@ -1142,6 +1155,13 @@ function renderModTabs(){
     if (!sec.hidden && !sec.contains(document.activeElement)){ sec.innerHTML = m.tabHtml ? m.tabHtml() : ""; if (m.bindTab) m.bindTab(sec); }
   });
 }
+function renderHeader(){
+  const st = curTab()==="settings", pg = st && setPage, top = $(".top");
+  $("#title").textContent = pg ? PAGE_TITLE[setPage] : st ? "Settings" : appTitle();
+  top.classList.toggle("tset", !!st); top.classList.toggle("tsub", !!pg);
+  $("#backBtn").hidden = !pg; top.querySelector(".topr").hidden = !!st;
+  $("#langBtn").textContent = LANG.toUpperCase();
+}
 const curTab = () => (document.querySelector('[role=tab][aria-selected="true"]') || {dataset:{tab:"log"}}).dataset.tab;
 const tabMod = () => { const t = curTab(); return t.startsWith("m-") && mods[t.slice(2)] && mods[t.slice(2)]!=="loading" ? mods[t.slice(2)] : null; };
 const modHtml = (hook, ...a) => modsOn().map(m=>m[hook] ? m[hook](...a) : "").join("");
@@ -1282,7 +1302,9 @@ function setStatus(){
     else { cls = "ok"; txt = age < 60000 ? "Updated just now" : `Updated ${dur(age)} ago`; }
   }
   else { cls = "busy"; txt = "Connecting…"; }
-  el.className = "sync " + cls; el.textContent = txt;
+  const short = cls==="local" ? "local" : cls==="busy" ? (n ? `${n} ↑` : "…") : cls==="off" ? (syncErr==="offline" ? "offline" : "…") : cls==="err" ? "error"
+    : lastSync && Date.now() - lastSync < 60000 ? "now" : lastSync ? `${dur(Date.now() - lastSync)} ago` : "…";
+  el.className = "sync " + cls; el.textContent = short; el.title = tr(txt); el.setAttribute("aria-label", tr(txt));
   const nav = document.querySelector(".bottomnav"); if (nav){ nav.classList.remove("ok","busy","stale","off","err"); nav.classList.add(cls); }
   // top bar only if a sync lasts more than a moment (no flicker on quick checks)
   const bar = $("#syncbar");
@@ -1862,7 +1884,7 @@ function applyKids(){
   if (!picks.length && kids.length) picks = [logIds()[0] || kids[0].id];
   if (kids.length) savePicks();
   sel = picks.length > 1 ? "multi" : (picks[0] || "");
-  $("#title").textContent = appTitle(); document.title = appTitle();
+  renderHeader(); document.title = appTitle();
   const who = $("#who");
   who.hidden = !many();
   who.innerHTML = kids.map(k=>`<button data-t="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${picks.includes(k.id)}">${esc(k.name)}</button>`).join("");
@@ -2463,35 +2485,79 @@ function renderTrend(){
 const APP_VERSION = "2.5.0";
 const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
+/* settings: an index and one page per group (#settings/<page>, so that Back works) */
+const PAGE_TITLE = {family:"Family", features:"Features", reminders:"Reminders", notify:"Notifications", feeds:"Feeds and signals",
+  home:"Home", look:"Appearance", data:"Data and backup", about:"About and what's new"};
+let setPage = "", pagePushed = false;
+// modules put their settings on a page (settingsPage, default Features)
+const modSettings = page => modFeats().filter(f=>(mods[f.k].settingsPage || "features")===page).map(f=>mods[f.k].settingsHtml ? mods[f.k].settingsHtml() : "").join("");
+function openPage(k){ pagePushed = true; location.hash = "#settings/" + k; }
+function closePage(){ if (pagePushed){ pagePushed = false; history.back(); } else location.hash = "#settings"; }
+function route(){
+  const m = location.hash.match(/^#settings(?:\/(\w+))?$/); if (!m) return;
+  const k = m[1] && PAGE_TITLE[m[1]] ? m[1] : "";
+  if (curTab()!=="settings") showTab("settings", true);
+  if (k !== setPage){ setPage = k; applyPage(); window.scrollTo(0, 0); }
+}
+function applyPage(){
+  const el = $("#tab-settings");
+  el.querySelectorAll(".spage").forEach(x=>x.hidden = x.dataset.page!==setPage);
+  const ix = el.querySelector(".sindex"); if (ix) ix.hidden = !!setPage;
+  renderHeader();
+}
+window.addEventListener("hashchange", route);
+// a swipe from the left edge goes back from a page
+(()=>{ let x0 = null;
+  document.addEventListener("touchstart", e=>{ x0 = setPage && curTab()==="settings" && e.touches[0].clientX < 24 ? e.touches[0].clientX : null; }, {passive:true});
+  document.addEventListener("touchend", e=>{ if (x0!=null && e.changedTouches[0].clientX - x0 > 70) closePage(); x0 = null; }, {passive:true});
+})();
 function renderSettings(){
   const el = $("#tab-settings"); if (!el) return;
   const sexTxt = p => p.sex==="f" ? "girl" : "boy";
   const kidRow = k => `<li>${mono(k.id, "l")}<span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span></li>`;
   const pend = outbox.length;
   // grouped by who a setting applies to, most used first: the family's (shared), this phone's, data and app
-  el.innerHTML = `
+  // an index of pages; each row shows the current state, so often there is no need to open it.
+  // Every page is in the document (hidden), so that dialogs and switches work the same from anywhere
+  const P = (k, inner) => `<div class="spage" data-page="${k}"${setPage===k ? "" : " hidden"}>${inner}</div>`;
+  const remCount = medGroups(meds.filter(m=>kids.some(k=>k.id===m.child))).length + modFeats().reduce((a,f)=>a + (mods[f.k].count ? mods[f.k].count() : 0), 0);
+  const lastExp = (()=>{ try { return Number(localStorage.getItem("bl-lastexport")) || 0; } catch(e) { return 0; } })();
+  const langName = LANG==="it" ? "Italiano" : "English", themeName = {auto:"Auto", light:"Light", dark:"Dark"}[theme];
+  const pages = {
+    family: kids.length===1 ? "1 child" : `${kids.length} children`,
+    features: `${FEATURES.filter(f=>featOn(f.k)).length} on`,
+    reminders: featOn("meds") || modSettings("reminders") ? (remCount ? String(remCount) : "none") : null,
+    notify: notif.on ? (notif.quiet ? "Active · quiet 22–7" : "Active") : "Not active",
+    feeds: `threshold ${alertH} h`,
+    home: modSettings("home") ? "" : null,
+    look: `<span>${themeName}</span><span> · </span><span class="notr">${langName}</span>`,
+    data: lastExp ? `last ${fmtDate(lastExp)}` : "no backup yet",
+    about: APP_VERSION
+  };
+  const row = k => pages[k]==null ? "" : `<button type="button" class="srow" data-page="${k}"><span>${PAGE_TITLE[k]}</span><span class="sv${k==="about"?" notr":""}">${pages[k]}</span><span class="chev" aria-hidden="true">›</span></button>`;
+  const grp = ks => { const h = ks.map(row).join(""); return h ? `<div class="sgroup">${h}</div>` : ""; };
+  el.innerHTML = `<div class="sindex"${setPage ? " hidden" : ""}>
   ${isDemo() ? `<div class="sect"><p class="note" style="margin:0">You are looking at <b>sample data</b>: nothing is shared.</p><button class="btn del wide" id="demoClear">Remove sample data and start</button></div>` : ""}
-  <h2 class="sgrp">Family<small>${isLocal() ? "Kept on this device, not connected" : "Shared with everyone using this log"}</small></h2>
-  <div class="sect"${featOn("meds")?"":" hidden"}><h3>Daily reminders</h3>
-    ${meds.length ? `<ul class="kids">${medGroups(meds.filter(m=>kids.some(k=>k.id===m.child))).map(ms=>[ms[0], ms.map(x=>KID(x.child).name).join(", ")]).map(([m, names])=>`<li><i class="sw" style="--c:${KID(m.child).c}"></i><span><b>${esc(m.name)}</b><small>${esc(names)}${m.dose?" · "+esc(m.dose):""} · ${Number(m.every)>0 ? `every ${m.every} h${m.times?` · ${m.times}× a day`:""}` : `${m.times}× a day · remind after ${String(m.due).padStart(2,"0")}:00`}${m.until?` · until ${fmtDate(new Date(m.until+"T12:00").getTime())}${medActive(m)?"":" (ended)"}`:""}${Number(m.notify)<0?" · no notifications":Number(m.notify)>0?` · notify every ${m.notify} min`:""}${m.night && Number(m.notify)>=0?" · also at night":""}</small></span><button class="linkbtn" data-medit="${esc(m.id)}">Edit</button></li>`).join("")}</ul>` : `<p class="note">For example vitamin D or other medicines prescribed by your paediatrician. They appear in Day as a daily checklist.</p>`}
-    ${kids.length ? `<button class="btn ghost wide" id="addMed">＋ Add reminder</button>` : ""}</div>
-  ${modHtml("settingsHtml")}
-
-  <div class="sect"><h3>Children</h3>
+  ${grp(["family","features","reminders","notify"])}${grp(["feeds","home"])}${grp(["look","data","about"])}</div>
+  ${P("family", `  <div class="sect"><h3>Children</h3>
     ${kids.length ? `<ul class="kids">${kids.map(kidRow).join("")}</ul>` : `<p class="note">No children yet.</p>`}
     <button class="btn ghost wide" id="setKids">${kids.length ? "Edit children" : "Add a child"}</button></div>
-
+`)}
+  ${P("features", `<p class="note sintro"><span>${isLocal() ? "Saved on this device." : "The same on every phone of the family."}</span> <span>Turning a feature off only hides it: the data stay.</span></p>
   <div class="sect">${sh("Features", "feats", `${isLocal() ? "Saved on this device." : "Shared by everyone using this log."} Turning a feature off only hides it: nothing is deleted, and it comes back as it was.`)}
     <ul class="feats">${FEATURES.map(f=>`<li><label class="feat"><span class="notr"><b>${tr(f.name)}</b><small>${tr(f.desc)}</small></span><input type="checkbox" class="tgl" role="switch" data-feat="${f.k}" ${featOn(f.k)?"checked":""}></label></li>`).join("")}</ul>
     ${Object.keys(featPending).length ? `<p class="note" style="margin:0">Changes not shared yet: they are sent at the next sync.</p>` : ""}</div>
-
-  <h2 class="sgrp">This phone<small>Only on this phone, not shared</small></h2>
-  ${notifHtml()}
-
-  <div class="sect">${sh("Feeds", "feeds", "A bottle within 60 min after a breastfeed counts as its top-up; both sides within 15 min count as one feed.")}
+`)}
+  ${P("reminders", `  <div class="sect"${featOn("meds")?"":" hidden"}><h3>Daily reminders</h3>
+    ${meds.length ? `<ul class="kids">${medGroups(meds.filter(m=>kids.some(k=>k.id===m.child))).map(ms=>[ms[0], ms.map(x=>KID(x.child).name).join(", ")]).map(([m, names])=>`<li><i class="sw" style="--c:${KID(m.child).c}"></i><span><b>${esc(m.name)}</b><small>${esc(names)}${m.dose?" · "+esc(m.dose):""} · ${Number(m.every)>0 ? `every ${m.every} h${m.times?` · ${m.times}× a day`:""}` : `${m.times}× a day · remind after ${String(m.due).padStart(2,"0")}:00`}${m.until?` · until ${fmtDate(new Date(m.until+"T12:00").getTime())}${medActive(m)?"":" (ended)"}`:""}${Number(m.notify)<0?" · no notifications":Number(m.notify)>0?` · notify every ${m.notify} min`:""}${m.night && Number(m.notify)>=0?" · also at night":""}</small></span><button class="linkbtn" data-medit="${esc(m.id)}">Edit</button></li>`).join("")}</ul>` : `<p class="note">For example vitamin D or other medicines prescribed by your paediatrician. They appear in Day as a daily checklist.</p>`}
+    ${kids.length ? `<button class="btn ghost wide" id="addMed">＋ Add reminder</button>` : ""}</div>
+  ${modSettings("reminders")}
+`)}
+  ${P("notify", `  ${notifHtml()}
+`)}
+  ${P("feeds", `  <div class="sect">${sh("Feeds", "feeds", "A bottle within 60 min after a breastfeed counts as its top-up; both sides within 15 min count as one feed.")}
     <label class="row2">Highlight a child when the last feed ended more than
       <select id="alertSel">${[2,2.5,3,3.5,4,5].map(v=>`<option value="${v}" ${v===alertH?"selected":""}>${v} h</option>`).join("")}</select> ago</label></div>
-
   <div class="sect"${featOn("signals")?"":" hidden"}>${sh("Signals", "signals", `The app compares your entries with age-based thresholds and shows "talk to your paediatrician / keep an eye on / going well / what may help" in Progress, on every phone of the family. It is not a medical device: use it only if it helps you, and agree thresholds with your paediatrician. Turn it off in Settings → Features.`, "Automatic: thresholds change as the baby grows, following values commonly given in NHS, AAP and WHO guidance for healthy infants; for babies born early the age band follows the corrected age. Your paediatrician may advise different limits: in that case choose Custom.")}
     <div class="seg" id="thrMode"><button type="button" data-v="auto" aria-pressed="${thr.auto}">Automatic by age</button><button type="button" data-v="custom" aria-pressed="${!thr.auto}">Custom</button></div>
     ${thr.auto ? kids.filter(k=>stageOf(k.id)==="newborn").map(k=>{ const b = ageBand(k.id); return `<div class="band" style="--c:${KID(k.id).c}"><b>${esc(k.name)}</b>${b ? ` · <span>${b.label}</span>` : ""}
@@ -2500,8 +2566,9 @@ function renderSettings(){
       : `<div class="thr">${THR_KEYS.map(([key,l])=>`<label>${l}<input type="number" inputmode="decimal" step="${key==="gapH"?0.5:1}" min="0" max="200" data-thr="${key}" value="${thr.custom[key]}"></label>`).join("")}</div>
          <button class="btn ghost wide" id="thrSuggest">Fill with values suggested for ${esc(kids[0] ? kids[0].name : "the age")}</button>`}
 </div>
-
-  <div class="sect"><h3>Appearance</h3>
+`)}
+  ${P("home", `${modSettings("home")}`)}
+  ${P("look", `  <div class="sect"><h3>Appearance</h3>
     <p class="row2" style="margin:4px 0 6px">Language</p>
     <div class="seg" id="langSeg" style="margin-bottom:10px">${[["auto","Auto"],["it","Italiano"],["en","English"]].map(([v,l])=>{ let cur = "auto"; try { cur = localStorage.getItem("bl-lang") || "auto"; } catch(e) {} return `<button type="button" class="notr" data-v="${v}" aria-pressed="${cur===v}">${l}</button>`; }).join("")}</div>
     <label class="lbl2">Title shown at the top<input id="titleIn" maxlength="30" placeholder="Baby log" value="${esc(appTitle()==="Baby log" ? "" : appTitle())}"></label>
@@ -2509,27 +2576,26 @@ function renderSettings(){
     <div class="seg" id="nightSeg" style="margin-bottom:10px">${[["off","Off"],["on","On"],["auto","22:00–6:00"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${night===v}">${l}</button>`).join("")}</div>` : ""}
     <p class="row2" style="margin:4px 0 6px">Theme</p>
     <div class="seg" id="themeSeg">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${theme===v}">${l}</button>`).join("")}</div></div>
-
-  <h2 class="sgrp">Data and app</h2>
-  <div class="sect">${sh("Sync and sharing", "sync", isLocal() ? "Entries and children created here are uploaded when you connect." : "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run <code class='notr'>addAccessCode()</code>: existing codes keep working). Never share codes in public places.")}
+`)}
+  ${P("data", `  <div class="sect">${sh("Sync and sharing", "sync", isLocal() ? "Entries and children created here are uploaded when you connect." : "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run <code class='notr'>addAccessCode()</code>: existing codes keep working). Never share codes in public places.")}
     ${isLocal() ? `<p class="row2">Using this device only${pend ? ` · ${pend} change${pend>1?"s":""} not shared yet` : ""}</p>
     <button class="btn wide" id="connectBtn">Connect to a shared log</button>` : `
     <p class="row2">${lastSync ? `Last sync ${fmtDate(lastSync)} ${hm(lastSync)}` : "Not synced yet"}${pend ? ` · ${pend} change${pend>1?"s":""} waiting to be sent` : ""}</p>
     <button class="btn ghost wide" id="syncNow">Sync now</button>
     <div class="two"><button class="btn ghost" id="shareApp">Share app link</button><button class="btn ghost" id="copyApi">Copy API address</button></div>
     <button class="btn del wide" id="discBtn">Disconnect this device</button>`}</div>
-
   <div class="sect"${featOn("export")?"":" hidden"}>${sh("Export", "export", "All entries, children and reminders on this device. The file contains personal data: keep it private.")}
     <div class="two"><button class="btn ghost" id="expCsv">Spreadsheet (CSV)</button><button class="btn ghost" id="expJson">Full backup (JSON)</button></div></div>
-
-  ${changelogHtml()}
-
+`)}
+  ${P("about", `  ${changelogHtml()}
   <div class="sect">${sh("About", "about", "Growth references: WHO Child Growth Standards (2006); INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), reference tables via the open-source gigs package (LSHTM).")}
     <p class="row2"><b>Baby log</b> ${APP_VERSION}</p>
     <p class="row2">Created by <b class="notr">Matteo Moschitta</b> · <a class="notr" href="https://github.com/Xeroxi91" target="_blank" rel="noopener">Xeroxi91</a> · <a class="notr" href="https://matteomoschitta.it" target="_blank" rel="noopener">matteomoschitta.it</a></p>
     <p class="note">Not a medical device: charts support conversations with your paediatrician and do not replace clinical assessment.</p>
-    <p class="note">License: PolyForm Noncommercial 1.0.0 · <a href="${REPO_URL}" target="_blank" rel="noopener">Source code</a></p></div>`;
+    <p class="note">License: PolyForm Noncommercial 1.0.0 · <a href="${REPO_URL}" target="_blank" rel="noopener">Source code</a></p></div>
+`)}`;
   $("#setKids").onclick = openProfile;
+  el.querySelectorAll(".srow").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
   el.querySelectorAll("[data-feat]").forEach(i=>i.onchange=()=>setFeature(i.dataset.feat, i.checked));
   modRun("bindSettings", el);
   bindNotif(el);
@@ -2639,6 +2705,7 @@ async function exportData(kind){
     text = "\ufeff" + cols.join(",") + "\n" + rows.join("\n"); type = "text/csv"; name = `baby-log-${stamp}.csv`;
   }
   download(name, text, type);
+  try { localStorage.setItem("bl-lastexport", String(Date.now())); } catch(e) {}
 }
 function download(name, text, type){
   const blob = new Blob([text], {type});
@@ -2716,10 +2783,14 @@ $("#fab").onclick = ()=>{
 $("#sheetClose").onclick = ()=>$("#sheet").close();
 $("#sheet").addEventListener("click", e=>{ if (e.target.id==="sheet") $("#sheet").close(); });   // tap outside closes
 document.addEventListener("toggle", e=>{ if (e.target.classList && e.target.classList.contains("daydet")) detOpen = e.target.open; }, true);
-function showTab(name){
+function showTab(name, routed){
   document.querySelectorAll("[role=tab]").forEach(x=>x.setAttribute("aria-selected", x.dataset.tab===name));
   document.querySelectorAll("section[id^='tab-']").forEach(s=>s.hidden = s.id!=="tab-"+name || name==="day");
-  const m = tabMod(); $("#fab").hidden = !!m && !m.fab;
+  const m = tabMod(); $("#fab").hidden = name==="settings" || (!!m && !m.fab);   // no ＋ in Settings
+  $("#livebar").hidden = $("#sincebar").hidden = name!=="log";                    // feeds in progress: in Day
+  if (name==="settings" && !routed){ setPage = ""; history.replaceState(null, "", "#settings"); applyPage(); }
+  else if (name!=="settings" && location.hash) history.replaceState(null, "", location.pathname + location.search);
+  renderHeader();
   if (m){ const sec = $("#tab-"+name); sec.innerHTML = m.tabHtml ? m.tabHtml() : ""; if (m.bindTab) m.bindTab(sec); }
   if (name==="trend"){ loadHistory(); renderTrend(); } else if (name==="log"){ renderLog(); fillDayDetails(); }   // times and signals stay current
   measureSticky();
@@ -2744,11 +2815,19 @@ const nightOn = () => featOn("night") && (night==="on" || (night==="auto" && isN
 function applyNight(){
   const on = nightOn();
   if (on) document.documentElement.setAttribute("data-night",""); else document.documentElement.removeAttribute("data-night");
-  $("#nightBtn").setAttribute("aria-pressed", on); $("#nightBtn").hidden = !featOn("night");
+  $("#nightBtn").setAttribute("aria-pressed", on); $("#nightBtn").hidden = !featOn("night"); $("#nightBtn").textContent = on ? "☀" : "☾";
   document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ if (!m.dataset.orig) m.dataset.orig = m.getAttribute("content"); m.setAttribute("content", on ? "#000000" : m.dataset.orig); });
 }
 function setNight(v){ night = v; try { localStorage.setItem("bl-night", v); } catch(e) {} applyNight(); if (!$("#tab-settings").hidden) renderSettings(); }
 $("#nightBtn").onclick = ()=>setNight(nightOn() ? "off" : "on");
+$("#backBtn").onclick = closePage;
+$("#langBtn").onclick = ()=>$("#langDlg").showModal();
+$("#langDlg").innerHTML = `<div class="sheet-in"><div class="sheet-h"><b>Language</b></div>
+  <div class="seg" id="langSheet">${[["auto","Auto"],["it","Italiano"],["en","English"]].map(([v,l])=>{ let cur = "auto"; try { cur = localStorage.getItem("bl-lang") || "auto"; } catch(e) {} return `<button type="button" class="notr" data-v="${v}" aria-pressed="${cur===v}">${l}</button>`; }).join("")}</div>
+  <p class="note" style="margin:8px 0 12px">Also in Settings → Appearance.</p><button type="button" class="btn ghost wide" id="langClose">Close</button></div>`;
+$("#langDlg").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{ try { b.dataset.v==="auto" ? localStorage.removeItem("bl-lang") : localStorage.setItem("bl-lang", b.dataset.v); } catch(e) {} location.reload(); });
+$("#langClose").onclick = ()=>$("#langDlg").close();
+$("#langDlg").addEventListener("click", e=>{ if (e.target.id==="langDlg") $("#langDlg").close(); });
 setInterval(()=>{ if (night==="auto") applyNight(); }, 60000);
 applyNight();
 

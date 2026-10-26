@@ -221,6 +221,16 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   fake += 16*60000; await A.__t.refresh(); A.checkNotices();
   assert.strictEqual(sent.length, n0 + 2, 'no notification when the reminder is set to none');
   A.Date = RealDate; delete d.visibilityState;
+  // Settings: an index; each page has its own address, so Back returns to the index; no ＋ in Settings
+  d.querySelector('[data-tab="settings"]').click(); await sleep(20);
+  assert.ok(!d.querySelector('.sindex').hidden && d.querySelector('#fab').hidden && d.querySelector('#title').textContent==='Settings', 'Settings index, no ＋');
+  d.querySelector('.srow[data-page="features"]').click(); await sleep(50);
+  assert.ok(A.location.hash==='#settings/features' && !d.querySelector('.spage[data-page="features"]').hidden && d.querySelector('.sindex').hidden, 'a page with its own address');
+  assert.ok(d.querySelector('#title').textContent==='Features' && !d.querySelector('#backBtn').hidden, 'page title and back link');
+  d.querySelector('#backBtn').click(); await sleep(80);
+  assert.ok(!d.querySelector('.sindex').hidden && d.querySelector('.spage[data-page="features"]').hidden, 'Back returns to the index');
+  d.querySelector('[data-tab="log"]').click(); await sleep(20);
+  assert.ok(!A.location.hash && !d.querySelector('#fab').hidden && !d.querySelector('#livebar').hidden, 'Day: no address, ＋ and feeds in progress back');
   // Italian: every interface text has its translation (a missing one is logged as an error)
   const missing = [];
   const I = device(ls => ls.setItem('bl-lang', 'it'), w => { w.console.error = (...a) => { if (String(a[0]).startsWith('Missing Italian')) missing.push(a[0]); }; });

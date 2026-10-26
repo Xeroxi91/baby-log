@@ -382,7 +382,7 @@ export function init(app){
 
   refresh();
   return {
-    dayHtml, bindDay, settingsHtml, bindSettings,
+    dayHtml, bindDay, settingsHtml, bindSettings, settingsPage: "reminders", count: () => all().length,
     due: () => all().filter(m => late(m)).length,
     // frequency chosen in each reminder: -1 none, 0 once, N every N min until taken
     notices: () => all().filter(m => late(m) && Number(m.notify) >= 0).map(m => ({key: "pmed:" + m.id + ":" + (Number(m.every) > 0 ? nextDose(m) : today() + ":" + givenOn(m, today()).length),
