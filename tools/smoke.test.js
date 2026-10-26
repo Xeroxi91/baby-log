@@ -17,7 +17,9 @@ function device(pre, setup){
   // jsdom has no dynamic import(): modules/*.js are evaluated in the window instead; Web Crypto from Node
   Object.defineProperty(w, 'crypto', {value: require('crypto').webcrypto});
   w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
-  w.__imp = async p => w.eval(fs.readFileSync(path.join(__dirname, '..', p), 'utf8').replace(/^export /m, '') + ';({init})');
+  w.__imp = async p => { const src = fs.readFileSync(path.join(__dirname, '..', p), 'utf8');      // a missing file rejects, as import() does
+    const names = [...src.matchAll(/^export function (\w+)/gm)].map(m=>m[1]);
+    return w.eval(src.replace(/^export /gm, '') + `;({${names.join(',')}})`); };
   w.eval(html.split('<script>')[1].split('</script>')[0].replace(/import\(`\.\//g, '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID,initials,isNight,openRestore,signals,wTxt};');
   return w;
 }
