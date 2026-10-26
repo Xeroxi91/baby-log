@@ -170,12 +170,12 @@ export function init(app){
     const card = m => {
       const g = givenOn(m, k), n = Number(m.times || 1), done = g.length >= n, lt = late(m, k);
       const sub = parts(["For you", m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
-      return `<div class="remw${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
+      return `<div class="remw parent${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
         <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b>${app.esc(m.name)}</b><small>${sub}</small></span></button>
         ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Edit the dose of ${app.esc(m.name)} at ${app.hm(e.ts)}">${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
     };
     return list.map(card).join("")
-      + (lk ? `<div class="remw pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "");
+      + (lk ? `<div class="remw parent pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "");
   }
   function bindDay(root){
     root.querySelectorAll("[data-pmgive]").forEach(b => b.onclick = () => { const m = all().find(x => x.id === b.dataset.pmgive); if (m) give(m); });
@@ -189,7 +189,7 @@ export function init(app){
     const lk = locked();
     return `<div class="sect">${app.sh("Parents' reminders", "pmeds", all().length ? "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app." : "",
         "Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.")}
-      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--parent)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
+      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw parent"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
         : `<p class="note" style="margin:0">Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.</p>`}
       ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}
       <button class="btn ghost wide" id="pmAdd">＋ Add reminder for you</button>

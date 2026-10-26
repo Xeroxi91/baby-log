@@ -21,11 +21,12 @@
   --bg:oklch(0.97 0.004 260); --surface:#fff; --surface2:oklch(0.94 0.006 260);
   --ink:oklch(0.22 0.02 260); --muted:oklch(0.45 0.02 260); --faint:oklch(0.60 0.015 260);
   --line:oklch(0.88 0.008 260); --line2:oklch(0.70 0.01 260); --fill:oklch(0.24 0.02 260); --on-fill:#fff;
-  --k0:#C77A12; --k1:#2F7F79; --k2:#6E56CF; --k3:#C2410C; --k4:#3F7D20; --k5:#0369A1;
+  --kid-azure:oklch(0.36 0.10 215); --kid-blue:oklch(0.44 0.15 265); --kid-violet:oklch(0.36 0.16 305); --kid-pink:oklch(0.50 0.14 340); --kid-slate:oklch(0.45 0.04 240);
+  --on-kid:#fff;
   --danger:oklch(0.50 0.17 25); --danger-soft:oklch(0.94 0.04 25); --warn:oklch(0.50 0.11 65); --warn-soft:oklch(0.95 0.06 85);
   --ok:oklch(0.45 0.10 150); --ok-soft:oklch(0.94 0.05 150); --live:oklch(0.55 0.13 150);
   --both:var(--muted); --both-soft:var(--surface2);   /* formerly the accent colour: now neutral */
-  --parent:#B83280;                       /* the parent's own things: not one of the children's colours */
+  --parent:var(--line2);                  /* the parent's own things: neutral and dashed, never a child's colour */
   --hit:48px;                             /* minimum touch target; 56px at night */
   box-sizing:border-box;
   padding-bottom:env(safe-area-inset-bottom,0px);
@@ -35,20 +36,20 @@
     --bg:oklch(0.17 0.012 260); --surface:oklch(0.22 0.014 260); --surface2:oklch(0.14 0.01 260);
     --ink:oklch(0.95 0.01 260); --muted:oklch(0.75 0.015 260); --faint:oklch(0.60 0.015 260);
     --line:oklch(0.30 0.015 260); --line2:oklch(0.45 0.015 260); --fill:oklch(0.93 0.015 260); --on-fill:oklch(0.20 0.02 260);
-    --k0:#E9A23B; --k1:#5FC1B8; --k2:#A99BF0; --k3:#F59E6B; --k4:#86C26A; --k5:#6BB8E8;
+    --kid-azure:oklch(0.86 0.11 215); --kid-blue:oklch(0.66 0.13 265); --kid-violet:oklch(0.78 0.14 305); --kid-pink:oklch(0.66 0.11 340); --kid-slate:oklch(0.74 0.04 240);
+    --on-kid:oklch(0.17 0.012 260);
     --danger:oklch(0.90 0.05 25); --danger-soft:oklch(0.32 0.09 25); --warn:oklch(0.92 0.08 80); --warn-soft:oklch(0.34 0.07 75);
     --ok:oklch(0.90 0.07 150); --ok-soft:oklch(0.32 0.06 150); --live:oklch(0.76 0.13 150);
-    --parent:#F08CBE;
   }
 }
 :root[data-theme="dark"]{
   --bg:oklch(0.17 0.012 260); --surface:oklch(0.22 0.014 260); --surface2:oklch(0.14 0.01 260);
   --ink:oklch(0.95 0.01 260); --muted:oklch(0.75 0.015 260); --faint:oklch(0.60 0.015 260);
   --line:oklch(0.30 0.015 260); --line2:oklch(0.45 0.015 260); --fill:oklch(0.93 0.015 260); --on-fill:oklch(0.20 0.02 260);
-  --k0:#E9A23B; --k1:#5FC1B8; --k2:#A99BF0; --k3:#F59E6B; --k4:#86C26A; --k5:#6BB8E8;
+  --kid-azure:oklch(0.86 0.11 215); --kid-blue:oklch(0.66 0.13 265); --kid-violet:oklch(0.78 0.14 305); --kid-pink:oklch(0.66 0.11 340); --kid-slate:oklch(0.74 0.04 240);
+  --on-kid:oklch(0.17 0.012 260);
   --danger:oklch(0.90 0.05 25); --danger-soft:oklch(0.32 0.09 25); --warn:oklch(0.92 0.08 80); --warn-soft:oklch(0.34 0.07 75);
   --ok:oklch(0.90 0.07 150); --ok-soft:oklch(0.32 0.06 150); --live:oklch(0.76 0.13 150);
-  --parent:#F08CBE;
 }
 *,*::before,*::after{box-sizing:inherit}
 :root{color-scheme:light dark}
@@ -67,10 +68,7 @@ button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 
-.who{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:8px}
-.who button{border:0;background:transparent;border-radius:10px;padding:9px 4px;font-weight:700;color:var(--muted);font-size:.95rem}
-.who button[aria-pressed="true"]{background:var(--c);color:#fff}
-.who button{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who{margin-bottom:10px}
 
 .when{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
 .chip{border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:8px 14px;font-size:.95rem;min-height:40px}
@@ -261,8 +259,7 @@ tr.tap{cursor:pointer}
 .kids small{display:block;color:var(--muted)}
 .sect a{color:var(--ink);font-weight:600;text-underline-offset:3px}
 
-.kidseg{margin-bottom:8px;display:flex}
-.kidseg button{flex:1 0 auto;white-space:nowrap;padding:0 14px}
+.kidseg{margin-bottom:8px}
 /* one row that scrolls (child pickers, tables): faded on the right while there is more to see */
 .hs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .hs::-webkit-scrollbar{display:none}
@@ -273,7 +270,6 @@ tr.tap{cursor:pointer}
 .tsw.more .shint{visibility:visible}
 .tsw table{border-collapse:separate;border-spacing:0}            /* sticky cells keep their lines */
 .tsw th:first-child,.tsw td:first-child{position:sticky;left:0;z-index:1;background:var(--tbg)}
-.kidseg button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff;box-shadow:none}
 .sig{border-radius:12px;padding:10px 12px;margin-top:10px;background:var(--bg);border-left:4px solid var(--muted)}
 .sig.call{border-left-color:var(--danger)}
 .sig.watch{border-left-color:var(--warn)}
@@ -339,8 +335,6 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .lbl2{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);margin-bottom:10px}
 .lbl2 input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font-size:1rem}
 .sheet .actions{grid-template-columns:repeat(4,1fr);gap:6px}
-.sheet .who{display:flex;gap:6px}
-.sheet .who button{flex:1 0 auto;white-space:nowrap;overflow:visible;padding:9px 14px}
 .sheet .act{min-height:58px;padding:6px 2px;border-radius:12px;gap:2px}
 .sheet .act .ico{font-size:1.15rem}
 .sheet .act .lbl{font-size:.72rem;font-weight:700}
@@ -355,9 +349,10 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
   --bg:oklch(0.09 0.005 40); --surface:oklch(0.13 0.008 40); --surface2:oklch(0.07 0.004 40);
   --ink:oklch(0.80 0.04 60); --muted:oklch(0.62 0.03 55); --faint:oklch(0.50 0.02 50);
   --line:oklch(0.24 0.01 40); --line2:oklch(0.30 0.01 40); --fill:oklch(0.72 0.05 60); --on-fill:oklch(0.12 0.01 40);
-  --k0:#B97C2E; --k1:#4E8E84; --k2:#8577C2; --k3:#B97650; --k4:#6A9354; --k5:#5389AE;
+  --kid-azure:oklch(0.58 0.07 215); --kid-blue:oklch(0.80 0.09 265); --kid-violet:oklch(0.66 0.09 305); --kid-pink:oklch(0.80 0.07 340); --kid-slate:oklch(0.62 0.03 240);
+  --on-kid:oklch(0.09 0.005 40);
   --danger:oklch(0.72 0.09 30); --danger-soft:oklch(0.20 0.05 30); --warn:oklch(0.76 0.09 75); --warn-soft:oklch(0.20 0.04 75);
-  --ok:oklch(0.72 0.07 150); --ok-soft:oklch(0.18 0.03 150); --live:oklch(0.62 0.08 150); --parent:#A8607F;
+  --ok:oklch(0.72 0.07 150); --ok-soft:oklch(0.18 0.03 150); --live:oklch(0.62 0.08 150);
   --refband:rgba(140,114,88,.10); --refband2:rgba(140,114,88,.12)}
 :root[data-night] .ico, :root[data-night] .ritem button, :root[data-night] .nightbtn, :root[data-night] .bottomnav .ni{filter:brightness(.65) saturate(.7)}
 :root[data-night] .sheet .act{min-height:76px}
@@ -378,6 +373,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .clog b{display:inline-block;min-width:3.4em;color:var(--muted);font-variant-numeric:tabular-nums}
 dialog:focus,dialog:focus-visible{outline:none}
 .remw{background:var(--surface);border-radius:12px;border-left:4px solid var(--c);display:flex;align-items:center}
+.remw.parent{border-left-style:dashed}
 .remw .remi{border-left:0;background:transparent;flex:1 1 auto;min-width:0}
 .remw.late{background:var(--warn-soft)}
 /* doses given: on the same line as the name (rarely more than 4 a day), wrapping inside their own column */
@@ -405,9 +401,6 @@ img,svg{-webkit-user-drag:none}
 .histnote{font-size:.85rem;color:var(--muted);text-align:center;padding:8px}
 .dlg input.invalid{border-color:var(--danger);box-shadow:0 0 0 2px var(--danger)}
 .lblc{display:flex;flex-direction:column;gap:6px;font-size:.9rem;color:var(--muted)}
-.mkids{display:flex;flex-wrap:wrap;gap:6px}
-.mkids button{flex:1 1 auto}
-.mkids button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
 .remgrp{background:var(--surface);border-radius:12px;padding:8px 0 4px}
 .remh{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 12px 4px}
 .remh small{color:var(--muted)}
@@ -417,6 +410,27 @@ img,svg{-webkit-user-drag:none}
 .remw.sub.late{background:var(--warn-soft);border-radius:8px}
 .rkid{font-size:.9rem!important}
 .sw{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--c);margin-right:6px}
+.sw.parent{background:transparent;border:1.5px dashed var(--parent)}
+/* monogram: the child's initial on its colour, next to every use of the colour (colour is never the only sign) */
+.mono{display:inline-grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:var(--c);color:var(--on-kid);font-size:11px;font-weight:800;line-height:1;letter-spacing:0;vertical-align:middle;margin-right:6px}
+.mono.l{width:30px;height:30px;font-size:13px}
+.mono.xl{width:56px;height:56px;font-size:20px;margin:0}
+/* child pickers: chips in one row; chosen = the child's colour, filled, with a light inner edge; others show a dot */
+.who,.kidseg.seg,.seg.mkids{display:flex;gap:8px;background:none;border:0;padding:0;border-radius:0}
+.who button,.kidseg.seg button,.seg.mkids button{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:var(--hit);padding:0 16px;border:1px solid var(--line);border-radius:14px;background:transparent;color:var(--ink);font-weight:600;white-space:nowrap}
+.who button::before,.kidseg.seg button::before,.seg.mkids button::before{content:"";width:10px;height:10px;border-radius:50%;background:var(--c)}
+.who button[aria-pressed="true"],.kidseg.seg button[aria-pressed="true"],.seg.mkids button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:var(--on-kid);font-weight:700;box-shadow:inset 0 0 0 2px var(--ink)}
+.who button[aria-pressed="true"]::before,.kidseg.seg button[aria-pressed="true"]::before,.seg.mkids button[aria-pressed="true"]::before{display:none}
+/* colour choice for a child: the five tints of the app, 56 px circles with the monogram */
+.tints{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:4px 0 2px}
+.tints button{border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink);font-size:.78rem;font-weight:600;min-width:0}
+.tints button .mono{box-shadow:0 0 0 2px var(--surface)}
+.tints button[aria-pressed="true"] .mono{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.tints small{color:var(--muted);font-weight:400;font-size:.72rem;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* one-time card: new colours for the children */
+.newcol{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:16px;padding:10px 14px;margin-bottom:10px;font-size:.92rem}
+.newcol .dots{display:flex;gap:3px;flex:none}.newcol .dots i{width:12px;height:12px;border-radius:50%;background:var(--c)}
+.newcol .nct{flex:1}
 .bottomnav button{position:relative}
 .nbadge{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--danger);color:#fff;font-size:.7rem;font-weight:700;line-height:18px;text-align:center;font-variant-numeric:tabular-nums}
 .notice{position:fixed;left:12px;right:12px;top:calc(8px + env(safe-area-inset-top,0px));z-index:30;max-width:536px;margin:0 auto;display:flex;align-items:center;gap:8px;
@@ -583,13 +597,21 @@ img,svg{-webkit-user-drag:none}
 </div></dialog>
 <script>
 // Children: list, names and data come from the profile only after authentication. No personal data in the public code.
-const PALETTE = 6;
+// the five tints of the app (checked for contrast and colour blindness); a child without a chosen colour
+// gets the tint of its position: the old colours (orange, teal, lilac, salmon) map to the nearest new tint
+const TINTS = ["blue", "azure", "violet", "pink", "slate"];
+const TINT_NAME = {blue:"Blue", azure:"Azure", violet:"Violet", pink:"Pink", slate:"Slate blue"};
 let kids = [];                                   // [{id, name, sex, birth, gaW, gaD, bw, bl, bh}]
 const kidIds = () => kids.map(k=>k.id);
-// a colour chosen for the child (stored with the profile) wins; otherwise the colour of its position
-const KID = id => { const i = kids.findIndex(k=>k.id===id); if (i<0) return {name:"?", c:"var(--muted)"};
-  const pos = `var(--k${i%PALETTE})`, col = kids[i].color;
-  return {name:kids[i].name, c: col && /^[a-z][a-z0-9-]{0,15}$/.test(col) ? `var(--kid-${col}, ${pos})` : pos}; };
+// a colour chosen for the child (stored with the profile) wins; otherwise the tint of its position
+const tintOf = (k, i) => TINTS.includes(k.color) ? k.color : TINTS[i % TINTS.length];
+// monogram: the initial; two letters when another child has the same tint or the same initial (colour is never the only sign)
+const initials = (name, two) => { const w = String(name || "?").trim().split(/\s+/);
+  return (two ? (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)) : w[0][0] || "?").toUpperCase(); };
+const KID = id => { const i = kids.findIndex(k=>k.id===id); if (i<0) return {name:"?", c:"var(--muted)", m:"?", t:""};
+  const t = tintOf(kids[i], i), two = kids.some((k, j)=>j!==i && (tintOf(k, j)===t || initials(k.name)===initials(kids[i].name)));
+  return {name:kids[i].name, c:`var(--kid-${t})`, m: initials(kids[i].name, two), t}; };
+const mono = (id, cls="") => `<span class="mono notr ${cls}" style="--c:${KID(id).c}" aria-hidden="true">${esc(KID(id).m)}</span>`;
 const prof = id => kids.find(k=>k.id===id) || {};
 const num = v => v==null || v==="" ? NaN : Number(String(v).replace(",", "."));   // values saved with a decimal comma
 let picks = [];                       // children selected in the logging panel (one or more), kept on this device
@@ -748,7 +770,8 @@ const IT = {
 // toasts / confirms
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
-"7 days":"7 g","14 days":"14 g","30 days":"30 g","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"7 days":"7 g","14 days":"14 g","30 days":"30 g",
+"Colour":"Colore","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
 "Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
 "scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
 "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
@@ -1572,11 +1595,13 @@ function render(){ loadModules(); renderModTabs(); updateBadge(); renderSince();
 const liveFeeds = () => events.filter(e=>isBreast(e) && e.live && !e.dur && Date.now()-e.ts < LIVE_MAX && e.ts<=Date.now()+60000).sort((a,b)=>a.ts-b.ts);
 function renderLive(){
   const lf = liveFeeds();
-  $("#livebar").innerHTML = (lf.length>1 ? `<button class="stopall" id="stopAll">End all (${lf.length})</button>` : "") + lf.map(e=>`<div class="live" style="--c:${KID(e.child).c}">
-      <div class="lh"><b>${esc(KID(e.child).name)}</b><span> · </span><span>breastfeeding in progress</span></div>
+  const newcol = kids.length && !colorsSeen() ? `<div class="newcol"><span class="dots">${TINTS.slice(0,4).map(t=>`<i style="--c:var(--kid-${t})"></i>`).join("")}</span><span class="nct">New colours for the children</span><button class="linkbtn" id="colSee">See</button><button class="linkbtn" id="colX" aria-label="Close" style="text-decoration:none">✕</button></div>` : "";
+  $("#livebar").innerHTML = newcol + (lf.length>1 ? `<button class="stopall" id="stopAll">End all (${lf.length})</button>` : "") + lf.map(e=>`<div class="live" style="--c:${KID(e.child).c}">
+      <div class="lh">${mono(e.child, "l")}<b>${esc(KID(e.child).name)}</b><span> · </span><span>breastfeeding in progress</span></div>
       <div class="lrow"><span class="lt">${dur(Date.now()-e.ts)}</span><small>since ${hm(e.ts)}</small></div>
       <span class="sides" role="group" aria-label="Side">${["L","R","B"].map(v=>`<button data-side="${v}" data-id="${esc(e.id)}" aria-pressed="${e.side===v}">${v==="B"?"Both":v==="L"?"Left":"Right"}</button>`).join("")}</span>
       <button class="endfeed" data-stop="${esc(e.id)}">End feed</button></div>`).join("");
+  if ($("#colSee")){ $("#colSee").onclick = ()=>seeColors(true); $("#colX").onclick = ()=>seeColors(false); }
   $("#livebar").querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{
     const e = events.find(x=>x.id===b.dataset.id); if (!e) return;
     const {id, ...rest} = e; setEvent(id, {...rest, side: b.dataset.side});
@@ -1600,11 +1625,11 @@ function renderSince(){
     const lv = live.find(e=>e.child===t);
     const s = sessions(t).filter(s=>s.start<=Date.now()).pop();
     if (lv) continue;                                  // the card in the live bar above says it all
-    if (!s){ h += `<div class="scard" style="--c:${KID(t).c}"><div class="nm">${KID(t).name}</div><div class="sm">no feeds yet</div></div>`; continue; }
+    if (!s){ h += `<div class="scard" style="--c:${KID(t).c}"><div class="nm">${mono(t)}${esc(KID(t).name)}</div><div class="sm">no feeds yet</div></div>`; continue; }
     const end = Math.min(sessionEnd(s), Date.now());
     const late = Date.now()-end > alertH*36e5;
     const noDur = !s.bottle && !s.items.some(e=>isBreast(e) && e.dur);
-    h += `<div class="scard${late?" warn":""}" style="--c:${KID(t).c}"><div class="nm">${KID(t).name}</div>
+    h += `<div class="scard${late?" warn":""}" style="--c:${KID(t).c}"><div class="nm">${mono(t)}${esc(KID(t).name)}</div>
       <div class="big">${dur(Date.now()-end)}</div>
       <div class="sm">since end of feed${noDur?" (no duration)":""}</div>
       <div class="sm">next side: <b>${nextSide(t)==="L"?"left":"right"}</b></div>
@@ -1613,6 +1638,8 @@ function renderSince(){
   $("#sincebar").innerHTML = h;
 }
 
+const colorsSeen = () => { try { return localStorage.getItem("bl-colors-seen")==="1"; } catch(e) { return true; } };
+function seeColors(open){ try { localStorage.setItem("bl-colors-seen", "1"); } catch(e) {} render(); if (open) openProfile(); }
 function renderDay(){
   const key = dayKey(Date.now() + dayOffset*864e5), isToday = dayOffset===0;
   let h = `<div class="stickctl"><div class="daynav"><button id="prevD" aria-label="Previous day">‹</button><span class="d">${dayLabel(key)}</span><button id="nextD" aria-label="Next day" ${isToday?"disabled":""}>›</button></div></div><div class="kidgrid">`;
@@ -1620,7 +1647,7 @@ function renderDay(){
     const s = dayStats(t,key);
     const since = k => { if (!isToday) return ""; const l = lastOf(t,k); return l ? `<span class="since">${hm(l.ts)} · ${ago(l.ts)}</span>` : ""; };
     const parts = [s.withTopUp&&`${s.withTopUp} breast+top-up`, s.breastOnly&&`${s.breastOnly} breast`, s.bottleOnly&&`${s.bottleOnly} bottle`].filter(Boolean).map(x=>`<span>${x}</span>`).join("<span> · </span>");   // one text per part: each is translated on its own
-    h += `<div class="tcard" style="--c:${KID(t).c}"><h3>${KID(t).name}</h3>
+    h += `<div class="tcard" style="--c:${KID(t).c}"><h3>${mono(t)}${esc(KID(t).name)}</h3>
       <div class="stat"><span class="k">Feeds${parts?`<span class="since">${parts}</span>`:""}${s.ml?`<span class="since">${s.ml} ml bottle${s.mlExp?` (${s.mlExp} expressed)`:""}</span>`:""}${s.durAvg?`<span class="since">breast avg ${s.durAvg} min</span>`:""}</span><span class="n">${s.pop}</span></div>
       <div class="stat"><span class="k">Pee${since("pee")}</span><span class="n">${s.pee}</span></div>
       <div class="stat"><span class="k">Poo${since("poo")}</span><span class="n">${s.poo}</span></div>
@@ -1711,7 +1738,7 @@ function remindersBlock(key, isToday, extra=""){   // extra: cards from modules 
   // tap a child's row to give a dose; tap a given dose (its time) to change or delete it
   const row = (m, grouped) => { const g = givenOn(m, key), n = Number(m.times||1), done = g.length >= n, late = medLate(m, key);
     return `<div class="remw${late?" late":""}${grouped?" sub":""}" style="--c:${KID(m.child).c}"><button class="remi${done?" done":""}${late?" late":""}" data-med="${esc(m.id)}" ${isToday?"":"disabled"}>
-      <span class="rck">${done?"✓":g.length?g.length+"/"+n:"○"}</span><span>${grouped ? `<b class="rkid">${esc(KID(m.child).name)}</b>` : `<b>${esc(m.name)}</b>`}<small>${grouped ? "" : esc(KID(m.child).name)+(m.dose?" · "+esc(m.dose):"")}${isToday && Number(m.every)>0 ? (grouped ? nextTxt(m).replace(/^ · /,"") : nextTxt(m)) : (!g.length && late ? (grouped ? "due" : " · due") : "")}</small></span></button>
+      <span class="rck">${done?"✓":g.length?g.length+"/"+n:"○"}</span><span>${grouped ? `<b class="rkid">${mono(m.child)}${esc(KID(m.child).name)}</b>` : `<b>${esc(m.name)}</b>`}<small>${grouped ? "" : esc(KID(m.child).name)+(m.dose?" · "+esc(m.dose):"")}${isToday && Number(m.every)>0 ? (grouped ? nextTxt(m).replace(/^ · /,"") : nextTxt(m)) : (!g.length && late ? (grouped ? "due" : " · due") : "")}</small></span></button>
       ${g.length ? `<div class="remg">${g.map(e=>`<button data-edit="${esc(e.id)}" aria-label="Edit dose at ${hm(e.ts)}">${hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`; };
   return `<div class="rem">${medGroups(list).map(ms=>{
     if (ms.length===1) return row(ms[0], false);
@@ -1739,7 +1766,7 @@ function renderLog(){
   h += `<div class="regsum"${logIds().length?"":" hidden"}>`;
   for (const t of logIds()){
     const s = dayStats(t,key);
-    h += `<div style="--c:${KID(t).c}"><b>${KID(t).name}</b><span>${s.pop} feeds · ${s.pee} pee · ${s.poo} poo${s.ml?` · ${s.ml} ml`:""}</span></div>`;
+    h += `<div style="--c:${KID(t).c}"><b>${mono(t)}${esc(KID(t).name)}</b><span>${s.pop} feeds · ${s.pee} pee · ${s.poo} poo${s.ml?` · ${s.ml} ml`:""}</span></div>`;
   }
   h += `</div><button class="addmiss" id="addMiss">＋ Forgotten event</button></div>
   ${remindersBlock(key, isToday, modHtml("dayHtml", key, isToday))}
@@ -1762,7 +1789,7 @@ function renderLog(){
   if (!rows.length){
     h += `<p class="empty">No events logged on this day.</p>`;
   } else {
-    h += `<div class="reg" style="grid-template-columns:3.1em repeat(${logIds().length},minmax(0,1fr))"><div class="rh"></div>${logIds().map(t=>`<div class="rh" style="color:${KID(t).c}">${esc(KID(t).name)}</div>`).join("")}`;
+    h += `<div class="reg" style="grid-template-columns:3.1em repeat(${logIds().length},minmax(0,1fr))"><div class="rh"></div>${logIds().map(t=>`<div class="rh" style="color:${KID(t).c}">${mono(t)}${esc(KID(t).name)}</div>`).join("")}`;
     // a row ends with its latest event (a breastfeed ends after its duration); gaps are measured from there
     const evEnd = e => e.ts + (isBreast(e) && e.dur ? e.dur*60000 : 0);
     rows.forEach(r=>{ r.end = Math.max(r.ts, ...Object.values(r.cols).flat().flatMap(it=>(it.evs||[it]).map(evEnd))); });
@@ -1838,7 +1865,6 @@ function applyKids(){
   $("#title").textContent = appTitle(); document.title = appTitle();
   const who = $("#who");
   who.hidden = !many();
-  who.style.gridTemplateColumns = `repeat(${Math.min(4, kids.length)}, minmax(0,1fr))`;
   who.innerHTML = kids.map(k=>`<button data-t="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${picks.includes(k.id)}">${esc(k.name)}</button>`).join("");
   who.querySelectorAll("button").forEach(b=>b.onclick=()=>{          // toggle; at least one stays selected
     const id = b.dataset.t;
@@ -2354,7 +2380,7 @@ function completenessCard(t, days){
 function compareTable(days){
   const keys = ["pop","dur","agg","ml","pee","poo"];
   const ck = kids.filter(k=>stageOf(k.id)!=="child");
-  let h = `<div class="tsw"><p class="shint">scroll →</p><div class="hs tscroll"><table><thead><tr><th></th>${ck.map(k=>`<th style="color:${KID(k.id).c}">${esc(k.name)}</th>`).join("")}</tr></thead><tbody>`;
+  let h = `<div class="tsw"><p class="shint">scroll →</p><div class="hs tscroll"><table><thead><tr><th></th>${ck.map(k=>`<th>${mono(k.id)}${esc(k.name)}</th>`).join("")}</tr></thead><tbody>`;
   keys.forEach(key=>{ const m = METRICS.find(x=>x.k===key);
     h += `<tr><td>${m.name} <small class="muted">${m.unit}</small></td>${ck.map(k=>`<td>${fmtNum(avg(metricSeries(m,k.id,days)), m.dec)}</td>`).join("")}</tr>`; });
   h += `<tr><td>Weight gain <small class="muted">g/day, 7 days</small></td>${ck.map(k=>{ const v = velocity(k.id, Date.now()-7*864e5); return `<td>${v?fmtNum(v.g):"–"}</td>`; }).join("")}</tr>`;
@@ -2382,7 +2408,7 @@ function renderTrend(){
     else if (life >= 60 || !isPreterm(t)){ const mo = Math.floor(life/30.4375); age = life < 60 ? `${Math.floor(life)} days old` : `${mo} months` + (isPreterm(t) ? ` · corrected ${Math.floor(Math.max(0,corr)/30.4375)} months` : ""); }
     else age = `${Math.floor(life)} days old · ${corr>=0 ? `corrected age ${Math.floor(corr/7)} wk ${Math.floor(corr%7)} d` : `${Math.ceil(-corr)} days to term`}`;
     age += ` · ${stageOf(t)} stage`; }                // newborn / infant / child, lower case: an adjective in Italian
-  h += `<div class="chartcard" style="--c:${KID(t).c}"><div class="cc-head"><div><div class="g-name">${esc(KID(t).name)}</div><div class="gs-age">${age || `<button class="linkbtn" data-goto="settings" style="padding:0">Add birth details in Settings</button>`}</div></div>
+  h += `<div class="chartcard" style="--c:${KID(t).c}"><div class="cc-head"><div><div class="g-name">${mono(t, "l")}${esc(KID(t).name)}</div><div class="gs-age">${age || `<button class="linkbtn" data-goto="settings" style="padding:0">Add birth details in Settings</button>`}</div></div>
 </div>`;
   // signals
   const sg = sigOn() ? signals(t) : signals(t).filter(x=>x.kind==="med");   // off: only organisational reminders
@@ -2440,7 +2466,7 @@ const appLink = () => location.origin + location.pathname.replace(/index\.html$/
 function renderSettings(){
   const el = $("#tab-settings"); if (!el) return;
   const sexTxt = p => p.sex==="f" ? "girl" : "boy";
-  const kidRow = k => `<li><i class="sw" style="--c:${KID(k.id).c}"></i><span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span></li>`;
+  const kidRow = k => `<li>${mono(k.id, "l")}<span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span></li>`;
   const pend = outbox.length;
   // grouped by who a setting applies to, most used first: the family's (shared), this phone's, data and app
   el.innerHTML = `
@@ -2541,7 +2567,7 @@ function openProfile(){
   drawProfile(); $("#profDlg").showModal();
 }
 function drawProfile(){
-  const f = (p, i, stTip = tip("stage"+i, "Newborn: full log. Infant: lighter, no feed or diaper signals. Child: weight, height, notes and reminders only.")) => `<fieldset style="--c:var(--k${i%PALETTE})"><legend>${esc(p.name || "New child")}</legend>
+  const f = (p, i, stTip = tip("stage"+i, "Newborn: full log. Infant: lighter, no feed or diaper signals. Child: weight, height, notes and reminders only.")) => `<fieldset style="--c:var(--kid-${tintOf(p, i)})"><legend>${esc(p.name || "New child")}</legend>
     <label>Name<input data-i="${i}" data-k="name" value="${esc(p.name||"")}" required></label>
     <label>Sex<select data-i="${i}" data-k="sex"><option value="m" ${p.sex==="m"?"selected":""}>Male</option><option value="f" ${p.sex==="f"?"selected":""}>Female</option></select></label>
     <label>Date of birth<input type="date" data-i="${i}" data-k="birth" value="${esc(p.birth||"")}" required></label>
@@ -2552,14 +2578,19 @@ function drawProfile(){
     <label>Birth weight (g)<input type="text" inputmode="decimal" data-i="${i}" data-k="bw" value="${esc(p.bw||"")}"></label>
     <div class="two"><label>Birth length (cm)<input type="text" inputmode="decimal" data-i="${i}" data-k="bl" value="${esc(p.bl||"")}"></label>
     <label>Birth head circ. (cm)<input type="text" inputmode="decimal" data-i="${i}" data-k="bh" value="${esc(p.bh||"")}"></label></div>
+    <div class="lblc"><span>Colour</span><input type="hidden" data-i="${i}" data-k="color" value="${esc(p.color||"")}">
+      <div class="tints" role="group" aria-label="Colour">${TINTS.map(t=>{ const cur = tintOf(p, i)===t, users = draft.filter((q, j)=>j!==i && tintOf(q, j)===t).map(q=>q.name).filter(Boolean);
+        return `<button type="button" data-tint="${t}" data-ti="${i}" aria-pressed="${cur}"><span class="mono xl notr" style="--c:var(--kid-${t})">${cur ? "✓" : esc(initials(p.name, users.length > 0))}</span><span>${TINT_NAME[t]}</span><small class="notr">${esc(users.join(", "))}</small></button>`; }).join("")}</div></div>
     ${draft.length>1 && !(p.id && events.some(e=>e.child===p.id)) ? `<button type="button" class="btn del" data-rm="${i}">Remove</button>` : ""}</fieldset>`;
   $("#profBody").innerHTML = draft.map((p, i)=>f(p, i)).join("") + `<button type="button" class="addmiss" id="addKid">＋ Add child</button>`;
   const sync = () => $("#profBody").querySelectorAll("[data-k]").forEach(inp=>{ draft[inp.dataset.i][inp.dataset.k] = inp.value.trim(); });
   $("#addKid").onclick = ()=>{ sync(); draft.push(NEW_KID()); drawProfile(); };
   $("#profBody").querySelectorAll("[data-rm]").forEach(b=>b.onclick=()=>{ sync(); draft.splice(Number(b.dataset.rm),1); drawProfile(); });
+  $("#profBody").querySelectorAll("[data-tint]").forEach(b=>b.onclick=()=>{ sync(); draft[b.dataset.ti].color = b.dataset.tint; drawProfile(); });
 }
 $("#profForm").onsubmit = async e=>{
   e.preventDefault();
+  if (!kids.length){ try { localStorage.setItem("bl-colors-seen", "1"); } catch(err) {} }   // a new family has nothing to compare
   // numbers may be typed with a comma; ranges are checked here (not by the browser)
   const RANGES = {gaW:[22,44,"Gestational weeks"], gaD:[0,6,"+ days"], bw:[300,7000,"Birth weight (g)"], bl:[25,65,"Birth length (cm)"], bh:[18,45,"Birth head circ. (cm)"]};
   let bad = null;

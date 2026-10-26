@@ -35,8 +35,13 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   const saved = JSON.parse(api.doPost({postData:{contents:JSON.stringify({key:'GOOD', action:'saveProfile', args:[{children:[{...ch0[0], color:'blue'}, {...ch0[1], color:'red;}'}]}]})}}).t).result.children;
   assert.ok(saved[0].color==='blue' && saved[1].color==='' && saved[0].name==='Baby A', 'child colour saved and checked');
   await A.__t.refresh(); await sleep(50);
-  assert.strictEqual(A.__t.KID(saved[0].id).c, 'var(--kid-blue, var(--k0))', 'chosen colour, with the position colour as fallback');
-  assert.strictEqual(A.__t.KID(saved[1].id).c, 'var(--k1)', 'no colour: the colour of the position');
+  assert.strictEqual(A.__t.KID(saved[1].id).c, 'var(--kid-azure)', 'no colour: the tint of the position (2nd = azure)');
+  // chosen in the child form: the same tint as a sibling is allowed, the monogram then has two letters
+  d.querySelector('[data-tab="settings"]').click(); await sleep(20); d.querySelector('#setKids').click(); await sleep(20);
+  d.querySelector('[data-tint="blue"][data-ti="1"]').click(); await sleep(20);
+  d.querySelector('#profForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(300);
+  assert.strictEqual(JSON.parse(props.PROFILE).children[1].color, 'blue', 'colour chosen in the form, saved with the profile');
+  assert.ok(A.__t.KID(saved[0].id).c === 'var(--kid-blue)' && A.__t.KID(saved[0].id).m === 'BA' && A.__t.KID(saved[1].id).m === 'BB', 'same tint: two-letter monograms');
 
   [...d.querySelectorAll('#who button')].forEach(b=>{ if (b.getAttribute('aria-pressed')!=='true') b.click(); });
   d.querySelector('[data-a="pee"]').click(); await sleep(400);
