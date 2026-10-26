@@ -1,0 +1,6 @@
+#!/bin/sh
+# Pre-merge-commit hook (versioned). When merging into main, lists the files of the merge that match
+# docs/private/private-terms on the local "modules" branch (one term per line), so that someone decides
+# what becomes public. It does not block; fast-forward merges skip it: run tools/private-check.sh first.
+[ "$(git symbolic-ref --short HEAD 2>/dev/null)" = "main" ] || exit 0
+exec "$(git rev-parse --show-toplevel)/tools/private-check.sh" --cached >&2
