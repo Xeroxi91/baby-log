@@ -3,13 +3,14 @@ const {JSDOM} = require('jsdom'), fs = require('fs'), path = require('path'), as
 const {api, props} = require('./gasmock')([]);
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const calls = [];
-function device(pre){
+function device(pre, setup){
   const dom = new JSDOM(html, {runScripts:'outside-only', url:'https://example.test/', pretendToBeVisual:true});
   const w = dom.window;
   w.HTMLDialogElement.prototype.showModal = function(){ this.open = true; };
   w.HTMLDialogElement.prototype.close = function(){ this.open = false; };
   w.onerror = m => { throw new Error(m); }; w.scrollTo = ()=>{}; w.confirm = ()=>true;
   if (pre) pre(w.localStorage);
+  if (setup) setup(w);
   w.localStorage.setItem('bl-key', 'GOOD'); w.localStorage.setItem('bl-api', 'https://script.google.com/macros/s/TEST/exec');
   w.fetch = async (u, o) => { const b = JSON.parse(o.body); const r = JSON.parse(api.doPost({postData:{contents:o.body}}).t);
     calls.push(b.action + (r.result && r.result.unchanged ? ':unchanged' : '')); return {json: async()=>r}; };
@@ -208,6 +209,19 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   fake += 16*60000; await A.__t.refresh(); A.checkNotices();
   assert.strictEqual(sent.length, n0 + 2, 'no notification when the reminder is set to none');
   A.Date = RealDate; delete d.visibilityState;
+  // Italian: every interface text has its translation (a missing one is logged as an error)
+  const missing = [];
+  const I = device(ls => ls.setItem('bl-lang', 'it'), w => { w.console.error = (...a) => { if (String(a[0]).startsWith('Missing Italian')) missing.push(a[0]); }; });
+  await sleep(400); const di = I.document;
+  const [i1] = JSON.parse(props.PROFILE).children.map(c=>c.id);
+  await I.addEvents([{kind:'feed', feedType:'breast', child:i1, ts:Date.now()-5*60000, live:1, side:'L'}]); await sleep(400);
+  for (const t of ['log', 'trend', 'settings']) { di.querySelector(`[data-tab="${t}"]`).click(); await sleep(50); }
+  di.querySelector('[data-tab="log"]').click(); di.querySelector('#fab').click(); await sleep(50); di.querySelector('#sheetClose').click();
+  assert.deepStrictEqual(missing, [], 'no missing Italian');
+  // one card for a feed in progress: the live bar, not a second card in the row of children
+  const lives = di.querySelectorAll('#livebar .live').length, name = I.__t.events.find(e=>e.live && e.child===i1) && JSON.parse(props.PROFILE).children[0].name;
+  assert.ok(lives >= 1 && di.querySelector('#livebar .endfeed').textContent === 'Termina poppata', 'feed in progress with "Termina poppata"');
+  assert.ok(![...di.querySelectorAll('#sincebar .scard')].some(c=>c.textContent.includes(name)), 'no second card for the same feed');
   console.log('smoke test passed');
   process.exit(0);
 })().catch(e=>{ console.error('FAILED:', e.stack); process.exit(1); });

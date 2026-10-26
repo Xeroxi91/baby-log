@@ -23,7 +23,6 @@
   --parent:#B83280;                       /* the parent's own things: not one of the children's colours */
   --danger:#B42318;
   box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
   padding-bottom:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){
@@ -49,10 +48,11 @@
 :root[data-theme="light"]{color-scheme:light}
 :root[data-theme="dark"]{color-scheme:dark}
 [hidden]{display:none!important}
-html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html{scroll-padding-top:var(--hdrH,0px)}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
 .wrap{max-width:560px;margin:0 auto;padding:10px 14px 40px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:8;background:var(--bg);
+  margin:-10px -14px 10px;padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;border-bottom:1px solid var(--line)}
 h1{font-family:ui-serif,"New York",Georgia,serif;font-weight:600;font-size:1.25rem;line-height:1.15;margin:0;letter-spacing:-.01em}
 .theme{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 10px;min-width:36px;font-size:.85rem;color:var(--ink);white-space:nowrap;min-height:36px}
 h1 .amp{color:var(--muted);font-weight:400}
@@ -178,12 +178,14 @@ button{touch-action:manipulation}
 .ritem button{border:0;background:var(--surface);border-radius:8px;padding:6px 8px;font-size:.85rem;color:var(--ink);min-height:34px;box-shadow:inset 0 0 0 1px var(--line)}
 .ritem button small{color:var(--muted);font-size:.72rem}
 .rgap{grid-column:1/-1;text-align:center;font-size:.78rem;color:var(--warn);padding:6px 0;border-top:1px dashed var(--line)}
-.live{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:12px;padding:6px 6px 6px 12px;margin-bottom:6px;box-shadow:inset 4px 0 0 var(--c)}
-.live>span{flex:1;line-height:1.25}
+.live{display:flex;flex-direction:column;gap:8px;background:var(--surface);border-radius:14px;padding:10px 12px 12px 16px;margin-bottom:8px;box-shadow:inset 4px 0 0 var(--c)}
+.live .lh{line-height:1.25}
 .live b{color:var(--c)}
-.live .lt{font-weight:700;font-variant-numeric:tabular-nums}
-.live small{display:block;color:var(--muted);font-size:.78rem}
+.live .lrow{display:flex;align-items:baseline;gap:8px}
+.live .lt{font-size:1.9rem;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.live small{color:var(--muted);font-size:.85rem}
 .live button{border:0;border-radius:12px;background:var(--c);color:#fff;font-weight:700;min-height:44px;padding:0 18px}
+.live .endfeed{width:100%;min-height:52px;font-size:1.05rem}
 
 :root{--refband:rgba(102,112,133,.10);--refband2:rgba(102,112,133,.10)}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--refband:rgba(152,162,179,.10);--refband2:rgba(152,162,179,.12)}}
@@ -222,8 +224,8 @@ button{touch-action:manipulation}
 .sync.off::before{background:var(--warn)}
 .sync.err::before{background:var(--danger)}
 @keyframes pulse{50%{opacity:.3}}
-.live .sides{display:flex;gap:4px;margin-top:4px}
-.live .sides button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;min-height:30px;min-width:40px;padding:0 8px;font-size:.8rem;font-weight:700}
+.live .sides{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.live .sides button{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;min-height:40px;padding:0 8px;font-size:.9rem;font-weight:700}
 .live .sides button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
 .stopall{width:100%;border:0;border-radius:12px;background:var(--ink);color:var(--bg);font-weight:700;min-height:40px;margin-bottom:8px}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:6px}
@@ -255,7 +257,18 @@ tr.tap{cursor:pointer}
 .kids small{display:block;color:var(--muted)}
 .sect a{color:var(--both)}
 
-.kidseg{margin-bottom:8px}
+.kidseg{margin-bottom:8px;display:flex}
+.kidseg button{flex:1 0 auto;white-space:nowrap;padding:0 14px}
+/* one row that scrolls (child pickers, tables): faded on the right while there is more to see */
+.hs{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.hs::-webkit-scrollbar{display:none}
+.hs.more{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 40px),transparent)}
+.tsw{--tbg:var(--surface)}
+.growth .det .tsw{--tbg:var(--bg)}
+.tsw .shint{margin:0 0 2px;text-align:right;font-size:.78rem;color:var(--muted);visibility:hidden}
+.tsw.more .shint{visibility:visible}
+.tsw table{border-collapse:separate;border-spacing:0}            /* sticky cells keep their lines */
+.tsw th:first-child,.tsw td:first-child{position:sticky;left:0;z-index:1;background:var(--tbg)}
 .kidseg button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff;box-shadow:none}
 .sig{border-radius:12px;padding:10px 12px;margin-top:10px;background:var(--bg);border-left:4px solid var(--muted)}
 .sig.call{border-left-color:var(--danger)}
@@ -276,7 +289,7 @@ tr.tap{cursor:pointer}
 .band td{padding:3px 6px}
 
 /* ===== layout variant: bottom navigation, floating entry button, compact header ===== */
-.wrap{padding-bottom:calc(150px + env(safe-area-inset-bottom,0px))}
+.wrap{padding-bottom:calc(76px + 60px + 24px + env(safe-area-inset-bottom,0px))}   /* bar + ＋ + 24 px */
 .bottomnav{position:fixed;left:0;right:0;bottom:0;top:auto;margin:0;z-index:20;display:grid;grid-template-columns:repeat(3,1fr);gap:0;
   background:var(--surface);border-top:1px solid var(--line);border-bottom:0;padding:4px 8px calc(4px + env(safe-area-inset-bottom,0px))}
 .bottomnav button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border:0;border-radius:12px;font-size:.75rem;margin:0}
@@ -284,8 +297,8 @@ tr.tap{cursor:pointer}
 .bottomnav .ni{font-size:1.25rem;line-height:1}
 .fab{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));z-index:21;width:60px;height:60px;border-radius:50%;border:0;
   background:var(--ink);color:var(--bg);font-size:2rem;line-height:1;box-shadow:0 6px 18px rgba(0,0,0,.25)}
-.stickctl{top:env(safe-area-inset-top,0px);margin:0 -14px 10px;padding:8px 14px}
-.reg .rh{top:calc(env(safe-area-inset-top,0px) + var(--ctlH,0px))}
+.stickctl{top:var(--hdrH,0px);margin:0 -14px 10px;padding:8px 14px}
+.reg .rh{top:calc(var(--hdrH,0px) + var(--ctlH,0px))}
 dialog.sheet{margin:auto 0 0;width:100%;max-width:100%;max-height:92%;border-radius:22px 22px 0 0;padding:0}
 dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,0px));max-width:560px;margin:0 auto}
 .sheet-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
@@ -316,8 +329,8 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .lbl2{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);margin-bottom:10px}
 .lbl2 input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font-size:1rem}
 .sheet .actions{grid-template-columns:repeat(4,1fr);gap:6px}
-.sheet .who{display:flex;flex-wrap:wrap;gap:6px}
-.sheet .who button{flex:1 1 auto;min-width:0;white-space:nowrap}
+.sheet .who{display:flex;gap:6px}
+.sheet .who button{flex:1 0 auto;white-space:nowrap;overflow:visible;padding:9px 14px}
 .sheet .act{min-height:58px;padding:6px 2px;border-radius:12px;gap:2px}
 .sheet .act .ico{font-size:1.15rem}
 .sheet .act .lbl{font-size:.72rem;font-weight:700}
@@ -436,7 +449,7 @@ img,svg{-webkit-user-drag:none}
 
 <dialog id="sheet" class="sheet" tabindex="-1" autofocus><div class="sheet-in">
   <div class="sheet-h"><b>Log an event</b><button type="button" class="linkbtn" id="sheetClose">Close</button></div>
-  <div class="who" id="who" role="group" aria-label="Who" hidden></div>
+  <div class="who hs" id="who" role="group" aria-label="Who" hidden></div>
 
   <div class="when" role="group" aria-label="When">
     <button class="chip" data-w="now" aria-pressed="true">Now</button>
@@ -529,7 +542,7 @@ img,svg{-webkit-user-drag:none}
 
 <dialog id="medDlg" tabindex="-1" autofocus><form class="dlg" id="medForm">
   <h2 id="medTitle">Daily reminder</h2>
-  <div class="lblc"><span>For</span><div class="seg mkids" id="mKids"></div></div>
+  <div class="lblc"><span>For</span><div class="seg mkids hs" id="mKids"></div></div>
   <label>What<input id="mName" maxlength="40" placeholder="e.g. Vitamin D" required></label>
   <label>Dose (optional)<input id="mDose" maxlength="40" placeholder="e.g. 4 drops"></label>
   <div class="seg" id="mMode"><button type="button" data-v="day" aria-pressed="true">Times a day</button><button type="button" data-v="every" aria-pressed="false">Every few hours</button></div>
@@ -614,7 +627,7 @@ const IT = {
 // events
 "Breast":"Seno","Bottle":"Biberon","Pee":"Pipì","Poo":"Cacca","Pee + poo":"Pipì + cacca","Weight":"Peso","Height":"Altezza","Length":"Lunghezza","Note":"Nota","Notes":"Note","Pumping":"Tiralatte","Breastfeed":"Allattamento","Head circumference":"Circonferenza cranica","BMI":"IMC","Given (reminder)":"Dato (promemoria)",
 "Left":"Sinistro","Right":"Destro","Both":"Entrambi","left":"sinistro","right":"destro","Side":"Lato","Milk":"Latte","Formula":"Formula","Expressed":"Estratto","Millilitres":"Millilitri","Duration in minutes":"Durata in minuti","Duration in minutes (optional)":"Durata in minuti (facoltativa)","Weight (g)":"Peso (g)","Weight (kg)":"Peso (kg)","Length (cm)":"Lunghezza (cm)","Height (cm)":"Altezza (cm)","Head circumference (cm)":"Circonferenza cranica (cm)","Measurement (cm)":"Misura (cm)",
-"Stop":"Stop","breastfeeding":"allattamento","Stop all":"Ferma tutti",
+"End feed":"Termina poppata","breastfeeding in progress":"allattamento in corso",
 "Test weighing (optional): same clothes and diaper, same scale":"Doppia pesata (facoltativa): stessi vestiti e pannolino, stessa bilancia","Before (g)":"Prima (g)","After (g)":"Dopo (g)",
 "What did you notice?":"Cosa hai notato?","Temperature (°C, optional)":"Temperatura (°C, facoltativa)","Note (optional)":"Nota (facoltativa)",
 "Spit-up":"Rigurgito","Vomit":"Vomito","Yellowish skin/eyes":"Pelle/occhi giallastri","Pale stool":"Feci chiare","Green stool":"Feci verdi","Hard to wake":"Difficile da svegliare","Unusual crying":"Pianto insolito","Rash":"Eruzione cutanea","Reminder":"Promemoria",
@@ -704,7 +717,7 @@ const IT = {
 "Shared by everyone using this log. Turning a feature off only hides it: nothing is deleted, and it comes back as it was.":"Condivise da chi usa questo diario. Disattivare una funzione la nasconde soltanto: non viene eliminato nulla e torna com'era.",
 "Changes not shared yet: they are sent at the next sync.":"Modifiche non ancora condivise: verranno inviate alla prossima sincronizzazione.",
 // profile
-"Date of birth":"Data di nascita","Gestational weeks":"Settimane gestazionali","+ days":"+ giorni","Birth weight (g)":"Peso alla nascita (g)","Birth length (cm)":"Lunghezza alla nascita (cm)","Birth head circ. (cm)":"Circ. cranica alla nascita (cm)","Stage":"Fase","Newborn":"Newborn","Infant":"Infant","Child":"Child","Leave empty if born at term.":"Lascia vuoto se nato a termine.",
+"Date of birth":"Data di nascita","Gestational weeks":"Settimane gestazionali","+ days":"+ giorni","Birth weight (g)":"Peso alla nascita (g)","Birth length (cm)":"Lunghezza alla nascita (cm)","Birth head circ. (cm)":"Circ. cranica alla nascita (cm)","Stage":"Fase","Leave empty if born at term.":"Lascia vuoto se nato a termine.",
 "Newborn: full log. Infant: lighter, no feed or diaper signals. Child: weight, height, notes and reminders only.":"Neonato: diario completo. Lattante: più leggero, senza segnali su poppate e pannolini. Bambino: solo peso, altezza, note e promemoria.",
 "Newborn":"Neonato","Infant":"Lattante","Child":"Bambino","Feeds over 24 hours":"Poppate nelle 24 ore",
 "Used for corrected age and growth charts. Shared by all devices connected to the same log.":"Serve per età corretta e curve di crescita. È condiviso da tutti i dispositivi collegati allo stesso diario.",
@@ -717,9 +730,15 @@ const IT = {
 // toasts / confirms
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
+"7 days":"7 g","14 days":"14 g","30 days":"30 g","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
+"scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
+"To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
+": existing codes keep working). Never share codes in public places.":": i codici esistenti continuano a funzionare). Non condividere mai i codici in luoghi pubblici.",
 };
 // templates: {x} matches any text
 const IT_T = [
+["birth {x}","nascita {x}"],["No measurements of {x} yet.","Ancora nessuna misura di {x}."],
 ["{x} · {x} change not shared yet","{x} · {x} modifica non ancora condivisa"],["{x} · {x} changes not shared yet","{x} · {x} modifiche non ancora condivise"],
 ["{x} · {x} change waiting to be sent","{x} · {x} modifica in attesa di invio"],["{x} · {x} changes waiting to be sent","{x} · {x} modifiche in attesa di invio"],
 ["{x} for {x}: due now","{x} per {x}: da dare ora"],["{x}: {x} since the end of the last feed","{x}: {x} dalla fine dell'ultima poppata"],
@@ -727,7 +746,7 @@ const IT_T = [
 ["When a child passes {x} h from the end of the last feed (Settings → Feeds).","Quando un figlio supera {x} h dalla fine dell'ultima poppata (Impostazioni → Poppate)."],
 ["Today, {x}","Oggi, {x}"],["Yesterday, {x}","Ieri, {x}"],
 ["{x} feeds · {x} pee · {x} poo · {x} ml","{x} poppate · {x} pipì · {x} cacca · {x} ml"],
-["{x} breast+top-up · {x} breast","{x} seno+aggiunta · {x} seno"],["{x} ml bottle ({x} expressed)","{x} ml biberon ({x} estratto)"],["{x} ml bottle","{x} ml biberon"],
+["{x} breast+top-up","{x} seno+aggiunta"],["{x} breast","{x} seno"],["{x} bottle","{x} biberon"],["{x} ml bottle ({x} expressed)","{x} ml biberon ({x} estratto)"],["{x} ml bottle","{x} ml biberon"],
 ["{x} session · {x} ml","{x} sessione · {x} ml"],["{x} sessions · {x} ml","{x} sessioni · {x} ml"],
 ["started {x} ({x}) · +top-up","iniziata {x} ({x}) · +aggiunta"],["started {x} ({x})","iniziata {x} ({x})"],
 ["{x} without events","{x} senza eventi"],["no events for {x}","nessun evento da {x}"],
@@ -747,7 +766,7 @@ const IT_T = [
 ["Next dose of {x} for {x} is at {x}. Log a dose now anyway?","La prossima dose di {x} per {x} è alle {x}. Registrare comunque una dose ora?"],
 ["Fill with values suggested for {x}","Compila con i valori suggeriti per {x}"],["{x}: feed and diaper signals are not used at this stage.","{x}: in questa fase i segnali su poppate e pannolini non sono usati."],
 ["Edit dose at {x}","Modifica dose delle {x}"],["Edit {x} at {x}","Modifica {x} delle {x}"],["{x} of {x} on WHO curves","{x} di {x} sulle curve OMS"],["{x} of {x} on reference curves","{x} di {x} sulle curve di riferimento"],
-["All measurements ({x})","Tutte le misure ({x})"],["Updated {x} ago","Aggiornato {x} fa"],["first dose any time","prima dose quando vuoi"],["next tomorrow {x} (in {x})","prossima domani {x} (tra {x})"],["next {x} (in {x})","prossima {x} (tra {x})"],["due since {x}","da dare dalle {x}"],["{x} is later than now. Did you mean yesterday at {x}?","{x} è più tardi di adesso. Intendevi ieri alle {x}?"],["This time is in the future ({x}). Save anyway?","Questo orario è nel futuro ({x}). Salvare comunque?"],["Not updated for {x}","Non aggiornato da {x}"],["Yesterday evening · {x}","Ieri sera · {x}"],["Updated {x}","Aggiornato {x}"],["{x} to send","{x} da inviare"],["Stop all ({x})","Ferma tutti ({x})"],["Stopped {x} feeds","Fermate {x} poppate"],
+["All measurements ({x})","Tutte le misure ({x})"],["Updated {x} ago","Aggiornato {x} fa"],["first dose any time","prima dose quando vuoi"],["next tomorrow {x} (in {x})","prossima domani {x} (tra {x})"],["next {x} (in {x})","prossima {x} (tra {x})"],["due since {x}","da dare dalle {x}"],["{x} is later than now. Did you mean yesterday at {x}?","{x} è più tardi di adesso. Intendevi ieri alle {x}?"],["This time is in the future ({x}). Save anyway?","Questo orario è nel futuro ({x}). Salvare comunque?"],["Not updated for {x}","Non aggiornato da {x}"],["Yesterday evening · {x}","Ieri sera · {x}"],["Updated {x}","Aggiornato {x}"],["{x} to send","{x} da inviare"],["End all ({x})","Termina tutte ({x})"],["Stopped {x} feeds","Fermate {x} poppate"],
 ["Breastfeed · {x} · {x} min","Allattamento · {x} · {x} min"],["Not saved: {x}","Non salvato: {x}"],["Profile not saved: {x}","Profilo non salvato: {x}"],
 ["{x} feeds in the last 24 h","{x} poppate nelle ultime 24 h"],["{x} vomits in the last 24 h","{x} episodi di vomito nelle ultime 24 h"],["{x} wet diapers in the last 24 h","{x} pannolini bagnati nelle ultime 24 h"],
 ["Fewer feeds need a top-up ({x} vs {x})","Meno poppate con aggiunta ({x} contro {x})"],["Last weighing {x} days ago","Ultima pesata {x} giorni fa"],["No poo for {x} h","Niente cacca da {x} h"],["Stretch of {x} h without feeding","{x} h senza poppare"],
@@ -772,7 +791,7 @@ const IT_T = [
 ];
 // phrases replaced inside longer texts (signal explanations, reminder lines)
 const IT_P = [
-[" · next tomorrow "," · prossima domani "],[" · next "," · prossima "],["(in ","(tra "],[" · due since "," · da dare dalle "],[" · first dose any time"," · prima dose quando vuoi"],[" · due"," · da dare"],
+[" wk"," sett"],[" · next tomorrow "," · prossima domani "],[" · next "," · prossima "],["(in ","(tra "],[" · due since "," · da dare dalle "],[" · first dose any time"," · prima dose quando vuoi"],[" · due"," · da dare"],
 ["× a day","× al giorno"],[" · every "," · ogni "],[" · until "," · fino al "],[" · no notifications"," · nessuna notifica"],[" · notify every "," · notifica ogni "],[" · also at night"," · anche di notte"],[" · remind after "," · ricorda dopo le "],[" (ended)"," (terminato)"],
 ["Offering the breast at early hunger cues (rooting, hands to mouth, stirring) usually helps reach 8–12 feeds a day.","Offrire il seno ai primi segnali di fame (ricerca del capezzolo, mani alla bocca, risveglio) aiuta di solito ad arrivare a 8–12 poppate al giorno."],
 ["Wet diapers reflect how much milk the baby is getting: if they stay low, contact your paediatrician or midwife.","I pannolini bagnati riflettono quanto latte assume il bambino: se restano pochi, contatta il pediatra o l'ostetrica."],
@@ -788,17 +807,32 @@ function tr(s){
   if (LANG!=="it" || !s) return s;
   const m0 = s.match(/^(\s*)([\s\S]*?)(\s*)$/), pre = m0[1], core = m0[2], post = m0[3];
   if (!core) return s;
-  if (IT[core]!=null) return pre+IT[core]+post;
+  if (IT[core]!=null) return pre+itDone(IT[core])+post;
   for (const [re, out, names] of IT_RE){
     const m = core.match(re); if (!m) continue;
     let i = 1, res = out; const vals = {};
     names.forEach(n=>{ (vals[n] = vals[n] || []).push(m[i++]); });
     const used = {}; res = res.replace(/\{(\w)\}/g,(x,n)=>{ used[n] = (used[n]||0); return tr(vals[n][used[n]++]); });
-    return pre+res+post;
+    return pre+itDone(res)+post;
   }
-  let out = core;
-  for (const [a,b] of IT_P) if (out.includes(a)) out = out.split(a).join(b);
+  let out = core, hit = false;
+  for (const [a,b] of IT_P) if (out.includes(a)){ out = out.split(a).join(b); hit = true; }
+  if (hit) itDone(out); else itMiss(core);
   return pre+out+post;
+}
+// every text needs both languages: an interface text with no Italian is logged once as an error.
+// Texts already translated (they come back through the observer) and the family's own words are not.
+const itOut = new Set(), itMissing = new Set();
+const itDone = s => { if (itOut.size > 5000) itOut.clear(); itOut.add(s); return s; };
+const userWords = () => [appTitle()].concat(kids.map(k=>k.name), meds.flatMap(m=>[m.name, m.dose]), events.flatMap(e=>e.text ? [e.text] : []));
+let itDateRe = null;                 // month and weekday names written by the phone in Italian, and units
+function itMiss(s){
+  if (!itDateRe){ const ws = []; for (let i = 0; i < 12; i++){ const d = new Date(2026, i, 5 + (i % 7));
+      ws.push(d.toLocaleDateString(LOC(), {month:"short"}), d.toLocaleDateString(LOC(), {weekday:"short"})); }
+    itDateRe = new RegExp("\\b(" + [...new Set(ws.map(w=>w.replace(/\./g, "")))].concat(["min","ml","kg","cm","g","h"]).join("|") + ")\\b", "gi"); }
+  if (itOut.has(s) || itMissing.has(s) || s.includes("://") || !/[A-Za-z]{3}/.test(s.replace(itDateRe, "")) || Object.values(IT).includes(s)) return;
+  if (userWords().some(w=>w && (s===w || s.includes(w)))) return;
+  itMissing.add(s); console.error("Missing Italian: " + JSON.stringify(s));
 }
 function translateTree(root){
   if (LANG!=="it" || !root) return;
@@ -830,7 +864,7 @@ const dur = ms => { const m = Math.max(0, Math.round(ms/6e4)); if (m<60) return 
 const ago = ts => ts > Date.now() ? "scheduled" : dur(Date.now()-ts)+" ago";
 const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const isBottle = e => e.kind==="feed" && e.feedType==="bottle";
-const SIDE = {L:"L", R:"R", B:"L+R"};
+const SIDE = LANG==="it" ? {L:"S", R:"D", B:"S+D"} : {L:"L", R:"R", B:"L+R"};   // sinistro / destro in Italian
 function nextSide(t){ // suggests the side to start with: the opposite of the last one used
   const last = events.filter(e=>e.child===t && isBreast(e) && e.side).sort((a,b)=>b.ts-a.ts)[0];
   return !last ? "L" : last.side==="L" ? "R" : "L";
@@ -885,6 +919,7 @@ function disconnect(){   // forget address and code; what is already on the devi
 /* ---------- sample data (for demos and tests; stays on this device) ---------- */
 const isDemo = () => { try { return localStorage.getItem("bl-demo")==="1"; } catch(e) { return false; } };
 function seedDemo(){
+  const it = LANG==="it", vd = it ? "Vitamina D" : "Vitamin D", drops = it ? "4 gocce" : "4 drops";   // sample data in the app's language
   const now = Date.now(), day = 864e5, H = 36e5, ev = {}; let n = 0;
   const add = o => { const id = "p" + (n++); ev[id] = Object.assign({id}, o); };
   const birth = new Date(now - 16*day); birth.setHours(0,0,0,0);
@@ -917,10 +952,10 @@ function seedDemo(){
     ms.forEach(([da,cm,g])=>{ const ts = now - da*day; add({kind:"len", child:c, ts, cm}); add({kind:"weight", child:c, ts, grams:g}); }));
   for (let d = 6; d >= 0; d--) [7, 13, 21].forEach((h,i)=>{ const ts = new Date(now - d*day); ts.setHours(h, 10*i, 0, 0); if (ts.getTime() < now) add({kind:"pump", child:"parent", ts: ts.getTime(), ml: 60 + d*-3 + i*15 + 20, side:"B", dur:15}); });
   add({kind:"feed", feedType:"breast", child:"cdemoa0001", ts: now - 6*H, dur:15, side:"L", pre:3020, post:3062});
-  add({kind:"note", child:"cdemob0002", ts: now - 5*H, tags:"spitup", text:"small spit-up after the bottle"});
-  const meds = [{id:"mdemoa0001", child:"cdemoa0001", name:"Vitamin D", dose:"4 drops", times:1, due:10},
-                {id:"mdemob0002", child:"cdemob0002", name:"Vitamin D", dose:"4 drops", times:1, due:10},
-                {id:"mdemoc0003", child:"cdemoc0003", name:"Syrup", dose:"5 ml", times:3, due:0, every:8, until:new Date(now+4*day).toISOString().slice(0,10)}];
+  add({kind:"note", child:"cdemob0002", ts: now - 5*H, tags:"spitup", text: it ? "piccolo rigurgito dopo il biberon" : "small spit-up after the bottle"});
+  const meds = [{id:"mdemoa0001", child:"cdemoa0001", name:vd, dose:drops, times:1, due:10},
+                {id:"mdemob0002", child:"cdemob0002", name:vd, dose:drops, times:1, due:10},
+                {id:"mdemoc0003", child:"cdemoc0003", name: it ? "Sciroppo" : "Syrup", dose:"5 ml", times:3, due:0, every:8, until:new Date(now+4*day).toISOString().slice(0,10)}];
   add({kind:"med", child:"cdemoc0003", ts: now - 5*H, ref:"mdemoc0003"});
   add({kind:"med", child:"cdemoa0001", ts: now - 4*H, ref:"mdemoa0001"});
   try {
@@ -1471,20 +1506,31 @@ const fmtDelta = d => d==null ? "" : `<span class="delta ${d>0?"up":d<0?"down":"
 const fmtRate = g => (g>0?"+":"")+Math.round(g)+" g/day";
 
 /* ---------- render ---------- */
+function scrollHints(){              // fade and "scroll →" only while something is hidden on the right
+  document.querySelectorAll(".hs").forEach(el=>{
+    const more = el.scrollLeft + el.clientWidth < el.scrollWidth - 1;
+    el.classList.toggle("more", more);
+    if (el.parentElement && el.parentElement.classList.contains("tsw")) el.parentElement.classList.toggle("more", more);
+  });
+}
+document.addEventListener("scroll", e=>{ if (e.target.classList && e.target.classList.contains("hs")) scrollHints(); }, true);
+document.addEventListener("toggle", scrollHints, true);       // a table inside <details> becomes visible
 function measureSticky(){
   const tabs = document.querySelector(".tabs"); if (tabs) document.documentElement.style.setProperty("--tabsH", tabs.offsetHeight + 14 + "px");
+  const top = document.querySelector(".top"); if (top) document.documentElement.style.setProperty("--hdrH", top.offsetHeight + "px");
   const c = document.querySelector("#tab-log .stickctl"); if (c && c.offsetHeight) document.documentElement.style.setProperty("--ctlH", c.offsetHeight + "px");
 }
-window.addEventListener("resize", measureSticky);
-function render(){ loadModules(); updateBadge(); renderSince(); renderDay(); renderLog(); fillDayDetails(); renderTrend(); if (!$("#tab-settings").contains(document.activeElement)) renderSettings(); measureSticky(); }
+window.addEventListener("resize", ()=>{ measureSticky(); scrollHints(); });
+function render(){ loadModules(); updateBadge(); renderSince(); renderDay(); renderLog(); fillDayDetails(); renderTrend(); if (!$("#tab-settings").contains(document.activeElement)) renderSettings(); measureSticky(); scrollHints(); }
 
 const liveFeeds = () => events.filter(e=>isBreast(e) && e.live && !e.dur && Date.now()-e.ts < LIVE_MAX && e.ts<=Date.now()+60000).sort((a,b)=>a.ts-b.ts);
 function renderLive(){
   const lf = liveFeeds();
-  $("#livebar").innerHTML = (lf.length>1 ? `<button class="stopall" id="stopAll">Stop all (${lf.length})</button>` : "") + lf.map(e=>`<div class="live" style="--c:${KID(e.child).c}">
-      <span><b>${esc(KID(e.child).name)}</b> breastfeeding · <span class="lt">${dur(Date.now()-e.ts)}</span><small>since ${hm(e.ts)}</small>
-        <span class="sides" role="group" aria-label="Side">${["L","R","B"].map(v=>`<button data-side="${v}" data-id="${esc(e.id)}" aria-pressed="${e.side===v}">${v==="B"?"Both":v==="L"?"Left":"Right"}</button>`).join("")}</span></span>
-      <button data-stop="${esc(e.id)}">Stop</button></div>`).join("");
+  $("#livebar").innerHTML = (lf.length>1 ? `<button class="stopall" id="stopAll">End all (${lf.length})</button>` : "") + lf.map(e=>`<div class="live" style="--c:${KID(e.child).c}">
+      <div class="lh"><b>${esc(KID(e.child).name)}</b><span> · </span><span>breastfeeding in progress</span></div>
+      <div class="lrow"><span class="lt">${dur(Date.now()-e.ts)}</span><small>since ${hm(e.ts)}</small></div>
+      <span class="sides" role="group" aria-label="Side">${["L","R","B"].map(v=>`<button data-side="${v}" data-id="${esc(e.id)}" aria-pressed="${e.side===v}">${v==="B"?"Both":v==="L"?"Left":"Right"}</button>`).join("")}</span>
+      <button class="endfeed" data-stop="${esc(e.id)}">End feed</button></div>`).join("");
   $("#livebar").querySelectorAll("[data-side]").forEach(b=>b.onclick=()=>{
     const e = events.find(x=>x.id===b.dataset.id); if (!e) return;
     const {id, ...rest} = e; setEvent(id, {...rest, side: b.dataset.side});
@@ -1507,10 +1553,7 @@ function renderSince(){
   for (const t of logIds()){
     const lv = live.find(e=>e.child===t);
     const s = sessions(t).filter(s=>s.start<=Date.now()).pop();
-    if (lv){
-      h += `<div class="scard" style="--c:${KID(t).c}"><div class="nm">${KID(t).name}</div><div class="big">feeding</div><div class="sm">since ${hm(lv.ts)}</div></div>`;
-      continue;
-    }
+    if (lv) continue;                                  // the card in the live bar above says it all
     if (!s){ h += `<div class="scard" style="--c:${KID(t).c}"><div class="nm">${KID(t).name}</div><div class="sm">no feeds yet</div></div>`; continue; }
     const end = Math.min(sessionEnd(s), Date.now());
     const late = Date.now()-end > alertH*36e5;
@@ -1530,7 +1573,7 @@ function renderDay(){
   for (const t of logIds()){
     const s = dayStats(t,key);
     const since = k => { if (!isToday) return ""; const l = lastOf(t,k); return l ? `<span class="since">${hm(l.ts)} · ${ago(l.ts)}</span>` : ""; };
-    const parts = [s.withTopUp&&`${s.withTopUp} breast+top-up`, s.breastOnly&&`${s.breastOnly} breast`, s.bottleOnly&&`${s.bottleOnly} bottle`].filter(Boolean).join(" · ");
+    const parts = [s.withTopUp&&`${s.withTopUp} breast+top-up`, s.breastOnly&&`${s.breastOnly} breast`, s.bottleOnly&&`${s.bottleOnly} bottle`].filter(Boolean).map(x=>`<span>${x}</span>`).join("<span> · </span>");   // one text per part: each is translated on its own
     h += `<div class="tcard" style="--c:${KID(t).c}"><h3>${KID(t).name}</h3>
       <div class="stat"><span class="k">Feeds${parts?`<span class="since">${parts}</span>`:""}${s.ml?`<span class="since">${s.ml} ml bottle${s.mlExp?` (${s.mlExp} expressed)`:""}</span>`:""}${s.durAvg?`<span class="since">breast avg ${s.durAvg} min</span>`:""}</span><span class="n">${s.pop}</span></div>
       <div class="stat"><span class="k">Pee${since("pee")}</span><span class="n">${s.pee}</span></div>
@@ -1556,7 +1599,7 @@ function shiftDay(d){
 function medName(id){ const m = meds.find(x=>x.id===id); return m ? m.name : ""; }
 const noteTxt = e => [ (e.tags||"").split(",").filter(Boolean).map(t=>tr(TAG[t]||t)).join(", "), e.temp ? fmtNum(Number(e.temp),1)+" °C" : "", e.text ? "“"+(e.text.length>40?e.text.slice(0,40)+"…":e.text)+"”" : "" ].filter(Boolean).join(" · ") || "note";
 const twTxt = e => e.pre && e.post && featOn("tw") ? ` · +${Math.max(0, e.post-e.pre)} g` : "";
-const chipTxt = e => e.kind==="pump" ? `🥛 ${e.ml} ml${e.side?" "+(e.side==="B"?"L+R":e.side):""}${e.dur?" "+e.dur+"′":""}` : e.kind==="note" ? "📝 "+esc(noteTxt(e)) : e.kind==="med" ? "💊 "+esc(medName(e.ref) || "reminder") : isBreast(e) ? "🤱 breast"+(e.side?" "+SIDE[e.side]:"")+(e.dur?" "+e.dur+"′":e.live&&Date.now()-e.ts<LIVE_MAX?" ⏱":"")+twTxt(e) : isBottle(e) ? "🍼 "+(e.ml?e.ml+" ml":"bottle")+(e.milk==="e"?" expressed":e.milk==="f"?" formula":"") :
+const chipTxt = e => e.kind==="pump" ? `🥛 ${e.ml} ml${e.side?" "+SIDE[e.side]:""}${e.dur?" "+e.dur+"′":""}` : e.kind==="note" ? "📝 "+esc(noteTxt(e)) : e.kind==="med" ? "💊 "+esc(medName(e.ref) || "reminder") : isBreast(e) ? "🤱 breast"+(e.side?" "+SIDE[e.side]:"")+(e.dur?" "+e.dur+"′":e.live&&Date.now()-e.ts<LIVE_MAX?" ⏱":"")+twTxt(e) : isBottle(e) ? "🍼 "+(e.ml?e.ml+" ml":"bottle")+(e.milk==="e"?" expressed":e.milk==="f"?" formula":"") :
   e.kind==="pee" ? "💧 pee" : e.kind==="poo" ? "💩 poo" : e.kind==="len" ? "📏 "+fmtNum(Number(e.cm),1)+" cm" : e.kind==="hc" ? "⭕ head "+fmtNum(Number(e.cm),1)+" cm" : "⚖️ "+e.grams+" g";
 function dayItems(t, key){
   // groups a child's events into "moments": feed (breast + top-up), change (close pee/poo), measurements
@@ -1578,7 +1621,7 @@ function pumpBlock(key){
   if (!ps.length) return "";
   const tot = ps.reduce((a,e)=>a+(Number(e.ml)||0),0);
   return `<div class="pumpc"><div class="pumph"><b>🥛 Pumping</b><span>${ps.length} session${ps.length>1?"s":""} · ${tot} ml</span></div>
-    <div class="pumpi">${ps.map(e=>`<button data-edit="${esc(e.id)}"><small>${hm(e.ts)}</small> ${e.ml} ml${e.side?` ${e.side==="B"?"L+R":e.side}`:""}</button>`).join("")}</div></div>`;
+    <div class="pumpi">${ps.map(e=>`<button data-edit="${esc(e.id)}"><small>${hm(e.ts)}</small> ${e.ml} ml${e.side?` ${SIDE[e.side]}`:""}</button>`).join("")}</div></div>`;
 }
 /* ---------- daily reminders (vitamin D, iron, prescribed medicines…) ---------- */
 const H_ = 36e5;
@@ -1943,7 +1986,7 @@ function tile(label, value, sub){ return `<div class="gt"><span class="gl">${lab
 function growthStats(t, m){
   if (!prof(t).birth) return "";
   const M = MEAS[m], pts = measPoints(t, m).filter(p=>!p.birth);
-  if (!pts.length) return `<p class="note">${m==="b" ? "BMI needs a height and a weight measured within a month of each other." : `No ${measName(t,m).toLowerCase()} measurements yet.`}</p>`;
+  if (!pts.length) return `<p class="note">${m==="b" ? "BMI needs a height and a weight measured within a month of each other." : `No measurements of ${measName(t,m).toLowerCase()} yet.`}</p>`;
   const last = pts[pts.length-1], r = refAt(t, m, pmaDays(t,last.ts));
   let h = `<div class="gtiles">` + tile("Latest", `${fmtNum(last.v, M.dec)} ${M.unit}`, (Date.now()-last.ts > 300*864e5 ? fmtDateY : fmtDate)(last.ts));
   if (r){
@@ -1975,13 +2018,13 @@ function growthStats(t, m){
 function measTable(t, m){
   const M = MEAS[m], pts = measPoints(t, m);
   if (!pts.length) return "";
-  let h = `<details class="det"><summary>All measurements (${pts.length})</summary><table><thead><tr><th>Date</th><th>${M.name}</th><th>Change</th><th>Percentile</th></tr></thead><tbody>`;
+  let h = `<details class="det"><summary>All measurements (${pts.length})</summary><div class="tsw"><p class="shint">scroll →</p><div class="hs tscroll"><table><thead><tr><th>Date</th><th>${M.name}</th><th>Change</th><th>Percentile</th></tr></thead><tbody>`;
   pts.slice().reverse().forEach((p,i,arr)=>{
     const prev = arr[i+1], r = refAt(t, m, pmaDays(t,p.ts));
     const ev = !p.birth && events.find(e=>e.child===t && e.kind===M.kind && e.ts===p.ts && Number(e[M.field])===p.v);
     h += `<tr ${ev?`data-edit="${esc(ev.id)}" class="tap"`:""}><td>${p.birth?"Birth":fmtDate(p.ts)}</td><td>${fmtNum(p.v,M.dec)} ${M.unit}</td><td>${prev?fmtDelta(Number((p.v-prev.v).toFixed(M.dec))).replace(/ g</," "+M.unit+"<"):"–"}</td><td>${r?fmtPct(r.zOf(p.v)):"–"}</td></tr>`;
   });
-  return h + `</tbody></table></details>`;
+  return h + `</tbody></table></div></div></details>`;
 }
 function startsOf(t){ return sessions(t).map(s=>s.start); }
 function dayIntervals(t, key){
@@ -2233,7 +2276,7 @@ function rhythm(t, days){
 /* ---------- weekly summary (single child) ---------- */
 function weeklyTable(t){
   const n = Math.min(8, Math.ceil(rangeLen(t)/7));
-  let h = `<table><thead><tr><th>Week</th><th>Feeds</th><th>Bottle ml</th><th>Pee</th><th>Poo</th><th>Weight g/day</th></tr></thead><tbody>`, rows = 0;
+  let h = `<div class="tsw"><p class="shint">scroll →</p><div class="hs tscroll"><table><thead><tr><th>Week</th><th>Feeds</th><th>Bottle ml</th><th>Pee</th><th>Poo</th><th>Weight g/day</th></tr></thead><tbody>`, rows = 0;
   for (let w=0; w<n; w++){
     const days = periodDays(7, w*7).filter(k=>hasData(t,k)); if (!days.length) continue; rows++;
     const a = f => avg(days.map(k=>f(k)));
@@ -2243,7 +2286,7 @@ function weeklyTable(t){
     const lab = k => { const [y,m,d] = k.split("-"); return d+"/"+m; };
     h += `<tr><td>${lab(days[0])}–${lab(days[days.length-1])}</td><td>${fmtNum(a(k=>dayStats(t,k).pop),1)}</td><td>${fmtNum(a(k=>dayStats(t,k).ml))}</td><td>${fmtNum(a(k=>dayStats(t,k).pee),1)}</td><td>${fmtNum(a(k=>dayStats(t,k).poo),1)}</td><td>${g==null?"–":(g>0?"+":"")+fmtNum(g)}</td></tr>`;
   }
-  return rows ? h + `</tbody></table>` : `<p class="note">Not enough data yet.</p>`;
+  return rows ? h + `</tbody></table></div></div>` : `<p class="note">Not enough data yet.</p>`;
 }
 
 /* ---------- how complete is the diary? A missing entry is not an event that did not happen ---------- */
@@ -2265,12 +2308,12 @@ function completenessCard(t, days){
 function compareTable(days){
   const keys = ["pop","dur","agg","ml","pee","poo"];
   const ck = kids.filter(k=>stageOf(k.id)!=="child");
-  let h = `<table><thead><tr><th></th>${ck.map(k=>`<th style="color:${KID(k.id).c}">${esc(k.name)}</th>`).join("")}</tr></thead><tbody>`;
+  let h = `<div class="tsw"><p class="shint">scroll →</p><div class="hs tscroll"><table><thead><tr><th></th>${ck.map(k=>`<th style="color:${KID(k.id).c}">${esc(k.name)}</th>`).join("")}</tr></thead><tbody>`;
   keys.forEach(key=>{ const m = METRICS.find(x=>x.k===key);
     h += `<tr><td>${m.name} <small class="muted">${m.unit}</small></td>${ck.map(k=>`<td>${fmtNum(avg(metricSeries(m,k.id,days)), m.dec)}</td>`).join("")}</tr>`; });
   h += `<tr><td>Weight gain <small class="muted">g/day, 7 days</small></td>${ck.map(k=>{ const v = velocity(k.id, Date.now()-7*864e5); return `<td>${v?fmtNum(v.g):"–"}</td>`; }).join("")}</tr>`;
   h += `<tr><td>Weight percentile</td>${ck.map(k=>{ const ws = measPoints(k.id,"w").filter(p=>!p.birth); const l = ws[ws.length-1]; const r = l && refAt(k.id,"w",pmaDays(k.id,l.ts)); return `<td>${r?fmtPct(r.zOf(l.v)):"–"}</td>`; }).join("")}</tr>`;
-  return h + `</tbody></table>`;
+  return h + `</tbody></table></div></div>`;
 }
 
 /* ---------- render ---------- */
@@ -2282,8 +2325,8 @@ function renderTrend(){
   const n = rangeLen(t), days = periodDays(n), prevDays = pgRange==="all" ? null : periodDays(n, n);
   const chip = (attr, v, l, cur) => `<button class="chip" data-${attr}="${v}" aria-pressed="${String(cur)===String(v)}">${l}</button>`;
   const p = prof(t), now = Date.now();
-  let h = `<div class="stickctl">` + (many() ? `<div class="kidseg seg">${kids.map(k=>`<button type="button" data-kid="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${k.id===t}">${esc(k.name)}</button>`).join("")}</div>` : "");
-  h += `<div class="when" role="group" aria-label="Period"${stageOf(t)==="child"?" hidden":""}>${chip("rng",7,"7 d",pgRange)}${chip("rng",14,"14 d",pgRange)}${chip("rng",30,"30 d",pgRange)}${chip("rng","all","All",pgRange)}</div></div>`;
+  let h = `<div class="stickctl">` + (many() ? `<div class="kidseg seg hs">${kids.map(k=>`<button type="button" data-kid="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${k.id===t}">${esc(k.name)}</button>`).join("")}</div>` : "");
+  h += `<div class="when" role="group" aria-label="Period"${stageOf(t)==="child"?" hidden":""}>${chip("rng",7,"7 days",pgRange)}${chip("rng",14,"14 days",pgRange)}${chip("rng",30,"30 days",pgRange)}${chip("rng","all","All",pgRange)}</div></div>`;
 
   // header
   let age = "";
@@ -2292,7 +2335,7 @@ function renderTrend(){
     if (life >= 365){ const y = Math.floor(life/365.25), mo = Math.floor((life - y*365.25)/30.4375); age = `${y} year${y>1?"s":""}${mo?` ${mo} month${mo>1?"s":""}`:""}`; }
     else if (life >= 60 || !isPreterm(t)){ const mo = Math.floor(life/30.4375); age = life < 60 ? `${Math.floor(life)} days old` : `${mo} months` + (isPreterm(t) ? ` · corrected ${Math.floor(Math.max(0,corr)/30.4375)} months` : ""); }
     else age = `${Math.floor(life)} days old · ${corr>=0 ? `corrected age ${Math.floor(corr/7)} wk ${Math.floor(corr%7)} d` : `${Math.ceil(-corr)} days to term`}`;
-    age += ` · ${STAGES.find(x=>x[0]===stageOf(t))[1]} stage`; }
+    age += ` · ${stageOf(t)} stage`; }                // newborn / infant / child, lower case: an adjective in Italian
   h += `<div class="chartcard" style="--c:${KID(t).c}"><div class="cc-head"><div><div class="g-name">${esc(KID(t).name)}</div><div class="gs-age">${age || `<button class="linkbtn" data-goto="settings" style="padding:0">Add birth details in Settings</button>`}</div></div>
 </div>`;
   // signals
@@ -2345,7 +2388,7 @@ function renderTrend(){
 }
 
 /* ---------- settings ---------- */
-const APP_VERSION = "2.4.1";
+const APP_VERSION = "2.4.2";
 const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
 function renderSettings(){
@@ -2396,7 +2439,7 @@ function renderSettings(){
     <div class="seg" id="themeSeg">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${theme===v}">${l}</button>`).join("")}</div></div>
 
   <h2 class="sgrp">Data and app</h2>
-  <div class="sect">${sh("Sync and sharing", "sync", isLocal() ? "Entries and children created here are uploaded when you connect." : "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run <code>addAccessCode()</code>: existing codes keep working). Never share codes in public places.")}
+  <div class="sect">${sh("Sync and sharing", "sync", isLocal() ? "Entries and children created here are uploaded when you connect." : "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run <code class='notr'>addAccessCode()</code>: existing codes keep working). Never share codes in public places.")}
     ${isLocal() ? `<p class="row2">Using this device only${pend ? ` · ${pend} change${pend>1?"s":""} not shared yet` : ""}</p>
     <button class="btn wide" id="connectBtn">Connect to a shared log</button>` : `
     <p class="row2">${lastSync ? `Last sync ${fmtDate(lastSync)} ${hm(lastSync)}` : "Not synced yet"}${pend ? ` · ${pend} change${pend>1?"s":""} waiting to be sent` : ""}</p>
@@ -2411,7 +2454,7 @@ function renderSettings(){
 
   <div class="sect">${sh("About", "about", "Growth references: WHO Child Growth Standards (2006); INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), reference tables via the open-source gigs package (LSHTM).")}
     <p class="row2"><b>Baby log</b> ${APP_VERSION}</p>
-    <p class="row2">Created by <b>Matteo Moschitta</b> · <a href="https://github.com/Xeroxi91" target="_blank" rel="noopener">Xeroxi91</a> · <a href="https://matteomoschitta.it" target="_blank" rel="noopener">matteomoschitta.it</a></p>
+    <p class="row2">Created by <b class="notr">Matteo Moschitta</b> · <a class="notr" href="https://github.com/Xeroxi91" target="_blank" rel="noopener">Xeroxi91</a> · <a class="notr" href="https://matteomoschitta.it" target="_blank" rel="noopener">matteomoschitta.it</a></p>
     <p class="note">Not a medical device: charts support conversations with your paediatrician and do not replace clinical assessment.</p>
     <p class="note">License: PolyForm Noncommercial 1.0.0 · <a href="${REPO_URL}" target="_blank" rel="noopener">Source code</a></p></div>`;
   $("#setKids").onclick = openProfile;
@@ -2495,7 +2538,7 @@ $("#profForm").onsubmit = async e=>{
 $("#profCancel").onclick = ()=>$("#profDlg").close();
 
 /* ---------- what's new ---------- */
-const CHANGELOG = [["2.4.1", "More compact screens: doses given appear on the same line as the reminder; longer explanations in Settings, Progress and the forms are behind an ⓘ button. Settings are grouped into Family (shared), This phone, and Data and app, most used first; What's new shows only the latest version. Fixed some Italian translations (stages, pending changes).", "Schermate più compatte: le dosi date compaiono sulla stessa riga del promemoria; le spiegazioni lunghe in Impostazioni, Andamento e nei moduli sono dietro un pulsante ⓘ. le Impostazioni sono divise in Famiglia (condivise), Questo telefono e Dati e app, con le più usate in alto; Novità mostra solo l'ultima versione. Corrette alcune traduzioni italiane (fasi, modifiche in attesa)."], ["2.4.0", "Each reminder has its own notification frequency, for the whole family: none, once, or every 15 min / 30 min / hour until it is given; with “Also at night” it rings in quiet hours too.", "Ogni promemoria ha la sua frequenza di notifica, per tutta la famiglia: nessuna, una volta, oppure ogni 15 min / 30 min / ora finché non è dato; con “Anche di notte” suona anche nelle ore di silenzio."], ["2.3.0", "Notifications, chosen on each phone in Settings → Notifications (off by default): reminders due, a feed gap over the threshold, a breastfeeding timer still running after 45 min; a banner in the app and phone notifications while the app is open or in the background; optional quiet hours 22:00–7:00. The Day tab and the app icon show how many reminders are due.", "Notifiche, scelte su ogni telefono in Impostazioni → Notifiche (disattivate di default): promemoria da dare, pausa tra le poppate oltre la soglia, timer dell'allattamento ancora acceso dopo 45 min; un avviso nell'app e le notifiche del telefono con l'app aperta o in background; silenzio 22:00–7:00 facoltativo. La scheda Giorno e l'icona dell'app mostrano quanti promemoria ci sono da dare."], ["2.2.0", "Signals have one switch, in Settings → Features: off by default, the same on every phone of the family; the Signals section appears only when they are on. If a phone had them on, they stay on.", "I segnali hanno un solo interruttore, in Impostazioni → Funzioni: disattivati di default, uguali su tutti i telefoni della famiglia; la sezione Segnali compare solo quando sono attivi. Se un telefono li aveva attivi, restano attivi."], ["2.1.1", "Parents' reminders in Day read like the children's: one card per reminder, marked “For you” in a colour no child uses, after the children's reminders. A dose taken can be edited (time or delete) and the reminder can be changed from Day.", "I promemoria dei genitori in Giorno si leggono come quelli dei figli: una scheda per promemoria, indicata “Per te” con un colore che nessun figlio usa, dopo i promemoria dei figli. Una dose presa si può modificare (orario o eliminazione) e il promemoria si può cambiare anche da Giorno."], ["2.1.0", "Parents' reminders (off by default, Settings → Features): a “For you” card in Day and a badge on the Day tab when something is due. Each reminder is kept on this phone only, or shared with the other parent encrypted with a family passphrase that cannot be recovered.", "Promemoria dei genitori (disattivati di default, Impostazioni → Funzioni): una scheda “Per te” in Giorno e un badge sulla scheda Giorno quando c'è qualcosa da prendere. Ogni promemoria resta solo su questo telefono, oppure è condiviso con l'altro genitore cifrato con una frase segreta della famiglia che non si può recuperare."], ["2.0.0", "Settings → Features: switch modules on and off for the whole family (notes, children's reminders, pumping, test weighing, detailed progress, signals, night mode, export). Turning one off only hides it; nothing is deleted. Pumping and test weighing start off unless already used.", "Impostazioni → Funzioni: attiva e disattiva i moduli per tutta la famiglia (note, promemoria dei figli, tiralatte, doppia pesata, andamento dettagliato, segnali, modalità notte, esportazione). Disattivarne uno lo nasconde soltanto; non viene eliminato nulla. Tiralatte e doppia pesata partono disattivati se non sono già in uso."], ["1.15.0", "One reminder for several children: same dose and times, one card in Day with a row per child and “Give to all”; edits apply to all.", "Un promemoria per più figli: stessa dose e stessi orari, una sola scheda in Giorno con una riga per figlio e “Dai a tutti”; le modifiche valgono per tutti."], ["1.14.4", "Event form: the browser no longer validates fields (it could reject a valid weight); the app checks values itself.", "Finestra evento: il browser non convalida più i campi (poteva rifiutare un peso valido); i valori li controlla l'app."], ["1.14.3", "Children's profile: decimals with a comma (e.g. 34,5 cm) are accepted; invalid values are shown in red with the allowed range.", "Profilo dei figli: accettati i decimali con la virgola (es. 34,5 cm); i valori non validi sono evidenziati in rosso con l'intervallo ammesso."], ["1.14.2", "Weight in grams could be refused as \"not valid\": fixed.", "Il peso in grammi poteva essere rifiutato come \"valore non valido\": corretto."], ["1.14.1", "A time in the future is caught when saving (with the option to use the day before); future entries no longer distort the gaps in the log.", "Un orario nel futuro viene segnalato al salvataggio (con la possibilità di usare il giorno prima); gli eventi futuri non falsano più le pause nel registro."], ["1.14.0", "Feels like an app (no zoom or browser gestures); sync state always visible; faster sync: recent days first, earlier ones on request, quick checks when nothing changed; at night today also shows yesterday evening.", "Si comporta come un'app (niente zoom né gesti del browser); stato della sincronizzazione sempre visibile; sincronizzazione più veloce: prima i giorni recenti, i precedenti su richiesta, controlli rapidi quando non cambia nulla; di notte oggi mostra anche la sera precedente."], ["1.13.5", "Each dose given appears under its reminder: tap its time to change or delete it.", "Ogni dose data compare sotto il suo promemoria: tocca l'orario per modificarla o eliminarla."], ["1.13.4", "Forms open without opening their first field.", "Le finestre si aprono senza aprire il primo campo."], ["1.13.3", "The children selected in the logging panel are remembered on this device; from Progress, ＋ opens on the child being viewed.", "La selezione dei figli nel pannello di inserimento resta memorizzata sul dispositivo; da Andamento il ＋ si apre sul figlio che stai guardando."], ["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
+const CHANGELOG = [["2.4.2", "The header stays at the top, so the content no longer slides under the clock, and the last row scrolls above the ＋. One card for a feed in progress, with a full-width “End feed” button. Child pickers in one row that scrolls; tables in Progress keep their first column in place and show “scroll →”. English words left in the Italian interface are fixed (also S/D for the breast side).", "L'intestazione resta in alto, così il contenuto non scorre più sotto l'ora, e l'ultima riga scorre sopra il ＋. Una sola scheda per la poppata in corso, con il pulsante “Termina poppata” a tutta larghezza. Figli da scegliere in una riga che scorre; le tabelle in Andamento tengono ferma la prima colonna e mostrano “scorri →”. Corrette le parole inglesi rimaste nell'interfaccia italiana (anche S/D per il lato del seno)."], ["2.4.1", "More compact screens: doses given appear on the same line as the reminder; longer explanations in Settings, Progress and the forms are behind an ⓘ button. Settings are grouped into Family (shared), This phone, and Data and app, most used first; What's new shows only the latest version. Fixed some Italian translations (stages, pending changes).", "Schermate più compatte: le dosi date compaiono sulla stessa riga del promemoria; le spiegazioni lunghe in Impostazioni, Andamento e nei moduli sono dietro un pulsante ⓘ. le Impostazioni sono divise in Famiglia (condivise), Questo telefono e Dati e app, con le più usate in alto; Novità mostra solo l'ultima versione. Corrette alcune traduzioni italiane (fasi, modifiche in attesa)."], ["2.4.0", "Each reminder has its own notification frequency, for the whole family: none, once, or every 15 min / 30 min / hour until it is given; with “Also at night” it rings in quiet hours too.", "Ogni promemoria ha la sua frequenza di notifica, per tutta la famiglia: nessuna, una volta, oppure ogni 15 min / 30 min / ora finché non è dato; con “Anche di notte” suona anche nelle ore di silenzio."], ["2.3.0", "Notifications, chosen on each phone in Settings → Notifications (off by default): reminders due, a feed gap over the threshold, a breastfeeding timer still running after 45 min; a banner in the app and phone notifications while the app is open or in the background; optional quiet hours 22:00–7:00. The Day tab and the app icon show how many reminders are due.", "Notifiche, scelte su ogni telefono in Impostazioni → Notifiche (disattivate di default): promemoria da dare, pausa tra le poppate oltre la soglia, timer dell'allattamento ancora acceso dopo 45 min; un avviso nell'app e le notifiche del telefono con l'app aperta o in background; silenzio 22:00–7:00 facoltativo. La scheda Giorno e l'icona dell'app mostrano quanti promemoria ci sono da dare."], ["2.2.0", "Signals have one switch, in Settings → Features: off by default, the same on every phone of the family; the Signals section appears only when they are on. If a phone had them on, they stay on.", "I segnali hanno un solo interruttore, in Impostazioni → Funzioni: disattivati di default, uguali su tutti i telefoni della famiglia; la sezione Segnali compare solo quando sono attivi. Se un telefono li aveva attivi, restano attivi."], ["2.1.1", "Parents' reminders in Day read like the children's: one card per reminder, marked “For you” in a colour no child uses, after the children's reminders. A dose taken can be edited (time or delete) and the reminder can be changed from Day.", "I promemoria dei genitori in Giorno si leggono come quelli dei figli: una scheda per promemoria, indicata “Per te” con un colore che nessun figlio usa, dopo i promemoria dei figli. Una dose presa si può modificare (orario o eliminazione) e il promemoria si può cambiare anche da Giorno."], ["2.1.0", "Parents' reminders (off by default, Settings → Features): a “For you” card in Day and a badge on the Day tab when something is due. Each reminder is kept on this phone only, or shared with the other parent encrypted with a family passphrase that cannot be recovered.", "Promemoria dei genitori (disattivati di default, Impostazioni → Funzioni): una scheda “Per te” in Giorno e un badge sulla scheda Giorno quando c'è qualcosa da prendere. Ogni promemoria resta solo su questo telefono, oppure è condiviso con l'altro genitore cifrato con una frase segreta della famiglia che non si può recuperare."], ["2.0.0", "Settings → Features: switch modules on and off for the whole family (notes, children's reminders, pumping, test weighing, detailed progress, signals, night mode, export). Turning one off only hides it; nothing is deleted. Pumping and test weighing start off unless already used.", "Impostazioni → Funzioni: attiva e disattiva i moduli per tutta la famiglia (note, promemoria dei figli, tiralatte, doppia pesata, andamento dettagliato, segnali, modalità notte, esportazione). Disattivarne uno lo nasconde soltanto; non viene eliminato nulla. Tiralatte e doppia pesata partono disattivati se non sono già in uso."], ["1.15.0", "One reminder for several children: same dose and times, one card in Day with a row per child and “Give to all”; edits apply to all.", "Un promemoria per più figli: stessa dose e stessi orari, una sola scheda in Giorno con una riga per figlio e “Dai a tutti”; le modifiche valgono per tutti."], ["1.14.4", "Event form: the browser no longer validates fields (it could reject a valid weight); the app checks values itself.", "Finestra evento: il browser non convalida più i campi (poteva rifiutare un peso valido); i valori li controlla l'app."], ["1.14.3", "Children's profile: decimals with a comma (e.g. 34,5 cm) are accepted; invalid values are shown in red with the allowed range.", "Profilo dei figli: accettati i decimali con la virgola (es. 34,5 cm); i valori non validi sono evidenziati in rosso con l'intervallo ammesso."], ["1.14.2", "Weight in grams could be refused as \"not valid\": fixed.", "Il peso in grammi poteva essere rifiutato come \"valore non valido\": corretto."], ["1.14.1", "A time in the future is caught when saving (with the option to use the day before); future entries no longer distort the gaps in the log.", "Un orario nel futuro viene segnalato al salvataggio (con la possibilità di usare il giorno prima); gli eventi futuri non falsano più le pause nel registro."], ["1.14.0", "Feels like an app (no zoom or browser gestures); sync state always visible; faster sync: recent days first, earlier ones on request, quick checks when nothing changed; at night today also shows yesterday evening.", "Si comporta come un'app (niente zoom né gesti del browser); stato della sincronizzazione sempre visibile; sincronizzazione più veloce: prima i giorni recenti, i precedenti su richiesta, controlli rapidi quando non cambia nulla; di notte oggi mostra anche la sera precedente."], ["1.13.5", "Each dose given appears under its reminder: tap its time to change or delete it.", "Ogni dose data compare sotto il suo promemoria: tocca l'orario per modificarla o eliminarla."], ["1.13.4", "Forms open without opening their first field.", "Le finestre si aprono senza aprire il primo campo."], ["1.13.3", "The children selected in the logging panel are remembered on this device; from Progress, ＋ opens on the child being viewed.", "La selezione dei figli nel pannello di inserimento resta memorizzata sul dispositivo; da Andamento il ＋ si apre sul figlio che stai guardando."], ["1.13.2", "Reminders appear from the day they are created, not on earlier days.", "I promemoria compaiono dal giorno in cui vengono creati, non nei giorni precedenti."], ["1.13.1", "Gaps in the log are measured from the end of the last event (a top-up after a breastfeed counts); “What's new” in Settings.", "Le pause nel registro si misurano dalla fine dell'ultimo evento (conta anche l'aggiunta dopo il seno); sezione “Novità” nelle Impostazioni."], ["1.13.0", "Italian interface; sample data to try the app; signals off by default (descriptive view); diary completeness; export to CSV and JSON; weight in kg from 1 year with age-based plausibility checks.", "Interfaccia in italiano; dati di esempio per provare l'app; segnali disattivati di default (vista descrittiva); completezza del diario; esportazione CSV e JSON; peso in kg da 1 anno con controllo dei valori plausibili per età."], ["1.12.0", "Night mode: very dark warm colours, bigger buttons, automatic 22:00–6:00.", "Modalità notte: colori molto scuri e caldi, pulsanti più grandi, automatica 22:00–6:00."], ["1.11.0", "Pumping sessions for the parent; optional test weighing before and after a breastfeed.", "Sessioni di tiralatte per il genitore; doppia pesata facoltativa prima e dopo il seno."], ["1.10.1", "Signal age bands fixed for children over 1 year.", "Corrette le fasce d'età dei segnali per i bambini oltre 1 anno."], ["1.10.0", "Logging panel: select one or more children; actions 4 per row.", "Pannello di inserimento: selezione di uno o più figli; azioni 4 per riga."], ["1.9.1", "Neutral title at the top, customisable per device.", "Titolo neutro in alto, personalizzabile per dispositivo."], ["1.9.0", "Reminders every few hours with next dose time and countdown; optional end date.", "Promemoria ogni tot ore con orario della prossima dose e conto alla rovescia; data di fine facoltativa."], ["1.8.0", "Stages per child (Newborn, Infant, Child); WHO growth curves up to 19 years and BMI.", "Fasi per figlio (Newborn, Infant, Child); curve di crescita OMS fino a 19 anni e IMC."], ["1.7.0", "Notes with quick tags and temperature; daily reminders (e.g. vitamin D).", "Note con etichette rapide e temperatura; promemoria giornalieri (es. vitamina D)."], ["1.6.1", "Clearer feed grouping in the log, with the time of each item.", "Raggruppamento delle poppate più chiaro nel registro, con l'orario di ogni elemento."], ["1.6.0", "New layout: bottom bar, floating ＋ button, Day and Log merged, pinned controls.", "Nuovo layout: barra in basso, pulsante ＋ fluttuante, Giorno e Registro uniti, comandi fissi."], ["1.5.0", "Signal thresholds that follow the baby's age, or custom values.", "Soglie dei segnali che seguono l'età, oppure valori personalizzati."], ["1.4.0", "Use on this device only, and connect to a shared log later.", "Uso solo su questo dispositivo, con collegamento a un diario condiviso in seguito."], ["1.3.0", "Progress view for one child at a time.", "Andamento per un figlio alla volta."], ["1.2.0", "Offline-first sync, breast side, formula or expressed milk, tandem feeds, Settings.", "Sincronizzazione offline-first, lato del seno, formula o latte estratto, allattamento in tandem, Impostazioni."]];
 function changelogHtml(){
   const it = LANG==="it", row = ([v,en,itx]) => `<li><b>${v}</b> ${esc(it ? itx : en)}</li>`;
   return `<div class="sect notr"><h3>${it ? "Novità" : "What's new"}</h3><ul class="clog">${CHANGELOG.slice(0,1).map(row).join("")}</ul>
@@ -2587,7 +2630,7 @@ setInterval(()=>{ if (!document.hidden && meds.some(m=>Number(m.every)>0) && !do
 $("#fab").onclick = ()=>{
   // from Progress, the panel opens on the child being viewed
   if (!$("#tab-trend").hidden){ const t = curKid(); if (t && !picks.includes(t) || picks.length > 1 && t){ picks = [t]; applyKids(); } }
-  $("#sheet").showModal();
+  $("#sheet").showModal(); scrollHints();
 };
 $("#sheetClose").onclick = ()=>$("#sheet").close();
 $("#sheet").addEventListener("click", e=>{ if (e.target.id==="sheet") $("#sheet").close(); });   // tap outside closes
