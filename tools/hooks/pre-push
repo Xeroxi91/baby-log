@@ -1,18 +1,16 @@
 #!/bin/sh
 # Pre-push hook (versioned; installed by tools/setup-hooks.sh through core.hooksPath).
 # 1. The public remote receives only main → main: no other branch, no tags, no deletions.
-# 2. A main that contains private files is refused on every remote. Always private:
-#    modules/extensions.js, docs/private/ and an index.html whose meta "extensions" names a file;
-#    more paths may be listed, one per line, in docs/private/private-paths on the local "family" branch.
+# 2. A main that ships extensions is refused on every remote: modules/extensions.js, an index.html whose
+#    meta "extensions" names a file, and any path listed in the local git config `privacy.paths`
+#    (space-separated; set by whoever keeps private work in this clone, never versioned here).
 remote="$1"; url="$2"
 zero=0000000000000000000000000000000000000000
 public=0
 [ "$remote" = "origin" ] && public=1
 echo "$url" | grep -Eq 'Xeroxi91/baby-log(\.git)?$' && public=1
 
-private="modules/extensions.js docs/private/"
-extra=$(git show refs/heads/family:docs/private/private-paths 2>/dev/null | grep -v '^#' | tr '\n' ' ')
-private="$private $extra"
+private="modules/extensions.js $(git config --get privacy.paths)"
 
 status=0
 while read -r local_ref local_sha remote_ref remote_sha; do
@@ -21,6 +19,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
     status=1; continue
   fi
   if [ "$remote_ref" = "refs/heads/main" ] && [ "$local_sha" != "$zero" ]; then
+    [ -n "$(git config --get privacy.paths)" ] || echo "pre-push: note: no privacy.paths configured in this clone." >&2
     files=$(git ls-tree -r --name-only "$local_sha")
     for p in $private; do
       if echo "$files" | grep -q "^$p"; then
