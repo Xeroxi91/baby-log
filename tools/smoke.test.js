@@ -18,7 +18,7 @@ function device(pre, setup){
   Object.defineProperty(w, 'crypto', {value: require('crypto').webcrypto});
   w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
   w.__imp = async p => w.eval(fs.readFileSync(path.join(__dirname, '..', p), 'utf8').replace(/^export /m, '') + ';({init})');
-  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID,initials,isNight,openRestore};');
+  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID,initials,isNight,openRestore,signals,wTxt};');
   return w;
 }
 const sleep = ms => new Promise(r=>setTimeout(r, ms));
@@ -326,6 +326,16 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.ok(props.KEYS===keysBefore && A.localStorage.getItem('bl-key')==='GOOD', 'access codes untouched');
   await A.__t.openRestore('{"app":"other"}'); await sleep(100);
   assert.ok(d.querySelector('#restOk').hidden, 'not a backup: nothing to restore'); d.querySelector('#restCancel').click();
+  // signals from notes only where their text applies; weight in kg at the Child stage
+  const kA = JSON.parse(props.PROFILE).children[0];
+  await A.addEvents([{kind:'note', child:kA.id, ts:Date.now()-30*60000, temp:39}]); await sleep(400);
+  assert.ok(A.__t.signals(kA.id).some(x=>/Temperature/.test(x.title)), 'fever under 3 months: signal');
+  assert.strictEqual(A.__t.wTxt(kA.id, 3050), '3050 g', 'a newborn is weighed in grams');
+  const pr = JSON.parse(props.PROFILE).children.map(c=>c.id===kA.id ? {...c, stage:'child'} : c);
+  api.doPost({postData:{contents:JSON.stringify({key:'GOOD', action:'saveProfile', args:[{children:pr}]})}}); props.REV = String(Date.now()+1);
+  await A.__t.refresh(); await sleep(100);
+  assert.ok(!A.__t.signals(kA.id).some(x=>/Temperature|vomit|hard to wake|pale/i.test(x.title)), 'Child stage: no newborn signals');
+  assert.strictEqual(A.__t.wTxt(kA.id, 13000), '13 kg', 'Child stage: kilograms');
   console.log('smoke test passed');
   process.exit(0);
 })().catch(e=>{ console.error('FAILED:', e.stack); process.exit(1); });
