@@ -221,6 +221,14 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   fake += 16*60000; await A.__t.refresh(); A.checkNotices();
   assert.strictEqual(sent.length, n0 + 2, 'no notification when the reminder is set to none');
   A.Date = RealDate; delete d.visibilityState;
+  // log an event: the six usual entries; height, notes and pumping behind "More"; Close at the bottom
+  d.querySelector('#fab').click(); await sleep(20);
+  assert.ok(!d.querySelector('.sheet .actions').classList.contains('open') && !d.querySelector('#moreLn').hidden, 'less used entries closed');
+  assert.ok(d.querySelector('#moreTxt').textContent.startsWith('Height'), 'the line says what is behind More');
+  d.querySelector('#moreBtn').click();
+  assert.ok(d.querySelector('.sheet .actions').classList.contains('open') && d.querySelector('#moreLn').hidden, 'More opens them');
+  d.querySelector('#sheetClose').click(); d.querySelector('#fab').click(); await sleep(20);
+  assert.ok(!d.querySelector('.sheet .actions').classList.contains('open'), 'closed again at the next opening'); d.querySelector('#sheetClose').click();
   // Settings: an index; each page has its own address, so Back returns to the index; no ＋ in Settings
   d.querySelector('[data-tab="settings"]').click(); await sleep(20);
   assert.ok(!d.querySelector('.sindex').hidden && d.querySelector('#fab').hidden && d.querySelector('#title').textContent==='Settings', 'Settings index, no ＋');

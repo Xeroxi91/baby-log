@@ -334,10 +334,19 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .actions [data-a][hidden]{display:none}
 .lbl2{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);margin-bottom:10px}
 .lbl2 input{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:10px;font-size:1rem}
-.sheet .actions{grid-template-columns:repeat(4,1fr);gap:6px}
-.sheet .act{min-height:58px;padding:6px 2px;border-radius:12px;gap:2px}
-.sheet .act .ico{font-size:1.15rem}
-.sheet .act .lbl{font-size:.72rem;font-weight:700}
+/* log an event: the six usual entries in a 3 × 2 grid, the others behind "More"; Close at the bottom */
+.sheet .grab{width:40px;height:5px;border-radius:999px;background:var(--line2);margin:0 auto 10px}
+.sheet-t{margin:0 0 14px;font-size:1.35rem;font-weight:700}
+.sheet .when{flex-wrap:nowrap;margin-bottom:14px}
+.sheet .when .chip{flex:none;min-height:var(--hit);padding:0 14px;font-size:1rem}
+.sheet .actions{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.sheet .act{min-height:84px;padding:6px 4px;border-radius:16px;gap:4px;background:var(--surface2);box-shadow:inset 0 0 0 1px var(--line)}
+.sheet .act .ico{font-size:1.6rem}
+.sheet .act .lbl{font-size:1.02rem;font-weight:600}
+.sheet .actions:not(.open) .xtra{display:none}
+.moreln{margin:12px 0 0;text-align:center;color:var(--muted);font-size:.94rem}
+.moreln .linkbtn{font-size:inherit;padding:6px 2px}
+.sclose{display:block;width:100%;margin-top:12px;min-height:var(--hit)}
 .pumpc{background:var(--surface);border-radius:12px;padding:8px 12px;margin-bottom:10px;border-left:4px solid var(--both)}
 .pumph{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .pumph span{color:var(--muted);font-size:.85rem}
@@ -355,9 +364,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
   --ok:oklch(0.72 0.07 150); --ok-soft:oklch(0.18 0.03 150); --live:oklch(0.62 0.08 150);
   --refband:rgba(140,114,88,.10); --refband2:rgba(140,114,88,.12)}
 :root[data-night] .ico, :root[data-night] .ritem button, :root[data-night] .nightbtn, :root[data-night] .bottomnav .ni{filter:brightness(.65) saturate(.7)}
-:root[data-night] .sheet .act{min-height:76px}
-:root[data-night] .sheet .act .ico{font-size:1.5rem}
-:root[data-night] .sheet .act .lbl{font-size:.82rem}
+
 :root[data-night] .scard .big{font-size:1.7rem}
 :root[data-night] .fab{box-shadow:none}
 :root[data-night] img, :root[data-night] svg{opacity:.85}
@@ -489,10 +496,10 @@ img,svg{-webkit-user-drag:none}
 
 <dialog id="langDlg" class="sheet" tabindex="-1"></dialog>
 <dialog id="sheet" class="sheet" tabindex="-1" autofocus><div class="sheet-in">
-  <div class="sheet-h"><b>Log an event</b><button type="button" class="linkbtn" id="sheetClose">Close</button></div>
+  <div class="grab" aria-hidden="true"></div><h2 class="sheet-t">Log an event</h2>
   <div class="who hs" id="who" role="group" aria-label="Who" hidden></div>
 
-  <div class="when" role="group" aria-label="When">
+  <div class="when hs" role="group" aria-label="When">
     <button class="chip" data-w="now" aria-pressed="true">Now</button>
     <button class="chip" data-w="-15" aria-pressed="false">−15′</button>
     <button class="chip" data-w="-30" aria-pressed="false">−30′</button>
@@ -508,10 +515,12 @@ img,svg{-webkit-user-drag:none}
     <button class="act" data-a="poo"><span class="ico">💩</span><span class="lbl">Poo</span></button>
     <button class="act" data-a="diaper"><span class="ico">💧💩</span><span class="lbl">Pee + poo</span></button>
     <button class="act" data-a="weight"><span class="ico">⚖️</span><span class="lbl">Weight</span></button>
-    <button class="act" data-a="len"><span class="ico">📏</span><span class="lbl">Height</span></button>
-    <button class="act" data-a="note"><span class="ico">📝</span><span class="lbl">Note</span></button>
-    <button class="act" data-a="pump"><span class="ico">🥛</span><span class="lbl">Pumping</span></button>
+    <button class="act xtra" data-a="len"><span class="ico">📏</span><span class="lbl">Height</span></button>
+    <button class="act xtra" data-a="note"><span class="ico">📝</span><span class="lbl">Note</span></button>
+    <button class="act xtra" data-a="pump"><span class="ico">🥛</span><span class="lbl">Pumping</span></button>
   </div>
+  <p class="moreln" id="moreLn"><span id="moreTxt"></span> <button type="button" class="linkbtn" id="moreBtn">More</button></p>
+  <button type="button" class="btn ghost wide sclose" id="sheetClose">Close</button>
 
 </div></dialog>
 
@@ -784,7 +793,7 @@ const IT = {
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
 "7 days":"7 g","14 days":"14 g","30 days":"30 g",
-"Colour":"Colore","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active · quiet 22–7":"Attive · silenzio 22–7","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"Colour":"Colore","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active · quiet 22–7":"Attive · silenzio 22–7","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
 "Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
 "scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
 "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
@@ -1878,7 +1887,14 @@ const appTitle = () => { try { return localStorage.getItem("bl-title") || "Baby 
 function stageActs(){   // older children: only weight, height and notes
   const child = picks.length > 0 && picks.every(id=>stageOf(id)==="child");
   document.querySelectorAll('.actions [data-a]').forEach(b=>{ b.hidden = (child && ["breast","bottle","pee","poo","diaper"].includes(b.dataset.a)) || (b.dataset.a==="pump" && (!logIds().length || !featOn("pump"))) || (b.dataset.a==="note" && !featOn("notes")); });
+  // the less used entries are behind "More" (open by themselves for older children, who have few entries)
+  const on = a => { const b = document.querySelector(`.sheet [data-a="${a}"]`); return b && !b.hidden; };
+  const note = on("note"), pump = on("pump");
+  $("#moreTxt").textContent = note && pump ? "Height, notes and pumping:" : note ? "Height and notes:" : pump ? "Height and pumping:" : "Height:";
+  if (child) $(".sheet .actions").classList.add("open");
+  $("#moreLn").hidden = child || $(".sheet .actions").classList.contains("open");
 }
+$("#moreBtn").onclick = ()=>{ $(".sheet .actions").classList.add("open"); $("#moreLn").hidden = true; };
 function applyKids(){
   picks = picks.filter(id=>kids.some(k=>k.id===id));
   if (!picks.length && kids.length) picks = [logIds()[0] || kids[0].id];
@@ -2778,6 +2794,7 @@ $("#fab").onclick = ()=>{
   const m = tabMod(); if (m){ if (m.fab) m.fab(); return; }
   // from Progress, the panel opens on the child being viewed
   if (!$("#tab-trend").hidden){ const t = curKid(); if (t && !picks.includes(t) || picks.length > 1 && t){ picks = [t]; applyKids(); } }
+  $(".sheet .actions").classList.remove("open"); stageActs();      // the less used entries start closed
   $("#sheet").showModal(); scrollHints();
 };
 $("#sheetClose").onclick = ()=>$("#sheet").close();
