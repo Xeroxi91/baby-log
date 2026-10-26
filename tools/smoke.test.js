@@ -59,7 +59,10 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   await A.__t.refresh();
   assert.strictEqual(A.__t.events.length, 1, 'deletion reaches device A');
 
-  d.querySelector('[data-tab="settings"]').click(); d.querySelector('#addMed').click();
+  // one "Add reminder" for children and parents: it asks for whom
+  d.querySelector('[data-tab="settings"]').click(); d.querySelector('#remAdd').click();
+  assert.ok(d.querySelector('#forDlg').open && d.querySelectorAll('#forDlg [data-for]').length === 2, 'asks for which child');
+  d.querySelector('#forDlg [data-for]').click();
   d.querySelectorAll('#mKids button').forEach(b=>{ if (b.getAttribute('aria-pressed')!=='true') b.click(); });
   d.querySelector('#mName').value = 'Vitamin D';
   d.querySelector('#medForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(200);
@@ -105,12 +108,12 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   await A.__t.refresh(); await sleep(50);
   assert.ok(A.__t.featOn('signals') && !d.querySelector('#thrMode').closest('.sect').hidden, 'Signals section shown on the other phone');
   // parents' reminders: off by default; a module loaded only when switched on
-  assert.ok(!A.__t.featOn('pmeds') && !d.querySelector('#pmAdd'), "parents' reminders off by default");
+  assert.ok(!A.__t.featOn('pmeds') && !d.querySelector('[data-pmunlock]'), "parents' reminders off by default");
   d.querySelector('[data-tab="settings"]').click();
   sw(A, 'pmeds').checked = true; sw(A, 'pmeds').dispatchEvent(new A.Event('change')); await sleep(300);
-  assert.ok(d.querySelector('#pmAdd'), 'module loaded and shown in Settings');
+  assert.ok(d.querySelector('.spage[data-page="family"] [data-pmunlock]'), 'module loaded: family passphrase in Settings → Family');
   const addPm = async (dev, name, shared) => { const q = s => dev.document.querySelector(s);
-    q('#pmAdd').click(); q('#pmName').value = name; q('#pmDue').value = '0';
+    q('#remAdd').click(); q('#forDlg [data-for="you"]').click(); q('#pmName').value = name; q('#pmDue').value = '0';
     q(`#pmWhere [data-v="${shared ? 'shared' : 'local'}"]`).click();
     q('#pmForm').dispatchEvent(new dev.Event('submit', {cancelable:true})); await sleep(100); };
   await addPm(A, 'Iron', false);
@@ -194,7 +197,7 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   delete d.visibilityState;
   // frequency chosen in each reminder (for the family): repeated ones come back until given, also in quiet hours
   d.querySelector('[data-tab="settings"]').click(); await sleep(20);
-  d.querySelector('#addMed').click(); d.querySelector('#mName').value = 'Antibiotic'; d.querySelector('#mDue').value = '0';
+  d.querySelector('#remAdd').click(); d.querySelector('#forDlg [data-for]').click(); d.querySelector('#mName').value = 'Antibiotic'; d.querySelector('#mDue').value = '0';
   d.querySelector('#mNotify').value = '15'; d.querySelector('#mNight').checked = true;
   d.querySelector('#medForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(300);
   const ab = JSON.parse(props.MEDS).find(m=>m.name==='Antibiotic');

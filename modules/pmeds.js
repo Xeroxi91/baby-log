@@ -184,21 +184,23 @@ export function init(app){
   }
 
   /* ---------- Settings ---------- */
+  // Settings → Reminders: the list (one "Add" for children and parents is in the app); Settings → Family: the passphrase
   function settingsHtml(){
-    const st = app.isLocal() ? "Shared reminders need a shared log." : !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
     const lk = locked();
-    return `<div class="sect">${app.sh("Parents' reminders", "pmeds", all().length ? "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app." : "",
+    return `<div class="sect">${app.sh("For you", "pmeds", all().length ? "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app." : "",
         "Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.")}
       ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw parent"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
         : `<p class="note" style="margin:0">Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.</p>`}
-      ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}
-      <button class="btn ghost wide" id="pmAdd">＋ Add reminder for you</button>
-      <p class="row2" style="margin:4px 0 0">${st}</p>
-      ${app.isLocal() ? "" : !app.pmeds ? `<button class="btn ghost wide" data-pmunlock>Set passphrase</button>`
+      ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}</div>`;
+  }
+  function familyHtml(){
+    if (app.isLocal()) return "";
+    const st = !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
+    return `<div class="sect"><h3>Family passphrase</h3><p class="row2" style="margin:0">${st}</p>
+      ${!app.pmeds ? `<button class="btn ghost wide" data-pmunlock>Set passphrase</button>`
         : key ? `<button class="btn ghost wide" id="pmLock">Lock on this phone</button>` : `<button class="btn ghost wide" data-pmunlock>Unlock</button>`}</div>`;
   }
   function bindSettings(root){
-    if (root.querySelector("#pmAdd")) root.querySelector("#pmAdd").onclick = () => openEdit(null);
     root.querySelectorAll("[data-pmedit]").forEach(b => b.onclick = () => openEdit(b.dataset.pmedit));
     root.querySelectorAll("[data-pmunlock]").forEach(b => b.onclick = () => askPass());
     const lb = root.querySelector("#pmLock");
@@ -382,7 +384,8 @@ export function init(app){
 
   refresh();
   return {
-    dayHtml, bindDay, settingsHtml, bindSettings, settingsPage: "reminders", count: () => all().length,
+    dayHtml, bindDay, bindSettings, settingsPages: {reminders: settingsHtml, family: familyHtml}, count: () => all().length,
+    add: () => openEdit(null),                           // "Add reminder" → "For you"
     due: () => all().filter(m => late(m)).length,
     // frequency chosen in each reminder: -1 none, 0 once, N every N min until taken
     notices: () => all().filter(m => late(m) && Number(m.notify) >= 0).map(m => ({key: "pmed:" + m.id + ":" + (Number(m.every) > 0 ? nextDose(m) : today() + ":" + givenOn(m, today()).length),

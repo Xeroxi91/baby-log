@@ -380,6 +380,10 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .top.tsub{display:grid;grid-template-columns:auto minmax(0,1fr)}
 .top.tsub h1{font-size:1.05rem;text-align:center;padding-right:96px;margin:0}
 .back{border:0;background:none;color:var(--ink);font-weight:600;font-size:1rem;text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:0 4px}
+.back.bottom{display:block;margin:8px 0 0}
+.forl{display:flex;flex-direction:column;gap:8px}
+.forl button{display:flex;align-items:center;gap:10px;min-height:var(--hit);padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--ink);font-size:1.05rem;font-weight:600;text-align:left}
+.forl .sw{width:30px;height:30px;margin:0}
 .sgroup{background:var(--surface);border-radius:var(--r-card);margin-bottom:16px;overflow:hidden}
 .srow{display:grid;grid-template-columns:minmax(0,1fr) auto 14px;gap:8px;align-items:center;width:100%;min-height:56px;padding:0 16px;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);font-size:1.06rem;text-align:left}
 .srow:last-child{border-bottom:0}
@@ -497,6 +501,7 @@ img,svg{-webkit-user-drag:none}
 </div>
 
 <dialog id="langDlg" class="sheet" tabindex="-1"></dialog>
+<dialog id="forDlg" class="sheet" tabindex="-1"></dialog>
 <dialog id="sheet" class="sheet" tabindex="-1" autofocus><div class="sheet-in">
   <div class="grab" aria-hidden="true"></div><h2 class="sheet-t">Log an event</h2>
   <div class="who hs" id="who" role="group" aria-label="Who" hidden></div>
@@ -795,7 +800,7 @@ const IT = {
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
 "7 days":"7 g","14 days":"14 g","30 days":"30 g",
-"Colour":"Colore","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active · quiet 22–7":"Attive · silenzio 22–7","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"Colour":"Colore","Vitamin D or prescribed medicines, in Day.":"Vitamina D o farmaci prescritti, in Giorno.","The parent's sessions and the day's total.":"Sessioni del genitore e totale del giorno.","Weight before and after a breastfeed.":"Peso prima e dopo il seno.","Charts, diary completeness, rhythm, weekly summary.":"Grafici, completezza del diario, ritmo, riepilogo settimanale.","Interpretation of the entries. Not a medical device.":"Interpretazione delle registrazioni. Non è un dispositivo medico.","Very dark and dim, bigger buttons.":"Molto scuro e attenuato, pulsanti più grandi.","Spreadsheet (CSV), backup and restore (JSON).":"Foglio di calcolo (CSV), backup e ripristino (JSON).","Your own medicines, on this phone or shared encrypted.":"I tuoi farmaci, su questo telefono o condivisi cifrati.","Add a reminder for":"Aggiungi un promemoria per","Family passphrase":"Frase segreta della famiglia","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active · quiet 22–7":"Attive · silenzio 22–7","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
 "Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
 "scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
 "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
@@ -1084,14 +1089,14 @@ async function run(action, ...args){
 // something in use), otherwise it follows `def`.
 const FEATURES = [
   {k:"notes",   name:"Notes", desc:"Quick tags, temperature and free text.", def:true, kinds:["note"]},
-  {k:"meds",    name:"Children's reminders", desc:"Vitamin D or prescribed medicines as a daily checklist in Day.", def:true, kinds:["med"]},
-  {k:"pump",    name:"Pumping", desc:"The parent's pumping sessions, with a daily total.", def:false, kinds:["pump"]},
-  {k:"tw",      name:"Test weighing", desc:"Weight before and after a breastfeed, to estimate the milk taken.", def:false, kinds:["tw"]},
-  {k:"detail",  name:"Detailed progress", desc:"Feeding and diaper charts, diary completeness, 24-hour rhythm, weekly summary.", def:true},
-  {k:"signals", name:"Signals", desc:"Interpretation of the entries (talk to your paediatrician, keep an eye on…), on every phone of the family. Not a medical device.", def:false},
-  {k:"night",   name:"Night mode", desc:"Very dark, dim screen with bigger buttons.", def:true},
-  {k:"export",  name:"Export", desc:"Spreadsheet (CSV) and full backup (JSON).", def:true},
-  {k:"pmeds",   name:"Parents' reminders", desc:"Your own medicines or supplements, in Day marked “For you”: kept on this phone or shared encrypted.", def:false, kinds:["pmed"], file:"pmeds"}
+  {k:"meds",    name:"Children's reminders", desc:"Vitamin D or prescribed medicines, in Day.", def:true, kinds:["med"]},
+  {k:"pump",    name:"Pumping", desc:"The parent's sessions and the day's total.", def:false, kinds:["pump"]},
+  {k:"tw",      name:"Test weighing", desc:"Weight before and after a breastfeed.", def:false, kinds:["tw"]},
+  {k:"detail",  name:"Detailed progress", desc:"Charts, diary completeness, rhythm, weekly summary.", def:true},
+  {k:"signals", name:"Signals", desc:"Interpretation of the entries. Not a medical device.", def:false},
+  {k:"night",   name:"Night mode", desc:"Very dark and dim, bigger buttons.", def:true},
+  {k:"export",  name:"Export", desc:"Spreadsheet (CSV), backup and restore (JSON).", def:true},
+  {k:"pmeds",   name:"Parents' reminders", desc:"Your own medicines, on this phone or shared encrypted.", def:false, kinds:["pmed"], file:"pmeds"}
 ];
 const KIND_FEAT = {note:"notes", med:"meds", pump:"pump", pmed:"pmeds"};       // entries that belong to a module
 let feats = {on:{}, used:[]};       // on: family choices; used: kinds of entries in the sheet (from the server)
@@ -2509,7 +2514,9 @@ const PAGE_TITLE = {family:"Family", features:"Features", reminders:"Reminders",
   home:"Home", look:"Appearance", data:"Data and backup", about:"About and what's new"};
 let setPage = "", pagePushed = false;
 // modules put their settings on a page (settingsPage, default Features)
-const modSettings = page => modFeats().filter(f=>(mods[f.k].settingsPage || "features")===page).map(f=>mods[f.k].settingsHtml ? mods[f.k].settingsHtml() : "").join("");
+const modSettings = page => modFeats().map(f=>{ const m = mods[f.k];
+  if (m.settingsPages) return m.settingsPages[page] ? m.settingsPages[page]() : "";
+  return (m.settingsPage || "features")===page && m.settingsHtml ? m.settingsHtml() : ""; }).join("");
 function openPage(k){ pagePushed = true; location.hash = "#settings/" + k; }
 function closePage(){ if (pagePushed){ pagePushed = false; history.back(); } else location.hash = "#settings"; }
 function route(){
@@ -2538,7 +2545,7 @@ function renderSettings(){
   // grouped by who a setting applies to, most used first: the family's (shared), this phone's, data and app
   // an index of pages; each row shows the current state, so often there is no need to open it.
   // Every page is in the document (hidden), so that dialogs and switches work the same from anywhere
-  const P = (k, inner) => `<div class="spage" data-page="${k}"${setPage===k ? "" : " hidden"}>${inner}</div>`;
+  const P = (k, inner) => `<div class="spage" data-page="${k}"${setPage===k ? "" : " hidden"}>${inner}<button type="button" class="back bottom" data-back>‹ Settings</button></div>`;
   const remCount = medGroups(meds.filter(m=>kids.some(k=>k.id===m.child))).length + modFeats().reduce((a,f)=>a + (mods[f.k].count ? mods[f.k].count() : 0), 0);
   const lastExp = (()=>{ try { return Number(localStorage.getItem("bl-lastexport")) || 0; } catch(e) { return 0; } })();
   const langName = LANG==="it" ? "Italiano" : "English", themeName = {auto:"Auto", light:"Light", dark:"Dark"}[theme];
@@ -2561,17 +2568,17 @@ function renderSettings(){
   ${P("family", `  <div class="sect"><h3>Children</h3>
     ${kids.length ? `<ul class="kids">${kids.map(kidRow).join("")}</ul>` : `<p class="note">No children yet.</p>`}
     <button class="btn ghost wide" id="setKids">${kids.length ? "Edit children" : "Add a child"}</button></div>
-`)}
+${modSettings("family")}`)}
   ${P("features", `<p class="note sintro"><span>${isLocal() ? "Saved on this device." : "The same on every phone of the family."}</span> <span>Turning a feature off only hides it: the data stay.</span></p>
-  <div class="sect">${sh("Features", "feats", `${isLocal() ? "Saved on this device." : "Shared by everyone using this log."} Turning a feature off only hides it: nothing is deleted, and it comes back as it was.`)}
+  <div class="sect">
     <ul class="feats">${FEATURES.map(f=>`<li><label class="feat"><span class="notr"><b>${tr(f.name)}</b><small>${tr(f.desc)}</small></span><input type="checkbox" class="tgl" role="switch" data-feat="${f.k}" ${featOn(f.k)?"checked":""}></label></li>`).join("")}</ul>
     ${Object.keys(featPending).length ? `<p class="note" style="margin:0">Changes not shared yet: they are sent at the next sync.</p>` : ""}</div>
 `)}
   ${P("reminders", `  <div class="sect"${featOn("meds")?"":" hidden"}><h3>Daily reminders</h3>
     ${meds.length ? `<ul class="kids">${medGroups(meds.filter(m=>kids.some(k=>k.id===m.child))).map(ms=>[ms[0], ms.map(x=>KID(x.child).name).join(", ")]).map(([m, names])=>`<li><i class="sw" style="--c:${KID(m.child).c}"></i><span><b>${esc(m.name)}</b><small>${esc(names)}${m.dose?" · "+esc(m.dose):""} · ${Number(m.every)>0 ? `every ${m.every} h${m.times?` · ${m.times}× a day`:""}` : `${m.times}× a day · remind after ${String(m.due).padStart(2,"0")}:00`}${m.until?` · until ${fmtDate(new Date(m.until+"T12:00").getTime())}${medActive(m)?"":" (ended)"}`:""}${Number(m.notify)<0?" · no notifications":Number(m.notify)>0?` · notify every ${m.notify} min`:""}${m.night && Number(m.notify)>=0?" · also at night":""}</small></span><button class="linkbtn" data-medit="${esc(m.id)}">Edit</button></li>`).join("")}</ul>` : `<p class="note">For example vitamin D or other medicines prescribed by your paediatrician. They appear in Day as a daily checklist.</p>`}
-    ${kids.length ? `<button class="btn ghost wide" id="addMed">＋ Add reminder</button>` : ""}</div>
+</div>
   ${modSettings("reminders")}
-`)}
+${remAddOk() ? `<button class="btn wide" id="remAdd">＋ Add reminder</button>` : ""}`)}
   ${P("notify", `  ${notifHtml()}
 `)}
   ${P("feeds", `  <div class="sect">${sh("Feeds", "feeds", "A bottle within 60 min after a breastfeed counts as its top-up; both sides within 15 min count as one feed.")}
@@ -2621,7 +2628,8 @@ function renderSettings(){
   el.querySelectorAll("#nightSeg button").forEach(b=>b.onclick=()=>setNight(b.dataset.v));
   el.querySelectorAll("#langSeg button").forEach(b=>b.onclick=()=>{ try { b.dataset.v==="auto" ? localStorage.removeItem("bl-lang") : localStorage.setItem("bl-lang", b.dataset.v); } catch(e) {} location.reload(); });
   $("#titleIn").onchange = e=>{ const v = e.target.value.trim().slice(0,30); try { v ? localStorage.setItem("bl-title", v) : localStorage.removeItem("bl-title"); } catch(err) {} applyKids(); };
-  if ($("#addMed")) $("#addMed").onclick = ()=>openMed(null);
+  if ($("#remAdd")) $("#remAdd").onclick = addReminder;
+  el.querySelectorAll("[data-back]").forEach(b=>b.onclick = closePage);
   el.querySelectorAll("[data-medit]").forEach(b=>b.onclick=()=>openMed(b.dataset.medit));
   el.querySelectorAll("#themeSeg button").forEach(b=>b.onclick=()=>{ theme = b.dataset.v; try{ localStorage.setItem("bl-theme", theme); }catch(e){} applyTheme(); renderSettings(); });
   $("#alertSel").onchange = e=>{ alertH = Number(e.target.value); try{ localStorage.setItem("bl-alertH", alertH); }catch(err){} renderSince(); };
@@ -2743,8 +2751,21 @@ let medMode = "day";
 $("#mNotify").onchange = ()=>{ $("#mNightWrap").hidden = Number($("#mNotify").value) < 0; };   // no notification: nothing to ring at night
 function setMedMode(v){ medMode = v; document.querySelectorAll("#mMode button").forEach(b=>b.setAttribute("aria-pressed", b.dataset.v===v)); $("#mDayWrap").hidden = v!=="day"; $("#mEveryWrap").hidden = v!=="every"; }
 document.querySelectorAll("#mMode button").forEach(b=>b.onclick=()=>setMedMode(b.dataset.v));
-function openMed(id){
-  medEditing = id; const m = meds.find(x=>x.id===id) || {child: firstSel() || (kids[0]&&kids[0].id), name:"", dose:"", times:1, due:12};
+const remFor = () => (featOn("meds") ? kids.map(k=>k.id) : []).concat(mods.pmeds && mods.pmeds!=="loading" && featOn("pmeds") ? ["you"] : []);
+const remAddOk = () => remFor().length > 0;
+function addReminder(){
+  const opts = remFor(), go = v => { $("#forDlg").close(); v==="you" ? mods.pmeds.add() : openMed(null, v); };
+  if (opts.length===1) return go(opts[0]);
+  $("#forDlg").innerHTML = `<div class="sheet-in"><div class="grab" aria-hidden="true"></div><h2 class="sheet-t">Add a reminder for</h2>
+    <div class="forl">${opts.map(v=>v==="you" ? `<button type="button" data-for="you"><i class="sw parent"></i><span>For you</span></button>`
+      : `<button type="button" data-for="${esc(v)}">${mono(v, "l")}<span class="notr">${esc(KID(v).name)}</span></button>`).join("")}</div>
+    <button type="button" class="btn ghost wide sclose" id="forClose">Close</button></div>`;
+  $("#forDlg").querySelectorAll("[data-for]").forEach(b=>b.onclick=()=>go(b.dataset.for));
+  $("#forClose").onclick = ()=>$("#forDlg").close();
+  $("#forDlg").showModal();
+}
+function openMed(id, child){
+  medEditing = id; const m = meds.find(x=>x.id===id) || {child: child || firstSel() || (kids[0]&&kids[0].id), name:"", dose:"", times:1, due:12};
   const on = id ? medGroup(m).map(x=>x.child) : [m.child];
   $("#mKids").innerHTML = kids.map(k=>`<button type="button" data-k="${esc(k.id)}" style="--c:${KID(k.id).c}" aria-pressed="${on.includes(k.id)}">${esc(k.name)}</button>`).join("");
   $("#mKids").querySelectorAll("button").forEach(b=>b.onclick=()=>{ const sel = [...$("#mKids").querySelectorAll('[aria-pressed="true"]')]; if (b.getAttribute("aria-pressed")==="true" && sel.length===1) return; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed")!=="true"); });
