@@ -2,15 +2,15 @@
 # Pre-push hook (versioned; installed by tools/setup-hooks.sh through core.hooksPath).
 # 1. The public remote receives only main → main: no other branch, no tags, no deletions.
 # 2. A main that contains private files is refused on every remote. Always private:
-#    modules/private.js and docs/private/; more paths may be listed, one per line, in
-#    docs/private/private-paths on the local "family" branch (that file never reaches main).
+#    modules/extensions.js, docs/private/ and an index.html whose meta "extensions" names a file;
+#    more paths may be listed, one per line, in docs/private/private-paths on the local "family" branch.
 remote="$1"; url="$2"
 zero=0000000000000000000000000000000000000000
 public=0
 [ "$remote" = "origin" ] && public=1
 echo "$url" | grep -Eq 'Xeroxi91/baby-log(\.git)?$' && public=1
 
-private="modules/private.js docs/private/"
+private="modules/extensions.js docs/private/"
 extra=$(git show refs/heads/family:docs/private/private-paths 2>/dev/null | grep -v '^#' | tr '\n' ' ')
 private="$private $extra"
 
@@ -28,6 +28,10 @@ while read -r local_ref local_sha remote_ref remote_sha; do
         status=1
       fi
     done
+    if git show "$local_sha:index.html" 2>/dev/null | grep -q '<meta name="extensions" content="[^"]'; then
+      echo "pre-push: refused: main's index.html loads an extensions file." >&2
+      status=1
+    fi
   fi
 done
 exit $status

@@ -338,10 +338,10 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.ok(JSON.parse(N.localStorage.getItem('bl-pmeds')).some(m=>m.name==='Iron'), 'restored on the new phone');
   await N.__t.openRestore(JSON.stringify(bk2)); await sleep(300);
   assert.ok(N.document.querySelector('#restOk').hidden, 'restoring twice adds nothing'); N.document.querySelector('#restCancel').click();
-  // optional modules: registered by modules/private.js only where that file exists (a private branch)
-  const hasPrivate = fs.existsSync(path.join(__dirname, '..', 'modules', 'private.js'));
-  assert.strictEqual(A.__t.FEATURES.some(f=>f.extra), hasPrivate, hasPrivate ? 'private modules registered' : 'no private modules here, and no error');
-  assert.ok(A.__t.FEATURES.filter(f=>f.extra).every(f=>!A.__t.featOn(f.k)), 'private modules off by default');
+  // extensions: loaded only when index.html names a file (meta "extensions"); otherwise nothing is requested
+  const ext = (html.match(/<meta name="extensions" content="([^"]*)"/) || [])[1] || "";
+  assert.strictEqual(A.__t.FEATURES.some(f=>f.extra), !!ext, ext ? 'extensions registered' : 'no extensions here');
+  assert.ok(A.__t.FEATURES.filter(f=>f.extra).every(f=>!A.__t.featOn(f.k)), 'extension features off by default');
   // signals from notes only where their text applies; weight in kg at the Child stage
   const kA = JSON.parse(props.PROFILE).children[0];
   await A.addEvents([{kind:'note', child:kA.id, ts:Date.now()-30*60000, temp:39}]); await sleep(400);
