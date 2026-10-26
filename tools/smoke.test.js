@@ -359,7 +359,7 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   await N.__t.refresh(); await N.__t.refresh(); await sleep(300);
   assert.strictEqual(JSON.parse(props.PMEDS).items.length, nShared + 1, 'and only once');
   // extensions: loaded only when index.html names a file (meta "extensions"); otherwise nothing is requested
-  const ext = (html.match(/<meta name="extensions" content="([^"]*)"/) || [])[1] || "";
+  const ext = (html.match(/^<meta name="extensions" content="([^"]*)"/m) || [])[1] || "";
   assert.strictEqual(A.__t.FEATURES.some(f=>f.extra), !!ext, ext ? 'extensions registered' : 'no extensions here');
   assert.ok(A.__t.FEATURES.filter(f=>f.extra).every(f=>!A.__t.featOn(f.k)), 'extension features off by default');
   // signals from notes only where their text applies; weight in kg at the Child stage

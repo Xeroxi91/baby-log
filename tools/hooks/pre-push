@@ -28,7 +28,7 @@ while read -r local_ref local_sha remote_ref remote_sha; do
         status=1
       fi
     done
-    if git show "$local_sha:index.html" 2>/dev/null | grep -q '<meta name="extensions" content="[^"]'; then
+    if git show "$local_sha:index.html" 2>/dev/null | grep -q '^<meta name="extensions" content="[^"]'; then   # the tag, not a comment
       echo "pre-push: refused: main's index.html loads an extensions file." >&2
       status=1
     fi
