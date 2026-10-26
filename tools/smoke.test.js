@@ -232,6 +232,18 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.ok(d.querySelector('.sheet .actions').classList.contains('open') && d.querySelector('#moreLn').hidden, 'More opens them');
   d.querySelector('#sheetClose').click(); d.querySelector('#fab').click(); await sleep(20);
   assert.ok(!d.querySelector('.sheet .actions').classList.contains('open'), 'closed again at the next opening'); d.querySelector('#sheetClose').click();
+  // a child's page (Settings → Family → child): colour saved with the profile, back to Family
+  const c0 = JSON.parse(props.PROFILE).children[0];
+  d.querySelector('[data-tab="settings"]').click(); await sleep(20);
+  d.querySelector('.srow[data-page="family"]').click(); await sleep(50);
+  d.querySelector(`[data-child="${c0.id}"]`).click(); await sleep(50);
+  assert.ok(A.location.hash===`#settings/child/${c0.id}` && d.querySelector('#title').textContent===c0.name && d.querySelector('#backBtn').textContent==='‹ Family', "child's page");
+  d.querySelector('[data-ktint="violet"]').click(); await sleep(300);
+  assert.strictEqual(JSON.parse(props.PROFILE).children[0].color, 'violet', 'colour chosen on the page, saved with the profile');
+  d.querySelector('#backBtn').click(); await sleep(80);
+  assert.ok(A.location.hash==='#settings/family' && !d.querySelector('.spage[data-page="family"]').hidden, 'back to Family');
+  // first run: the language is on the first screen
+  assert.strictEqual(d.querySelectorAll('#setupLang [data-v]').length, 3, 'language on the first screen');
   // monogram: two letters only when initials collide; two words → initials, one word → first two letters
   assert.ok(A.__t.initials('Ottavio', true)==='Ot' && A.__t.initials('olga lina', true)==='OL' && A.__t.initials('Nina')==='N', 'monogram formats');
   // one night for the app: 22:00–07:00

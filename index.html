@@ -381,6 +381,11 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .top.tsub h1{font-size:1.05rem;text-align:center;padding-right:96px;margin:0}
 .back{border:0;background:none;color:var(--ink);font-weight:600;font-size:1rem;text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:0 4px}
 .back.bottom{display:block;margin:8px 0 0}
+.kids li.tap{cursor:pointer}.kids li .chev{margin-left:auto;color:var(--faint);font-size:1.2rem}
+.kidhead{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 16px}.kidhead b{font-size:1.3rem}
+.srow.static{cursor:default}
+.tints.big{margin:8px 0 4px}
+.who.prev{margin:6px 0 0}.who.prev button{pointer-events:none}
 .forl{display:flex;flex-direction:column;gap:8px}
 .forl button{display:flex;align-items:center;gap:10px;min-height:var(--hit);padding:0 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);color:var(--ink);font-size:1.05rem;font-weight:600;text-align:left}
 .forl .sw{width:30px;height:30px;margin:0}
@@ -581,6 +586,7 @@ img,svg{-webkit-user-drag:none}
 </form></dialog>
 
 <dialog id="keydlg" tabindex="-1" autofocus><form class="dlg" id="keyForm">
+  <div class="seg" id="setupLang" role="group" aria-label="Language"></div>
   <h2>Connect the log</h2>
   <p style="margin:0">Only once per device. The address and code are stored on this device only.</p>
   <label id="apiWrap">API address (web app URL, ends with /exec)<input id="apiIn" type="url" inputmode="url" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://script.google.com/macros/s/…/exec"></label>
@@ -806,7 +812,7 @@ const IT = {
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
 "7 days":"7 g","14 days":"14 g","30 days":"30 g",
-"Colour":"Colore","Vitamin D or prescribed medicines, in Day.":"Vitamina D o farmaci prescritti, in Giorno.","The parent's sessions and the day's total.":"Sessioni del genitore e totale del giorno.","Weight before and after a breastfeed.":"Peso prima e dopo il seno.","Charts, diary completeness, rhythm, weekly summary.":"Grafici, completezza del diario, ritmo, riepilogo settimanale.","Interpretation of the entries. Not a medical device.":"Interpretazione delle registrazioni. Non è un dispositivo medico.","Very dark and dim, bigger buttons.":"Molto scuro e attenuato, pulsanti più grandi.","Spreadsheet (CSV), backup and restore (JSON).":"Foglio di calcolo (CSV), backup e ripristino (JSON).","Your own medicines, on this phone or shared encrypted.":"I tuoi farmaci, su questo telefono o condivisi cifrati.","Add a reminder for":"Aggiungi un promemoria per","Family passphrase":"Frase segreta della famiglia","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"Colour":"Colore","‹ Family":"‹ Famiglia","Name":"Nome","Monogram":"Monogramma","The initial; two letters when two children share it.":"L'iniziale; due lettere quando due figli la condividono.","The app's tints, checked for contrast and colour blindness.":"Le tinte dell'app, verificate per contrasto e daltonismo.","Preview":"Anteprima","Vitamin D or prescribed medicines, in Day.":"Vitamina D o farmaci prescritti, in Giorno.","The parent's sessions and the day's total.":"Sessioni del genitore e totale del giorno.","Weight before and after a breastfeed.":"Peso prima e dopo il seno.","Charts, diary completeness, rhythm, weekly summary.":"Grafici, completezza del diario, ritmo, riepilogo settimanale.","Interpretation of the entries. Not a medical device.":"Interpretazione delle registrazioni. Non è un dispositivo medico.","Very dark and dim, bigger buttons.":"Molto scuro e attenuato, pulsanti più grandi.","Spreadsheet (CSV), backup and restore (JSON).":"Foglio di calcolo (CSV), backup e ripristino (JSON).","Your own medicines, on this phone or shared encrypted.":"I tuoi farmaci, su questo telefono o condivisi cifrati.","Add a reminder for":"Aggiungi un promemoria per","Family passphrase":"Frase segreta della famiglia","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
 "Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
 "scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
 "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
@@ -1179,7 +1185,8 @@ function renderModTabs(){
 }
 function renderHeader(){
   const st = curTab()==="settings", pg = st && setPage, top = $(".top");
-  $("#title").textContent = pg ? PAGE_TITLE[setPage] : st ? "Settings" : appTitle();
+  $("#title").textContent = pg==="child" ? KID(childPage).name : pg ? PAGE_TITLE[setPage] : st ? "Settings" : appTitle();
+  $("#backBtn").textContent = pg==="child" ? "‹ Family" : "‹ Settings";
   top.classList.toggle("tset", !!st); top.classList.toggle("tsub", !!pg);
   $("#backBtn").hidden = !pg; top.querySelector(".topr").hidden = !!st;
   $("#langBtn").textContent = LANG.toUpperCase();
@@ -2517,17 +2524,18 @@ const REPO_URL = "https://github.com/Xeroxi91/baby-log";
 const appLink = () => location.origin + location.pathname.replace(/index\.html$/, "");
 /* settings: an index and one page per group (#settings/<page>, so that Back works) */
 const PAGE_TITLE = {family:"Family", features:"Features", reminders:"Reminders", notify:"Notifications", feeds:"Feeds and signals",
-  home:"Home", look:"Appearance", data:"Data and backup", about:"About and what's new"};
-let setPage = "", pagePushed = false;
+  home:"Home", look:"Appearance", data:"Data and backup", about:"About and what's new", child:"Child"};
+let setPage = "", pagePushed = false, childPage = "";     // childPage: id of the child shown in #settings/child/<id>
 // modules put their settings on a page (settingsPage, default Features)
 const modSettings = page => modFeats().map(f=>{ const m = mods[f.k];
   if (m.settingsPages) return m.settingsPages[page] ? m.settingsPages[page]() : "";
   return (m.settingsPage || "features")===page && m.settingsHtml ? m.settingsHtml() : ""; }).join("");
 function openPage(k){ pagePushed = true; location.hash = "#settings/" + k; }
-function closePage(){ if (pagePushed){ pagePushed = false; history.back(); } else location.hash = "#settings"; }
+function closePage(){ if (pagePushed){ pagePushed = false; history.back(); } else location.hash = setPage==="child" ? "#settings/family" : "#settings"; }
 function route(){
-  const m = location.hash.match(/^#settings(?:\/(\w+))?$/); if (!m) return;
-  const k = m[1] && PAGE_TITLE[m[1]] ? m[1] : "";
+  const m = location.hash.match(/^#settings(?:\/(\w+)(?:\/(\w+))?)?$/); if (!m) return;
+  let k = m[1] && PAGE_TITLE[m[1]] ? m[1] : "";
+  if (k==="child"){ if (kids.some(c=>c.id===m[2])){ if (childPage!==m[2]){ childPage = m[2]; renderSettings(); } } else k = "family"; }
   if (curTab()!=="settings") showTab("settings", true);
   if (k !== setPage){ setPage = k; applyPage(); window.scrollTo(0, 0); }
 }
@@ -2546,7 +2554,7 @@ window.addEventListener("hashchange", route);
 function renderSettings(){
   const el = $("#tab-settings"); if (!el) return;
   const sexTxt = p => p.sex==="f" ? "girl" : "boy";
-  const kidRow = k => `<li>${mono(k.id, "l")}<span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span></li>`;
+  const kidRow = k => `<li class="tap" data-child="${esc(k.id)}">${mono(k.id, "l")}<span><b>${esc(k.name)}</b><small>${sexTxt(k)}${k.birth?` · born ${new Date(k.birth+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short",year:"numeric"})}`:""} · ${esc(k.gaW)}+${esc(k.gaD)} wk${k.bw?` · ${esc(k.bw)} g`:""}</small></span><span class="chev" aria-hidden="true">›</span></li>`;
   const pend = outbox.length;
   // grouped by who a setting applies to, most used first: the family's (shared), this phone's, data and app
   // an index of pages; each row shows the current state, so often there is no need to open it.
@@ -2575,6 +2583,7 @@ function renderSettings(){
     ${kids.length ? `<ul class="kids">${kids.map(kidRow).join("")}</ul>` : `<p class="note">No children yet.</p>`}
     <button class="btn ghost wide" id="setKids">${kids.length ? "Edit children" : "Add a child"}</button></div>
 ${modSettings("family")}`)}
+  ${P("child", childHtml())}
   ${P("features", `<p class="note sintro"><span>${isLocal() ? "Saved on this device." : "The same on every phone of the family."}</span> <span>Turning a feature off only hides it: the data stay.</span></p>
   <div class="sect">
     <ul class="feats">${FEATURES.map(f=>`<li><label class="feat"><span class="notr"><b>${tr(f.name)}</b><small>${tr(f.desc)}</small></span><input type="checkbox" class="tgl" role="switch" data-feat="${f.k}" ${featOn(f.k)?"checked":""}></label></li>`).join("")}</ul>
@@ -2627,7 +2636,8 @@ ${remAddOk() ? `<button class="btn wide" id="remAdd">＋ Add reminder</button>` 
     <p class="note">License: PolyForm Noncommercial 1.0.0 · <a href="${REPO_URL}" target="_blank" rel="noopener">Source code</a></p></div>
 `)}`;
   $("#setKids").onclick = openProfile;
-  el.querySelectorAll(".srow").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
+  el.querySelectorAll(".srow[data-page]").forEach(b=>b.onclick=()=>openPage(b.dataset.page));
+  bindChild(el);
   el.querySelectorAll("[data-feat]").forEach(i=>i.onchange=()=>setFeature(i.dataset.feat, i.checked));
   modRun("bindSettings", el);
   bindNotif(el);
@@ -2659,11 +2669,38 @@ ${remAddOk() ? `<button class="btn wide" id="remAdd">＋ Add reminder</button>` 
   if ($("#discBtn")) $("#discBtn").onclick = ()=>{ if (confirm("Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.")) disconnect(); };
 }
 
+/* ---------- a child's page: Settings → Family → child ---------- */
+function childHtml(){
+  const k = kids.find(c=>c.id===childPage); if (!k) return "";
+  const i = kids.indexOf(k), cur = tintOf(k, i), others = kids.filter(c=>c!==k);
+  const born = k.birth ? new Date(k.birth+"T12:00").toLocaleDateString(LOC(), {day:"numeric", month:"long", year:"numeric"}) : "";
+  const r = (label, val, attr) => `<button type="button" class="srow" ${attr}><span>${label}</span><span class="sv notr">${val}</span><span class="chev" aria-hidden="true">›</span></button>`;
+  return `<div class="kidhead" style="--c:${KID(k.id).c}">${mono(k.id, "xl")}<b class="notr">${esc(k.name)}</b></div>
+    <div class="sgroup">${r("Name", esc(k.name), 'data-kedit')}${r(`<span class="notr">${LANG==="it" ? (k.sex==="f" ? "Nata il" : "Nato il") : "Born on"}</span>`, born || "–", 'data-kedit')}
+      <div class="srow static"><span>Monogram</span><span class="sv notr">${esc(KID(k.id).m)}</span><span></span></div></div>
+    <p class="note sintro">The initial; two letters when two children share it.</p>
+    <div class="sect"><h3>Colour</h3><p class="note" style="margin:0">The app's tints, checked for contrast and colour blindness.</p>
+      <div class="tints big" role="group" aria-label="Colour">${TINTS.map(t=>{ const users = others.filter(c=>tintOf(c, kids.indexOf(c))===t).map(c=>c.name);
+        return `<button type="button" data-ktint="${t}" aria-pressed="${cur===t}"><span class="mono xl notr" style="--c:var(--kid-${t})">${cur===t ? "✓" : esc(KID(k.id).m)}</span><span>${TINT_NAME[t]}</span><small class="notr">${esc(users.join(", "))}</small></button>`; }).join("")}</div>
+      <p class="row2" style="margin:6px 0 0">Preview</p>
+      <div class="who prev" style="--c:${KID(k.id).c}"><button type="button" tabindex="-1" aria-pressed="true" class="notr">${esc(k.name)}</button><button type="button" tabindex="-1" aria-pressed="false" class="notr">${mono(k.id)}${esc(k.name)}</button></div></div>`;
+}
+function bindChild(el){
+  el.querySelectorAll("[data-child]").forEach(b=>b.onclick=()=>{ pagePushed = true; location.hash = "#settings/child/" + b.dataset.child; });
+  el.querySelectorAll("[data-kedit]").forEach(b=>b.onclick=()=>openProfile(childPage));
+  el.querySelectorAll("[data-ktint]").forEach(b=>b.onclick=()=>{
+    const list = kids.map(c=>c.id===childPage ? {...c, color:b.dataset.ktint} : c);
+    saveChildren(list);
+  });
+}
+
 /* ---------- profile dialog ---------- */
 let draft = [];
-function openProfile(){
+function openProfile(only){
   draft = kids.length ? JSON.parse(JSON.stringify(kids)) : [NEW_KID()];
   drawProfile(); $("#profDlg").showModal();
+  const fs = only && $("#profBody").querySelectorAll("fieldset")[kids.findIndex(k=>k.id===only)];
+  if (fs) fs.scrollIntoView({block:"start"});
 }
 function drawProfile(){
   const f = (p, i, stTip = tip("stage"+i, "Newborn: full log. Infant: lighter, no feed or diaper signals. Child: weight, height, notes and reminders only.")) => `<fieldset style="--c:var(--kid-${tintOf(p, i)})"><legend>${esc(p.name || "New child")}</legend>
@@ -2702,15 +2739,18 @@ $("#profForm").onsubmit = async e=>{
   });
   if (bad){ toast(bad[1][2]==="Name" ? "Name is required" : `${tr(bad[1][2])}: ${bad[1][0]}–${bad[1][1]}`, false); bad[0].focus(); return; }
   $("#profDlg").close();
+  saveChildren(draft);
+};
+async function saveChildren(list){
   if (isLocal()){
-    draft.forEach(k=>{ if (!k.id) k.id = "c" + uid().replace(/-/g,"").slice(0,10); });
-    kids = draft; saveCache(); applyKids(); render(); toast("Profile saved on this device", false); return;
+    list.forEach(k=>{ if (!k.id) k.id = "c" + uid().replace(/-/g,"").slice(0,10); });
+    kids = list; saveCache(); applyKids(); render(); toast("Profile saved on this device", false); return;
   }
   try {
-    const p = await run("saveProfile", {children: draft});
+    const p = await run("saveProfile", {children: list});
     kids = (p && p.children) || kids; saveCache(); applyKids(); render(); refresh(); toast("Profile saved", false);
   } catch(err) { toast(err instanceof NetError ? "Profile changes need a connection" : "Profile not saved: "+(err.message||"error"), false); }
-};
+}
 $("#profCancel").onclick = ()=>$("#profDlg").close();
 
 /* ---------- what's new ---------- */
@@ -2874,6 +2914,9 @@ $("#langDlg").innerHTML = `<div class="sheet-in"><div class="sheet-h"><b>Languag
   <p class="note" style="margin:8px 0 12px">Also in Settings → Appearance.</p><button type="button" class="btn ghost wide" id="langClose">Close</button></div>`;
 $("#langDlg").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{ try { b.dataset.v==="auto" ? localStorage.removeItem("bl-lang") : localStorage.setItem("bl-lang", b.dataset.v); } catch(e) {} location.reload(); });
 $("#langClose").onclick = ()=>$("#langDlg").close();
+// the first screen: the language can be chosen before anything else
+$("#setupLang").innerHTML = [["auto","Auto"],["it","Italiano"],["en","English"]].map(([v,l])=>{ let cur = "auto"; try { cur = localStorage.getItem("bl-lang") || "auto"; } catch(e) {} return `<button type="button" class="notr" data-v="${v}" aria-pressed="${cur===v}">${l}</button>`; }).join("");
+$("#setupLang").querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>{ try { b.dataset.v==="auto" ? localStorage.removeItem("bl-lang") : localStorage.setItem("bl-lang", b.dataset.v); } catch(e) {} location.reload(); });
 $("#langDlg").addEventListener("click", e=>{ if (e.target.id==="langDlg") $("#langDlg").close(); });
 setInterval(()=>{ if (night==="auto") applyNight(); }, 60000);
 applyNight();
