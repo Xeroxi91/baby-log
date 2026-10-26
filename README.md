@@ -39,12 +39,13 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
   **One reminder for several children** (same dose and times): choose more than one child; *Day* shows one
   card with a row per child and *Give to all*; editing or deleting applies to all of them.
 - **Parents' reminders** (off by default: *Settings → Features*): your own medicines or supplements, with the
-  same schedules, in *Day* after the children's reminders, marked **For you** in a colour no child uses, and a badge on the *Day* tab when something is due.
-  Each reminder is either kept **on this phone only** (default: neither the reminder nor its doses leave the
-  device) or **shared, encrypted** with the other parent: it is encrypted on the phone (AES-GCM, key derived
-  from a **family passphrase** with PBKDF2) and the server stores only unreadable text. Tell the passphrase in
-  person; it **cannot be recovered** (*Forgot it? Start over* removes the shared reminders). The app does not
-  check doses and gives no advice on medicines.
+  same schedules, in *Day* after the children's reminders, marked **For you** in a neutral style no child uses, and a badge on the *Day* tab when something is due.
+  They are **shared, encrypted** with the family: encrypted on the phone (AES-GCM, key derived from a **family
+  passphrase** with PBKDF2), readable by everyone who has the passphrase and never by the server, which stores only
+  unreadable text. Tell the passphrase in person; it **cannot be recovered** (*Forgot it? Start over* removes the shared
+  reminders). Reminders kept on one phone by earlier versions move to the shared list by themselves once the passphrase
+  is set and unlocked on that phone; until then a notice says so and nothing is lost. The app does not check doses and
+  gives no advice on medicines.
 
 **Features: the family chooses what the app shows**
 - *Settings → Features* switches modules on and off for **everyone using the log** (the choice is stored
@@ -55,7 +56,14 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Defaults: everything is on except pumping and test weighing, which start on only if the family already
   used them, and signals and parents' reminders (off).
 - Some features are separate files (`modules/*.js`) loaded only when they are on; the service worker keeps
-  them on the device, so they work offline too.
+  them on the device, so they work offline too. A module can add its own tab, shown only while it is on.
+
+**Extensions (for forks)**
+- A fork can add its own features without touching the core: set `<meta name="extensions" content="modules/extensions.js">`
+  in `index.html` and create that file with `export function register(app){ app.addFeatures([...]); app.addIT({...}); }`.
+  Each feature names a module file (`file`), loaded only when the feature is switched on; see the module section of
+  `index.html` for its hooks (tab, ＋, Settings, notifications, backup of data kept on the phone).
+- With the meta empty (the default) nothing is requested.
 
 **Notifications (on each phone)**
 - *Settings → Notifications*, off by default: a banner in the app and, if the phone allows them, phone
@@ -134,10 +142,15 @@ data** (removable from *Settings*; never uploaded).
 - **Night**: between 0:00 and 6:00 *Today* also shows yesterday from 18:00; the app moves to the new day
   by itself at midnight.
 - **Export**: spreadsheet (CSV) or full backup (JSON) of everything on the device.
+- **Restore** from a JSON backup (*Settings → Data and backup*): a preview with what will be added, then only
+  what is missing is added (children, reminders and entries matched by id); nothing is overwritten or deleted, and the
+  address and access code are never read from the file. The backup also holds what is kept only on the phone (parents'
+  reminders kept on this phone, with their doses), so they can move to another phone or another address of the app;
+  the family passphrase is never in the file.
 - Weight in grams for babies and kilograms from 1 year; a warning when a weight or length is outside
   the usual range for the child's age (WHO / INTERGROWTH −5…+5 SD).
 - Children profiles, title shown at the top (default *Baby log*, per device), **night mode** (off / on /
-  automatic 22:00–6:00: very dark warm colours, dimmed emoji, bigger buttons; also 🌙 at the top), theme (auto / light / dark),
+  automatic 22:00–7:00, the same hours as the notifications' quiet hours: very dark warm colours, dimmed emoji, bigger buttons; also ☾ at the top), theme (auto / light / dark),
   feed highlight threshold, signal thresholds (automatic by age or custom).
 - Sync status, *Sync now*, sharing (app link, API address), disconnect this device.
 - About: version, references, license and source code.
@@ -253,7 +266,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | Column | Content |
 |---|---|
 | `id` | unique id |
-| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med`, `pump` and `pmed` (`child` = `parent`) |
+| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med`, `pump` and `pmed` (`child` = `parent`); modules shared by the whole family use their own kinds (`child` = `family`) |
 | `child` | internal child key (mapped to the child in the profile) |
 | `ts` | timestamp (milliseconds since 1970, UTC) |
 | `feedType` | `breast` or `bottle` |
@@ -272,6 +285,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | `temp` | temperature in °C |
 | `ref` | reminder id for a given reminder (`kind` = `med`, or `pmed` for a parent's shared reminder: id only) |
 | `pre` / `post` | test weighing before / after a breastfeed, in grams |
+| `data` | fields of a family-wide module entry, as JSON (`child` = `family`) |
 
 Children profiles and access codes are stored in the script's **Script Properties**
 (`PROFILE`, `KEYS`, `MEDS`, `PMEDS` (encrypted), `FEATURES`, `REV`). Parents' reminders kept on
@@ -302,6 +316,8 @@ one phone only are in that phone's local storage. **Backup**: *File → Download
 - **Backend**: if a file in `apps-script/` changed, paste it into the file with the same name in Apps Script
   (create the files that are missing), then *Deploy → Manage deployments → ✏️ → Version: New version → Deploy*.
   The URL stays the same. Update the backend **before** the page.
+  - **2.5.0**: `Code.gs` and `Children.gs` changed (new `data` column, created by itself on the next sync;
+    a colour can be stored with each child's profile).
   - **From 1.x to 2.0**: the backend is now split into several files. Replace `Code.gs` completely with the
     new one and add `Children.gs`, `Features.gs` and `Reminders.gs`; keeping old code in `Code.gs` would
     define the same functions twice and the script would not run.

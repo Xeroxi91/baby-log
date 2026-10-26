@@ -1,11 +1,12 @@
 /* Service worker: keeps the app shell on the device so the app opens instantly, even offline.
    Same-origin GET requests are served from the cache and refreshed in the background
    (the new version is used at the next launch). API calls to Apps Script are never cached. */
-const CACHE = "baby-log-v37";
+const CACHE = "baby-log-v45";
 // modules/*.js are loaded only when their feature is on: cached here so they also load offline
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "favicon.png",
                "modules/pmeds.js"];
 
+// an extensions file (index.html, meta "extensions") is cached when the page loads it, like any same-origin file
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

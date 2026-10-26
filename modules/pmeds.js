@@ -1,18 +1,22 @@
 /* Parents' reminders: a module of Baby log (Settings → Features), loaded by index.html only when it is on.
 
    A parent's own medicines or supplements, with the same schedules as the children's reminders
-   (times a day, or every few hours; optional last day). Each reminder is kept either
-   - on this phone only (default): reminder and doses never leave the device; or
-   - shared with the family, end-to-end encrypted: the phone encrypts it (AES-GCM, 256-bit key derived
-     from a family passphrase with PBKDF2-SHA-256) and the server stores opaque text only (PMEDS).
-     Doses of shared reminders are `pmed` entries holding only the reminder id. The passphrase is never
-     sent anywhere and cannot be recovered: if it is forgotten, the shared reminders are lost.
+   (times a day, or every few hours; optional last day). Reminders are shared with the family, end-to-end
+   encrypted: the phone encrypts them (AES-GCM, 256-bit key derived from a family passphrase with PBKDF2-SHA-256)
+   and the server stores opaque text only (PMEDS, one Script Property). Doses are `pmed` entries holding only
+   the reminder id. The passphrase is never sent anywhere and cannot be recovered.
+   Reminders kept on this phone only (earlier versions) are moved to the shared list once the passphrase is
+   available on the phone; that path stays in the code behind LOCAL_ONLY_ENABLED, off for now. On a phone
+   used without a shared log, reminders can only be kept on the phone.
    Organisational only: the app gives no advice on doses or on medicines while breastfeeding. */
 
 const ITER = 600000;                     // PBKDF2 iterations (fixed for format v1)
 const CHECK = "baby-log";                // encrypted with the key: tells a wrong passphrase apart
 const H = 36e5;
 const LS = {list: "bl-pmeds", given: "bl-pmeds-given", key: "bl-pkey"};
+const LOCAL_ONLY_ENABLED = false;        // "This phone only" as a choice for new reminders (hidden for now)
+const PROP_LIMIT = 9000;                 // Script Properties: about 9 KB per value; PMEDS is one value
+const PROP_WARN = 0.8;                   // warn from 80 %
 
 const IT = {
   "For you": "Per te", "This phone only": "Solo su questo telefono", "Shared, encrypted": "Condiviso, cifrato",
@@ -25,8 +29,11 @@ const IT = {
   "Family passphrase: unlocked on this phone.": "Frase segreta della famiglia: sbloccata su questo telefono.",
   "Family passphrase: locked on this phone.": "Frase segreta della famiglia: bloccata su questo telefono.",
   "Shared reminders need a shared log.": "I promemoria condivisi richiedono un diario condiviso.",
-  "Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.":
-    "I promemoria tenuti solo su questo telefono non lo lasciano mai. Quelli condivisi sono cifrati sul telefono con la frase segreta della famiglia: il server conserva solo testo illeggibile.",
+  "Encrypted on the phone with the family passphrase: readable by everyone who has it, never by the server. The passphrase cannot be recovered.":
+    "Cifrati sul telefono con la frase segreta della famiglia: leggibili da chi la conosce, mai dal server. La frase segreta non si può recuperare.",
+  "Shared with the family, encrypted with the family passphrase.": "Condiviso con la famiglia, cifrato con la frase segreta della famiglia.",
+  "Your reminders kept on this phone are now shared, encrypted.": "I tuoi promemoria tenuti su questo telefono ora sono condivisi, cifrati.",
+  "No more space for shared reminders on the server.": "Non c'è più spazio sul server per i promemoria condivisi.",
   "Choose a passphrase to share reminders with the other parent, encrypted. Tell it in person, not in a chat.":
     "Scegli una frase segreta per condividere i promemoria con l'altro genitore, cifrati. Diglielo di persona, non in chat.",
   "It cannot be recovered: if it is forgotten, the shared reminders are lost.":
@@ -48,6 +55,10 @@ const IT = {
 };
 const IT_T = [
   ["Shared reminders locked on this phone ({x})", "Promemoria condivisi bloccati su questo telefono ({x})"],
+  ["{x} kept on this phone: they will be shared, encrypted, once the family passphrase is set.", "{x} tenuti su questo telefono: saranno condivisi, cifrati, quando la frase segreta della famiglia sarà impostata."],
+  ["{x} kept on this phone: they will be shared, encrypted, once this phone is unlocked with the family passphrase.", "{x} tenuti su questo telefono: saranno condivisi, cifrati, quando questo telefono sarà sbloccato con la frase segreta della famiglia."],
+  ["{x} kept on this phone: there is no more space for shared reminders on the server.", "{x} tenuti su questo telefono: sul server non c'è più spazio per i promemoria condivisi."],
+  ["Shared reminders use {x}% of the space available on the server.", "I promemoria condivisi occupano il {x}% dello spazio disponibile sul server."],
   ["{x} (for you): due now", "{x} (per te): da prendere ora"], ["notify every {x} min", "notifica ogni {x} min"], ["due at {x}", "da prendere dalle {x}"], ["Edit the dose of {x} at {x}", "Modifica la dose di {x} delle {x}"], ["every {x} h", "ogni {x} h"], ["{x}× a day", "{x}× al giorno"],
   ["remind after {x}", "ricorda dopo le {x}"], ["until {x}", "fino al {x}"],
   ["{x} already given today. Undo the last one?", "{x} già preso oggi. Annullare l'ultimo?"],
@@ -111,7 +122,7 @@ export function init(app){
     }
     shared = out; openedFor = sig;
   }
-  const refresh = () => { const was = openedFor; return openShared().then(() => { if (openedFor !== was){ app.render(); app.renderSettings(); } }).catch(() => {}); };
+  const refresh = () => { const was = openedFor; return openShared().then(() => { if (openedFor !== was){ app.render(); app.renderSettings(); } }).catch(() => {}).then(migrateLocal); };
 
   /* ---------- schedule (same rules as the children's reminders) ---------- */
   const today = () => app.dayKey(Date.now());
@@ -163,6 +174,50 @@ export function init(app){
     else app.delEvents([d.id]);
   }
 
+  /* ---------- reminders kept on this phone → shared, encrypted (once; safe to repeat) ---------- */
+  // Uploads first; the local copy is removed only for the ids the server returns. Doses taken stay where they are.
+  let migrating = false, tooBig = false, chain = Promise.resolve();
+  const serial = fn => (chain = chain.then(fn, fn));   // writes of the shared list, one after the other
+  const blobSize = b => b ? JSON.stringify({v: 1, salt: b.salt, check: b.check, items: b.items || []}).length : 0;
+  function migrateLocal(){
+    if (LOCAL_ONLY_ENABLED || app.isLocal() || migrating || !local.length || !app.pmeds || !key) return Promise.resolve();
+    migrating = true;
+    return serial(migrateNow);
+  }
+  async function migrateNow(){
+    const blob = app.pmeds;
+    try {
+      if (!blob || !key || !local.length) return;          // things changed while waiting in the queue
+      const onServer = new Set((blob.items || []).map(x => x.id));
+      const todo = local.filter(m => !onServer.has(m.id));
+      if (todo.length){
+        const add = [];
+        for (const m of todo){ const {id, shared: _s, ...data} = m; add.push({id, enc: await seal(key, data)}); }
+        const items = (blob.items || []).concat(add);
+        tooBig = items.length > 50 || blobSize({...blob, items}) > PROP_LIMIT;
+        if (tooBig) return;
+        const r = await app.run("savePMeds", {pmeds: {salt: blob.salt, check: blob.check, items}});
+        app.setPmeds(r.pmeds);
+      }
+      const confirmed = new Set(((app.pmeds || {}).items || []).map(x => x.id));
+      const left = local.filter(m => !confirmed.has(m.id));
+      if (left.length !== local.length){
+        local = left; saveLocal(); openedFor = ""; await openShared();
+        app.toast("Your reminders kept on this phone are now shared, encrypted."); app.render(); app.renderSettings();
+      }
+    } catch(e) { /* offline or refused: still on this phone, tried again at the next sync */ }
+    finally { migrating = false; }
+  }
+  // what keeps reminders on this phone, if anything; null when nothing is waiting
+  function pendingTxt(){
+    if (LOCAL_ONLY_ENABLED || app.isLocal() || !local.length) return null;
+    const n = local.length;
+    return tooBig ? `${n} kept on this phone: there is no more space for shared reminders on the server.`
+      : !app.pmeds ? `${n} kept on this phone: they will be shared, encrypted, once the family passphrase is set.`
+      : !key ? `${n} kept on this phone: they will be shared, encrypted, once this phone is unlocked with the family passphrase.` : null;
+  }
+  const spaceTxt = () => { const u = blobSize(app.pmeds) / PROP_LIMIT; return u >= PROP_WARN ? `Shared reminders use ${Math.round(u*100)}% of the space available on the server.` : ""; };
+
   /* ---------- Day: one card per reminder, like a child's, with "For you" as its owner ---------- */
   function dayHtml(k, isToday){
     const list = all().filter(m => shows(m, k));
@@ -170,12 +225,14 @@ export function init(app){
     const card = m => {
       const g = givenOn(m, k), n = Number(m.times || 1), done = g.length >= n, lt = late(m, k);
       const sub = parts(["For you", m.dose ? app.esc(m.dose) : "", isToday && Number(m.every) > 0 ? nextTxt(m) : (!g.length && lt ? "due now" : "")]);
-      return `<div class="remw${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
+      return `<div class="remw parent${lt ? " late" : ""}" style="--c:var(--parent)"><button class="remi${done ? " done" : ""}${lt ? " late" : ""}" data-pmgive="${app.esc(m.id)}" ${isToday ? "" : "disabled"}>
         <span class="rck">${done ? "✓" : g.length ? g.length + "/" + n : "○"}</span><span><b>${app.esc(m.name)}</b><small>${sub}</small></span></button>
         ${g.length ? `<div class="remg">${g.map(e => `<button data-pmdose="${app.esc(e.id)}" aria-label="Edit the dose of ${app.esc(m.name)} at ${app.hm(e.ts)}">${app.hm(e.ts)}</button>`).join("")}</div>` : ""}</div>`;
     };
+    const pend = isToday ? pendingTxt() : null;
     return list.map(card).join("")
-      + (lk ? `<div class="remw pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "");
+      + (lk ? `<div class="remw parent pmlock" style="--c:var(--parent)"><span>🔒 <span>Shared reminders locked on this phone (${lk})</span></span><button class="btn ghost" data-pmunlock>Unlock</button></div>` : "")
+      + (pend && !lk ? `<div class="remw parent pmlock" style="--c:var(--parent)"><span>${pend}</span>${tooBig ? "" : `<button class="btn ghost" data-pmunlock>${app.pmeds ? "Unlock" : "Set passphrase"}</button>`}</div>` : "");
   }
   function bindDay(root){
     root.querySelectorAll("[data-pmgive]").forEach(b => b.onclick = () => { const m = all().find(x => x.id === b.dataset.pmgive); if (m) give(m); });
@@ -184,21 +241,27 @@ export function init(app){
   }
 
   /* ---------- Settings ---------- */
+  // Settings → Reminders: the list (one "Add" for children and parents is in the app); Settings → Family: the passphrase
   function settingsHtml(){
-    const st = app.isLocal() ? "Shared reminders need a shared log." : !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
     const lk = locked();
-    return `<div class="sect">${app.sh("Parents' reminders", "pmeds", all().length ? "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app." : "",
-        "Reminders kept on this phone only never leave it. Shared reminders are encrypted on the phone with the family passphrase: the server stores only unreadable text.")}
-      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw" style="--c:var(--parent)"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
+    return `<div class="sect">${app.sh("For you", "pmeds", all().length ? "Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app." : "",
+        "Encrypted on the phone with the family passphrase: readable by everyone who has it, never by the server. The passphrase cannot be recovered.")}
+      ${all().length ? `<ul class="kids">${all().map(m => `<li><i class="sw parent"></i><span><b>${app.esc(m.name)}</b><small>${parts([m.shared ? "Shared, encrypted" : "This phone only", m.dose ? app.esc(m.dose) : ""].concat(schedParts(m)))}</small></span><button class="linkbtn" data-pmedit="${app.esc(m.id)}">Edit</button></li>`).join("")}</ul>`
         : `<p class="note" style="margin:0">Your own reminders, e.g. medicines or supplements. They appear in Day under “For you”; doses are not checked by the app.</p>`}
       ${lk ? `<p class="note" style="margin:0">Shared reminders locked on this phone (${lk})</p>` : ""}
-      <button class="btn ghost wide" id="pmAdd">＋ Add reminder for you</button>
-      <p class="row2" style="margin:4px 0 0">${st}</p>
-      ${app.isLocal() ? "" : !app.pmeds ? `<button class="btn ghost wide" data-pmunlock>Set passphrase</button>`
+      ${pendingTxt() ? `<p class="note" style="margin:0;color:var(--warn)">${pendingTxt()}</p>` : ""}
+      ${spaceTxt() ? `<p class="note" style="margin:0;color:var(--warn)">${spaceTxt()}</p>` : ""}</div>`;
+  }
+  function familyHtml(){
+    if (app.isLocal()) return "";
+    const st = !app.pmeds ? "Family passphrase: not set." : key ? "Family passphrase: unlocked on this phone." : "Family passphrase: locked on this phone.";
+    return `<div class="sect"><h3>Family passphrase</h3><p class="row2" style="margin:0">${st}</p>
+      <p class="note" style="margin:0">Encrypted on the phone with the family passphrase: readable by everyone who has it, never by the server. The passphrase cannot be recovered.</p>
+      ${pendingTxt() ? `<p class="note" style="margin:0;color:var(--warn)">${pendingTxt()}</p>` : ""}
+      ${!app.pmeds ? `<button class="btn ghost wide" data-pmunlock>Set passphrase</button>`
         : key ? `<button class="btn ghost wide" id="pmLock">Lock on this phone</button>` : `<button class="btn ghost wide" data-pmunlock>Unlock</button>`}</div>`;
   }
   function bindSettings(root){
-    if (root.querySelector("#pmAdd")) root.querySelector("#pmAdd").onclick = () => openEdit(null);
     root.querySelectorAll("[data-pmedit]").forEach(b => b.onclick = () => openEdit(b.dataset.pmedit));
     root.querySelectorAll("[data-pmunlock]").forEach(b => b.onclick = () => askPass());
     const lb = root.querySelector("#pmLock");
@@ -286,8 +349,9 @@ export function init(app){
     $("#pmName").value = m.name; $("#pmDose").value = m.dose || ""; $("#pmTimes").value = m.times || 1; $("#pmDue").value = m.due ?? 9;
     $("#pmEvery").value = m.every || ""; $("#pmTimesE").value = Number(m.every) > 0 ? (m.times || "") : ""; $("#pmUntil").value = m.until || ""; $("#pmNotify").value = String(Number(m.notify) || 0); $("#pmNight").checked = !!m.night; $("#pmNightWrap").hidden = Number(m.notify) < 0;
     setMode(Number(m.every) > 0 ? "every" : "day");
-    setWhere(m.shared ? "shared" : "local");
-    $("#pmWhere").hidden = app.isLocal();                 // sharing needs a shared log
+    setWhere(m.shared || !LOCAL_ONLY_ENABLED ? "shared" : "local");
+    $("#pmWhere").closest(".lblc").hidden = app.isLocal() || !LOCAL_ONLY_ENABLED;   // sharing needs a shared log
+    $("#pmWhereNote").textContent = app.isLocal() ? "" : LOCAL_ONLY_ENABLED ? $("#pmWhereNote").textContent : "Shared with the family, encrypted with the family passphrase.";
     $("#pmTitle").textContent = id ? "Edit reminder for you" : "New reminder for you";
     $("#pmDel").hidden = !id;
     $("#pmDlg").showModal();
@@ -309,7 +373,7 @@ export function init(app){
     const m = {id: prev ? prev.id : "p" + app.uid().replace(/-/g, "").slice(0, 10), name, dose: $("#pmDose").value.trim().slice(0, 40),
       times: every ? Math.max(1, Math.min(12, parseInt($("#pmTimesE").value, 10) || Math.round(24/every))) : Math.max(1, Math.min(6, parseInt($("#pmTimes").value, 10) || 1)),
       due: every ? 0 : Number($("#pmDue").value), every, until: $("#pmUntil").value || "", notify: Number($("#pmNotify").value) || 0, night: $("#pmNight").checked && Number($("#pmNotify").value) >= 0, from: prev ? (prev.from || today()) : today()};
-    const toShared = !app.isLocal() && segV("#pmWhere") === "shared";
+    const toShared = !app.isLocal() && (!LOCAL_ONLY_ENABLED || segV("#pmWhere") === "shared");
     if (toShared && !key){ if (!await askPass()) return; }
     $("#pmDlg").close();
     if (toShared){
@@ -323,10 +387,12 @@ export function init(app){
   };
 
   // writes one shared reminder (m) or removes one (delId); the other items are kept as they are on the server
-  async function saveShared(m, delId){
+  function saveShared(m, delId){ return serial(() => saveSharedNow(m, delId)); }
+  async function saveSharedNow(m, delId){
     const blob = app.pmeds; if (!blob || !key) return false;
     let items = (blob.items || []).filter(x => x.id !== (m ? m.id : delId));
     if (m){ const {id, shared: _s, ...data} = m; items = items.concat([{id, enc: await seal(key, data)}]); }
+    if (m && (items.length > 50 || blobSize({...blob, items}) > PROP_LIMIT)){ app.toast("No more space for shared reminders on the server."); return false; }
     try {
       const r = await app.run("savePMeds", {pmeds: {salt: blob.salt, check: blob.check, items}});
       app.setPmeds(r.pmeds); await openShared(); return true;
@@ -371,7 +437,7 @@ export function init(app){
           }
           openedFor = ""; await openShared();
           $("#ppDlg").onclose = null; $("#ppDlg").close(); finish(true);
-          app.render(); app.renderSettings();
+          app.render(); app.renderSettings(); migrateLocal();
         } catch(x) {
           err(x instanceof app.NetError ? "Shared reminders need a connection" : "Not saved");
         } finally { $("#ppOk").disabled = false; $("#ppOk").textContent = create ? "Set passphrase" : "Unlock"; }
@@ -382,11 +448,13 @@ export function init(app){
 
   refresh();
   return {
-    dayHtml, bindDay, settingsHtml, bindSettings,
+    dayHtml, bindDay, bindSettings, settingsPages: {reminders: settingsHtml, family: familyHtml}, count: () => all().length,
+    add: () => openEdit(null),                           // "Add reminder" → "For you"
     due: () => all().filter(m => late(m)).length,
     // frequency chosen in each reminder: -1 none, 0 once, N every N min until taken
     notices: () => all().filter(m => late(m) && Number(m.notify) >= 0).map(m => ({key: "pmed:" + m.id + ":" + (Number(m.every) > 0 ? nextDose(m) : today() + ":" + givenOn(m, today()).length),
       repeat: Number(m.notify) || 0, night: !!m.night, text: app.tr(`${m.name} (for you): due now`)})),
-    synced: refresh
+    synced: refresh, migrate: migrateLocal,
+    restored(){ local = store.get(LS.list, []); localGiven = store.get(LS.given, []); app.render(); app.renderSettings(); }
   };
 }
