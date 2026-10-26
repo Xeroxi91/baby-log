@@ -1,6 +1,7 @@
 #!/bin/sh
 # Pre-push hook (versioned; installed by tools/setup-hooks.sh through core.hooksPath).
-# 1. The public remote receives only main → main: no other branch, no tags, no deletions.
+# 1. The public remote receives only main → main, and tags of commits already in the local main: no other
+#    branch, no deletions.
 # 2. A main that ships extensions is refused on every remote: modules/extensions.js, an index.html whose
 #    meta "extensions" names a file, and any path listed in the local git config `privacy.paths`
 #    (space-separated; set by whoever keeps private work in this clone, never versioned here).
@@ -12,25 +13,35 @@ echo "$url" | grep -Eq 'Xeroxi91/baby-log(\.git)?$' && public=1
 
 private="modules/extensions.js $(git config --get privacy.paths)"
 
+# a commit that would make a public main or a public tag: no private files, no extensions meta
+check_tree(){
+  [ -n "$(git config --get privacy.paths)" ] || echo "pre-push: note: no privacy.paths configured in this clone." >&2
+  files=$(git ls-tree -r --name-only "$1")
+  for p in $private; do
+    if echo "$files" | grep -q "^$p"; then echo "pre-push: refused: $2 contains '$p', which is private." >&2; status=1; fi
+  done
+  if git show "$1:index.html" 2>/dev/null | grep -q '^<meta name="extensions" content="[^"]'; then   # the tag, not a comment
+    echo "pre-push: refused: $2's index.html loads an extensions file." >&2; status=1
+  fi
+}
+
 status=0
 while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$local_ref" in refs/tags/*)
+    if [ "$public" = 1 ]; then
+      c=$(git rev-parse "$local_sha^{commit}" 2>/dev/null)
+      if [ "$local_sha" = "$zero" ] || ! git merge-base --is-ancestor "$c" refs/heads/main; then
+        echo "pre-push: refused tag '$local_ref' on $remote: only tags of commits already in main." >&2; status=1
+      else check_tree "$c" "tag ${local_ref#refs/tags/}"; fi
+    fi
+    continue ;;
+  esac
   if [ "$public" = 1 ] && { [ "$local_ref" != "refs/heads/main" ] || [ "$remote_ref" != "refs/heads/main" ]; }; then
     echo "pre-push: refused '$local_ref' → '$remote_ref' on $remote: the public remote receives only main → main." >&2
     status=1; continue
   fi
   if [ "$remote_ref" = "refs/heads/main" ] && [ "$local_sha" != "$zero" ]; then
-    [ -n "$(git config --get privacy.paths)" ] || echo "pre-push: note: no privacy.paths configured in this clone." >&2
-    files=$(git ls-tree -r --name-only "$local_sha")
-    for p in $private; do
-      if echo "$files" | grep -q "^$p"; then
-        echo "pre-push: refused: main contains '$p', which is private." >&2
-        status=1
-      fi
-    done
-    if git show "$local_sha:index.html" 2>/dev/null | grep -q '^<meta name="extensions" content="[^"]'; then   # the tag, not a comment
-      echo "pre-push: refused: main's index.html loads an extensions file." >&2
-      status=1
-    fi
+    check_tree "$local_sha" "main"
   fi
 done
 exit $status
