@@ -278,6 +278,12 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   await I.addEvents([{kind:'feed', feedType:'breast', child:i1, ts:Date.now()-5*60000, live:1, side:'L'}]); await sleep(400);
   for (const t of ['log', 'trend', 'settings']) { di.querySelector(`[data-tab="${t}"]`).click(); await sleep(50); }
   di.querySelector('[data-tab="log"]').click(); di.querySelector('#fab').click(); await sleep(50); di.querySelector('#sheetClose').click();
+  // dialogs too: profile, reminders, for whom, and the event editor with every kind
+  const shut = () => di.querySelectorAll('dialog[open]').forEach(x=>x.close());
+  for (const f of ['openProfile()', 'openMed(null)', 'addReminder()']) { I.eval(f); await sleep(50); shut(); }
+  I.eval(`openEditor(null, {kind:'feed', feedType:'breast', child:'${i1}', ts: Date.now()})`); await sleep(50);
+  for (const o of [...di.querySelectorAll('#fKind option')]) { di.querySelector('#fKind').value = o.value; di.querySelector('#fKind').dispatchEvent(new I.Event('change')); await sleep(20); }
+  shut();
   assert.deepStrictEqual(missing, [], 'no missing Italian');
   // one card for a feed in progress: the live bar, not a second card in the row of children
   const lives = di.querySelectorAll('#livebar .live').length, name = I.__t.events.find(e=>e.live && e.child===i1) && JSON.parse(props.PROFILE).children[0].name;
