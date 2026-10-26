@@ -137,7 +137,7 @@ data** (removable from *Settings*; never uploaded).
 - Weight in grams for babies and kilograms from 1 year; a warning when a weight or length is outside
   the usual range for the child's age (WHO / INTERGROWTH −5…+5 SD).
 - Children profiles, title shown at the top (default *Baby log*, per device), **night mode** (off / on /
-  automatic 22:00–6:00: very dark warm colours, dimmed emoji, bigger buttons; also 🌙 at the top), theme (auto / light / dark),
+  automatic 22:00–7:00, the same hours as the notifications' quiet hours: very dark warm colours, dimmed emoji, bigger buttons; also ☾ at the top), theme (auto / light / dark),
   feed highlight threshold, signal thresholds (automatic by age or custom).
 - Sync status, *Sync now*, sharing (app link, API address), disconnect this device.
 - About: version, references, license and source code.

@@ -18,7 +18,7 @@ function device(pre, setup){
   Object.defineProperty(w, 'crypto', {value: require('crypto').webcrypto});
   w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
   w.__imp = async p => w.eval(fs.readFileSync(path.join(__dirname, '..', p), 'utf8').replace(/^export /m, '') + ';({init})');
-  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID};');
+  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID,initials,isNight};');
   return w;
 }
 const sleep = ms => new Promise(r=>setTimeout(r, ms));
@@ -232,6 +232,10 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.ok(d.querySelector('.sheet .actions').classList.contains('open') && d.querySelector('#moreLn').hidden, 'More opens them');
   d.querySelector('#sheetClose').click(); d.querySelector('#fab').click(); await sleep(20);
   assert.ok(!d.querySelector('.sheet .actions').classList.contains('open'), 'closed again at the next opening'); d.querySelector('#sheetClose').click();
+  // monogram: two letters only when initials collide; two words → initials, one word → first two letters
+  assert.ok(A.__t.initials('Ottavio', true)==='Ot' && A.__t.initials('olga lina', true)==='OL' && A.__t.initials('Nina')==='N', 'monogram formats');
+  // one night for the app: 22:00–07:00
+  assert.ok(A.__t.isNight(22) && A.__t.isNight(6) && !A.__t.isNight(7) && !A.__t.isNight(21), 'night is 22–7');
   // Settings: an index; each page has its own address, so Back returns to the index; no ＋ in Settings
   d.querySelector('[data-tab="settings"]').click(); await sleep(20);
   assert.ok(!d.querySelector('.sindex').hidden && d.querySelector('#fab').hidden && d.querySelector('#title').textContent==='Settings', 'Settings index, no ＋');

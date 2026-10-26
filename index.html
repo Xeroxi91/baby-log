@@ -634,11 +634,13 @@ let kids = [];                                   // [{id, name, sex, birth, gaW,
 const kidIds = () => kids.map(k=>k.id);
 // a colour chosen for the child (stored with the profile) wins; otherwise the tint of its position
 const tintOf = (k, i) => TINTS.includes(k.color) ? k.color : TINTS[i % TINTS.length];
-// monogram: the initial; two letters when another child has the same tint or the same initial (colour is never the only sign)
-const initials = (name, two) => { const w = String(name || "?").trim().split(/\s+/);
-  return (two ? (w.length > 1 ? w[0][0] + w[1][0] : w[0].slice(0, 2)) : w[0][0] || "?").toUpperCase(); };
+// monogram: the initial; when two children share it, two letters: initials of a two-word name ("OL"),
+// the first two letters of a one-word name ("Ot")
+const initials = (name, two) => { const w = String(name || "?").trim().split(/\s+/), a = (w[0][0] || "?").toUpperCase();
+  return !two ? a : w.length > 1 ? a + w[1][0].toUpperCase() : a + (w[0][1] || "").toLowerCase(); };
+const sharesInitial = (name, others) => others.some(o=>o && initials(o)===initials(name));
 const KID = id => { const i = kids.findIndex(k=>k.id===id); if (i<0) return {name:"?", c:"var(--muted)", m:"?", t:""};
-  const t = tintOf(kids[i], i), two = kids.some((k, j)=>j!==i && (tintOf(k, j)===t || initials(k.name)===initials(kids[i].name)));
+  const t = tintOf(kids[i], i), two = sharesInitial(kids[i].name, kids.filter((k, j)=>j!==i).map(k=>k.name));
   return {name:kids[i].name, c:`var(--kid-${t})`, m: initials(kids[i].name, two), t}; };
 const mono = (id, cls="") => `<span class="mono notr ${cls}" style="--c:${KID(id).c}" aria-hidden="true">${esc(KID(id).m)}</span>`;
 const prof = id => kids.find(k=>k.id===id) || {};
@@ -657,7 +659,11 @@ const logIds = () => kids.filter(k=>stageOf(k.id)!=="child").map(k=>k.id);
 const manyLog = () => logIds().length > 1;
 const SESSION_GAP = 60*60000;   // breast and bottle within 60 min = same feed
 const DUP_WINDOW = 10*60000;    // same event within 10 min = possible duplicate
-const LIVE_MAX = 60*60000;      // breastfeeding timer bar visible for at most 60 min
+const LIVE_MAX = 60*60000;
+// night, the same everywhere: automatic night mode, quiet hours for notifications, grey band in the feeding rhythm
+const NIGHT = {from:22, to:7};
+const isNight = (h = new Date().getHours()) => h >= NIGHT.from || h < NIGHT.to;
+const NIGHT_TXT = `${NIGHT.from}:00–${NIGHT.to}:00`;      // breastfeeding timer bar visible for at most 60 min
 let events = [], allEvents = [];       // events: what the app shows (modules turned off are hidden); allEvents: everything
 const FAMILY = "family";             // owner of module rows shared by the whole family (stock, lists): never in the baby screens
 let editingLive = false;
@@ -709,7 +715,7 @@ const IT = {
 "ml per day":"ml al giorno","ml/kg per day":"ml/kg al giorno","h (median)":"h (mediana)","ml per feed (test weighing)":"ml per poppata (doppia pesata)","%":"%",
 "Week":"Settimana","Bottle ml":"Biberon ml","Weight g/day":"Peso g/giorno","Weight percentile":"Percentile peso",
 "Tap a card to enlarge it. Intervals are measured from start to start of feeds.":"Tocca una scheda per ingrandirla. Gli intervalli si misurano dall'inizio di una poppata all'inizio della successiva.",
-"Each bar is a feed from start to end; darker bars had a top-up. Night (22–6) in grey.":"Ogni barra è una poppata dall'inizio alla fine; le più scure hanno avuto un'aggiunta. Notte (22–6) in grigio.",
+"Each bar is a feed from start to end; darker bars had a top-up. Night (22–7) in grey.":"Ogni barra è una poppata dall'inizio alla fine; le più scure hanno avuto un'aggiunta. Notte (22–7) in grigio.",
 "Talk to your paediatrician":"Parlane con il pediatra","Keep an eye on":"Da tenere d'occhio","Going well":"Va bene","What may help":"Cosa può aiutare",
 "Nothing to flag right now.":"Niente da segnalare al momento.",
 "Signals use the age-based thresholds in Settings. They are not a diagnosis: when in doubt, contact your paediatrician.":"I segnali usano le soglie per età delle Impostazioni. Non sono una diagnosi: nel dubbio contatta il pediatra.",
@@ -800,7 +806,7 @@ const IT = {
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
 "7 days":"7 g","14 days":"14 g","30 days":"30 g",
-"Colour":"Colore","Vitamin D or prescribed medicines, in Day.":"Vitamina D o farmaci prescritti, in Giorno.","The parent's sessions and the day's total.":"Sessioni del genitore e totale del giorno.","Weight before and after a breastfeed.":"Peso prima e dopo il seno.","Charts, diary completeness, rhythm, weekly summary.":"Grafici, completezza del diario, ritmo, riepilogo settimanale.","Interpretation of the entries. Not a medical device.":"Interpretazione delle registrazioni. Non è un dispositivo medico.","Very dark and dim, bigger buttons.":"Molto scuro e attenuato, pulsanti più grandi.","Spreadsheet (CSV), backup and restore (JSON).":"Foglio di calcolo (CSV), backup e ripristino (JSON).","Your own medicines, on this phone or shared encrypted.":"I tuoi farmaci, su questo telefono o condivisi cifrati.","Add a reminder for":"Aggiungi un promemoria per","Family passphrase":"Frase segreta della famiglia","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active · quiet 22–7":"Attive · silenzio 22–7","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"Colour":"Colore","Vitamin D or prescribed medicines, in Day.":"Vitamina D o farmaci prescritti, in Giorno.","The parent's sessions and the day's total.":"Sessioni del genitore e totale del giorno.","Weight before and after a breastfeed.":"Peso prima e dopo il seno.","Charts, diary completeness, rhythm, weekly summary.":"Grafici, completezza del diario, ritmo, riepilogo settimanale.","Interpretation of the entries. Not a medical device.":"Interpretazione delle registrazioni. Non è un dispositivo medico.","Very dark and dim, bigger buttons.":"Molto scuro e attenuato, pulsanti più grandi.","Spreadsheet (CSV), backup and restore (JSON).":"Foglio di calcolo (CSV), backup e ripristino (JSON).","Your own medicines, on this phone or shared encrypted.":"I tuoi farmaci, su questo telefono o condivisi cifrati.","Add a reminder for":"Aggiungi un promemoria per","Family passphrase":"Frase segreta della famiglia","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
 "Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
 "scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
 "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
@@ -808,7 +814,7 @@ const IT = {
 };
 // templates: {x} matches any text
 const IT_T = [
-["birth {x}","nascita {x}"],["{x} children","{x} figli"],["{x} on","{x} attive"],["threshold {x} h","soglia {x} h"],["last {x}","ultimo {x}"],["{x} ago","{x} fa"],["No measurements of {x} yet.","Ancora nessuna misura di {x}."],
+["birth {x}","nascita {x}"],["Active · quiet {x}","Attive · silenzio {x}"],["{x} children","{x} figli"],["{x} on","{x} attive"],["threshold {x} h","soglia {x} h"],["last {x}","ultimo {x}"],["{x} ago","{x} fa"],["No measurements of {x} yet.","Ancora nessuna misura di {x}."],
 ["{x} · {x} change not shared yet","{x} · {x} modifica non ancora condivisa"],["{x} · {x} changes not shared yet","{x} · {x} modifiche non ancora condivise"],
 ["{x} · {x} change waiting to be sent","{x} · {x} modifica in attesa di invio"],["{x} · {x} changes waiting to be sent","{x} · {x} modifiche in attesa di invio"],
 ["{x} for {x}: due now","{x} per {x}: da dare ora"],["{x}: {x} since the end of the last feed","{x}: {x} dalla fine dell'ultima poppata"],
@@ -2375,7 +2381,7 @@ function metricCard(m, t, days, prevDays){
 function rhythm(t, days){
   const W = 340, lane = 10, rowH = lane + 6, pl = 36, H = days.length*rowH + 16, X = h => pl + h/24*(W-pl-4);
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Feeds over 24 hours" style="width:100%;height:auto;display:block">`;
-  s += `<rect x="${X(0)}" y="0" width="${X(6)-X(0)}" height="${H-16}" fill="var(--refband)"/><rect x="${X(22)}" y="0" width="${X(24)-X(22)}" height="${H-16}" fill="var(--refband)"/>`;
+  s += `<rect x="${X(0)}" y="0" width="${X(NIGHT.to)-X(0)}" height="${H-16}" fill="var(--refband)"/><rect x="${X(NIGHT.from)}" y="0" width="${X(24)-X(NIGHT.from)}" height="${H-16}" fill="var(--refband)"/>`;
   [0,6,12,18,24].forEach(h=>{ s += `<line x1="${X(h)}" x2="${X(h)}" y1="0" y2="${H-16}" stroke="var(--line)"/><text x="${X(h)}" y="${H-4}" text-anchor="middle" font-size="9" fill="var(--muted)">${h}</text>`; });
   const ss = sessions(t);
   days.forEach((k,i)=>{
@@ -2489,7 +2495,7 @@ function renderTrend(){
 
   // rhythm + weekly
   const rd = periodDays(Math.min(n, 10)).concat([dayKey(now)]);
-  h += `<div class="chartcard">${sh("Feeding rhythm", "rhythm", "Each bar is a feed from start to end; darker bars had a top-up. Night (22–6) in grey.")}${rhythm(t, rd.slice().reverse())}</div>`;
+  h += `<div class="chartcard">${sh("Feeding rhythm", "rhythm", `Each bar is a feed from start to end; darker bars had a top-up. Night (${NIGHT.from}–${NIGHT.to}) in grey.`)}${rhythm(t, rd.slice().reverse())}</div>`;
   h += `<details class="det"><summary>Weekly summary</summary>${weeklyTable(t)}</details>`;
   }
   if (manyLog() && detail) h += `<details class="det"><summary>Compare children</summary>${compareTable(days)}</details>`;
@@ -2553,7 +2559,7 @@ function renderSettings(){
     family: kids.length===1 ? "1 child" : `${kids.length} children`,
     features: `${FEATURES.filter(f=>featOn(f.k)).length} on`,
     reminders: featOn("meds") || modSettings("reminders") ? (remCount ? String(remCount) : "none") : null,
-    notify: notif.on ? (notif.quiet ? "Active · quiet 22–7" : "Active") : "Not active",
+    notify: notif.on ? (notif.quiet ? `Active · quiet ${NIGHT.from}–${NIGHT.to}` : "Active") : "Not active",
     feeds: `threshold ${alertH} h`,
     home: modSettings("home") ? "" : null,
     look: `<span>${themeName}</span><span> · </span><span class="notr">${langName}</span>`,
@@ -2599,7 +2605,7 @@ ${remAddOk() ? `<button class="btn wide" id="remAdd">＋ Add reminder</button>` 
     <div class="seg" id="langSeg" style="margin-bottom:10px">${[["auto","Auto"],["it","Italiano"],["en","English"]].map(([v,l])=>{ let cur = "auto"; try { cur = localStorage.getItem("bl-lang") || "auto"; } catch(e) {} return `<button type="button" class="notr" data-v="${v}" aria-pressed="${cur===v}">${l}</button>`; }).join("")}</div>
     <label class="lbl2">Title shown at the top<input id="titleIn" maxlength="30" placeholder="Baby log" value="${esc(appTitle()==="Baby log" ? "" : appTitle())}"></label>
     ${featOn("night") ? `<p class="row2" style="margin:4px 0 6px">Night mode <small class="muted">· very dark and dim, bigger buttons</small></p>
-    <div class="seg" id="nightSeg" style="margin-bottom:10px">${[["off","Off"],["on","On"],["auto","22:00–6:00"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${night===v}">${l}</button>`).join("")}</div>` : ""}
+    <div class="seg" id="nightSeg" style="margin-bottom:10px">${[["off","Off"],["on","On"],["auto",NIGHT_TXT]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${night===v}">${l}</button>`).join("")}</div>` : ""}
     <p class="row2" style="margin:4px 0 6px">Theme</p>
     <div class="seg" id="themeSeg">${[["auto","Auto"],["light","Light"],["dark","Dark"]].map(([v,l])=>`<button type="button" data-v="${v}" aria-pressed="${theme===v}">${l}</button>`).join("")}</div></div>
 `)}
@@ -2673,7 +2679,7 @@ function drawProfile(){
     <label>Birth head circ. (cm)<input type="text" inputmode="decimal" data-i="${i}" data-k="bh" value="${esc(p.bh||"")}"></label></div>
     <div class="lblc"><span>Colour</span><input type="hidden" data-i="${i}" data-k="color" value="${esc(p.color||"")}">
       <div class="tints" role="group" aria-label="Colour">${TINTS.map(t=>{ const cur = tintOf(p, i)===t, users = draft.filter((q, j)=>j!==i && tintOf(q, j)===t).map(q=>q.name).filter(Boolean);
-        return `<button type="button" data-tint="${t}" data-ti="${i}" aria-pressed="${cur}"><span class="mono xl notr" style="--c:var(--kid-${t})">${cur ? "✓" : esc(initials(p.name, users.length > 0))}</span><span>${TINT_NAME[t]}</span><small class="notr">${esc(users.join(", "))}</small></button>`; }).join("")}</div></div>
+        return `<button type="button" data-tint="${t}" data-ti="${i}" aria-pressed="${cur}"><span class="mono xl notr" style="--c:var(--kid-${t})">${cur ? "✓" : esc(initials(p.name, sharesInitial(p.name, draft.filter((q, j)=>j!==i).map(q=>q.name))))}</span><span>${TINT_NAME[t]}</span><small class="notr">${esc(users.join(", "))}</small></button>`; }).join("")}</div></div>
     ${draft.length>1 && !(p.id && events.some(e=>e.child===p.id)) ? `<button type="button" class="btn del" data-rm="${i}">Remove</button>` : ""}</fieldset>`;
   $("#profBody").innerHTML = draft.map((p, i)=>f(p, i)).join("") + `<button type="button" class="addmiss" id="addKid">＋ Add child</button>`;
   const sync = () => $("#profBody").querySelectorAll("[data-k]").forEach(inp=>{ draft[inp.dataset.i][inp.dataset.k] = inp.value.trim(); });
@@ -2848,10 +2854,10 @@ function applyTheme(){
 }
 applyTheme();
 
-/* ---------- night mode: off / on / automatic 22–6 ---------- */
+/* ---------- night mode: off / on / automatic (NIGHT hours) ---------- */
 let night = "off";
 try { night = localStorage.getItem("bl-night") || "off"; } catch(e) {}
-const isNightHour = () => { const h = new Date().getHours(); return h >= 22 || h < 6; };
+const isNightHour = () => isNight();
 const nightOn = () => featOn("night") && (night==="on" || (night==="auto" && isNightHour()));
 function applyNight(){
   const on = nightOn();
@@ -2885,7 +2891,7 @@ const saveNotif = () => { try { localStorage.setItem("bl-notify", JSON.stringify
 let notified = {};                    // event key → when it was notified
 try { notified = JSON.parse(localStorage.getItem("bl-notified") || "{}") || {}; } catch(e) {}
 let noticeLater = [];                 // not shown yet (app in the background, quiet hours or no permission)
-const quietNow = () => { const h = new Date().getHours(); return notif.quiet && (h >= 22 || h < 7); };
+const quietNow = () => notif.quiet && isNight();
 const sysPerm = () => window.Notification ? Notification.permission : "unsupported";
 const typeOn = k => notif.types[k] !== false && (FEATURES.some(f=>f.k===k) ? featOn(k) : true);
 // types shown in Settings: the app's, plus modules that notify and are not listed above
@@ -2948,7 +2954,7 @@ function notifHtml(){
     ${notif.on ? `${p==="default" ? `<button class="btn ghost wide" id="ntAllow">Allow phone notifications</button>` : `<p class="note" style="margin:0">${st}</p>`}
     <ul class="feats">${notifyTypes().filter(([k])=>!FEATURES.some(f=>f.k===k) || featOn(k))
         .map(([k,n,d])=>sw(notif.types[k]!==false, n, k==="gap" ? `When a child passes ${alertH} h from the end of the last feed (Settings → Feeds).` : d, `data-nt="${k}"`)).join("")}
-      ${sw(notif.quiet, "Quiet hours 22:00–7:00", "No phone notifications at night, except reminders set to ring also at night; the banner and the number on the icon stay.", 'id="ntQuiet"')}</ul>` : ""}</div>`;
+      ${sw(notif.quiet, `Quiet hours ${NIGHT_TXT}`, "No phone notifications at night, except reminders set to ring also at night; the banner and the number on the icon stay.", 'id="ntQuiet"')}</ul>` : ""}</div>`;
 }
 function bindNotif(el){
   const ask = ()=>{ if (window.Notification && Notification.permission==="default") Notification.requestPermission().then(()=>{ renderSettings(); updateBadge(); }).catch(()=>{}); };
