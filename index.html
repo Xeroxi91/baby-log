@@ -381,6 +381,7 @@ dialog.sheet .sheet-in{padding:14px 14px calc(14px + env(safe-area-inset-bottom,
 .top.tsub h1{font-size:1.05rem;text-align:center;padding-right:96px;margin:0}
 .back{border:0;background:none;color:var(--ink);font-weight:600;font-size:1rem;text-decoration:underline;text-underline-offset:3px;min-height:44px;padding:0 4px}
 .back.bottom{display:block;margin:8px 0 0}
+.rcount{list-style:none;margin:0 0 6px;padding:0}.rcount li{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--line)}
 .kids li.tap{cursor:pointer}.kids li .chev{margin-left:auto;color:var(--faint);font-size:1.2rem}
 .kidhead{display:flex;flex-direction:column;align-items:center;gap:8px;margin:4px 0 16px}.kidhead b{font-size:1.3rem}
 .srow.static{cursor:default}
@@ -507,6 +508,8 @@ img,svg{-webkit-user-drag:none}
 
 <dialog id="langDlg" class="sheet" tabindex="-1"></dialog>
 <dialog id="forDlg" class="sheet" tabindex="-1"></dialog>
+<dialog id="restDlg" tabindex="-1"><div class="dlg"><h2>Restore from a backup</h2><div id="restBody"></div>
+  <div class="row"><button type="button" class="btn ghost" id="restCancel">Cancel</button><button type="button" class="btn" id="restOk">Restore</button></div></div></dialog>
 <dialog id="sheet" class="sheet" tabindex="-1" autofocus><div class="sheet-in">
   <div class="grab" aria-hidden="true"></div><h2 class="sheet-t">Log an event</h2>
   <div class="who hs" id="who" role="group" aria-label="Who" hidden></div>
@@ -812,7 +815,7 @@ const IT = {
 "API address copied":"Indirizzo API copiato","App link copied":"Link dell'app copiato","Profile saved on this device":"Profilo salvato su questo dispositivo","Profile saved":"Profilo salvato","Not connected":"Non collegato","Reminders need a connection to be shared":"Per condividere i promemoria serve la connessione","Reminders not saved":"Promemoria non salvati","Profile changes need a connection":"Per modificare il profilo serve la connessione",
 "Remove address and code from this device? What is already here stays visible, and new entries are kept on this device.":"Rimuovere indirizzo e codice da questo dispositivo? Ciò che c'è resta visibile e i nuovi eventi restano su questo dispositivo.",
 "7 days":"7 g","14 days":"14 g","30 days":"30 g",
-"Colour":"Colore","‹ Family":"‹ Famiglia","Name":"Nome","Monogram":"Monogramma","The initial; two letters when two children share it.":"L'iniziale; due lettere quando due figli la condividono.","The app's tints, checked for contrast and colour blindness.":"Le tinte dell'app, verificate per contrasto e daltonismo.","Preview":"Anteprima","Vitamin D or prescribed medicines, in Day.":"Vitamina D o farmaci prescritti, in Giorno.","The parent's sessions and the day's total.":"Sessioni del genitore e totale del giorno.","Weight before and after a breastfeed.":"Peso prima e dopo il seno.","Charts, diary completeness, rhythm, weekly summary.":"Grafici, completezza del diario, ritmo, riepilogo settimanale.","Interpretation of the entries. Not a medical device.":"Interpretazione delle registrazioni. Non è un dispositivo medico.","Very dark and dim, bigger buttons.":"Molto scuro e attenuato, pulsanti più grandi.","Spreadsheet (CSV), backup and restore (JSON).":"Foglio di calcolo (CSV), backup e ripristino (JSON).","Your own medicines, on this phone or shared encrypted.":"I tuoi farmaci, su questo telefono o condivisi cifrati.","Add a reminder for":"Aggiungi un promemoria per","Family passphrase":"Frase segreta della famiglia","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
+"Colour":"Colore","Restore from a backup (JSON)":"Ripristina da un backup (JSON)","Restore from a backup":"Ripristina da un backup","Restore":"Ripristina","Cancel":"Annulla","Remove the sample data before restoring a backup":"Rimuovi i dati di esempio prima di ripristinare un backup","This file is not a backup of the app.":"Questo file non è un backup dell'app.","Checking what is already here…":"Controllo di ciò che c'è già…","To add":"Da aggiungere","Children":"Figli","Children's reminders":"Promemoria dei figli","Feeds":"Poppate","Pee":"Pipì","Poo":"Cacca","Weights":"Pesi","Lengths":"Lunghezze","Head circumferences":"Circonferenze cranica","Notes":"Note","Reminder doses":"Dosi dei promemoria","Pumping sessions":"Sessioni di tiralatte","Doses for you":"Dosi per te","Other entries":"Altre registrazioni","Entries":"Registrazioni","This backup has no children profile.":"Questo backup non contiene il profilo dei figli.","This backup has no reminders.":"Questo backup non contiene promemoria.","Nothing already here is changed or deleted. The address and access code are not touched.":"Niente di ciò che c'è già viene modificato o eliminato. Indirizzo e codice di accesso non vengono toccati.","‹ Family":"‹ Famiglia","Name":"Nome","Monogram":"Monogramma","The initial; two letters when two children share it.":"L'iniziale; due lettere quando due figli la condividono.","The app's tints, checked for contrast and colour blindness.":"Le tinte dell'app, verificate per contrasto e daltonismo.","Preview":"Anteprima","Vitamin D or prescribed medicines, in Day.":"Vitamina D o farmaci prescritti, in Giorno.","The parent's sessions and the day's total.":"Sessioni del genitore e totale del giorno.","Weight before and after a breastfeed.":"Peso prima e dopo il seno.","Charts, diary completeness, rhythm, weekly summary.":"Grafici, completezza del diario, ritmo, riepilogo settimanale.","Interpretation of the entries. Not a medical device.":"Interpretazione delle registrazioni. Non è un dispositivo medico.","Very dark and dim, bigger buttons.":"Molto scuro e attenuato, pulsanti più grandi.","Spreadsheet (CSV), backup and restore (JSON).":"Foglio di calcolo (CSV), backup e ripristino (JSON).","Your own medicines, on this phone or shared encrypted.":"I tuoi farmaci, su questo telefono o condivisi cifrati.","Add a reminder for":"Aggiungi un promemoria per","Family passphrase":"Frase segreta della famiglia","Height, notes and pumping:":"Altezza, note e tiralatte:","Height and notes:":"Altezza e note:","Height and pumping:":"Altezza e tiralatte:","Height:":"Altezza:","More":"Altro","Reminders":"Promemoria","none":"nessuno","Feeds and signals":"Poppate e segnali","Data and backup":"Dati e backup","About and what's new":"Informazioni e novità","no backup yet":"nessun backup","now":"ora","local":"locale","offline":"offline","error":"errore","‹ Settings":"‹ Impostazioni","Also in Settings → Appearance.":"Anche in Impostazioni → Aspetto.","Active":"Attive","Not active":"Non attive","1 child":"1 figlio","Home":"Casa","The same on every phone of the family.":"Uguali su tutti i telefoni della famiglia.","Turning a feature off only hides it: the data stay.":"Spegnere una funzione la nasconde e basta: i dati restano.","Saved on this device.":"Salvate su questo dispositivo.","Blue":"Blu","Azure":"Azzurro","Violet":"Viola","Pink":"Rosa","Slate blue":"Grigio-blu","New colours for the children":"Nuovi colori per i figli","See":"Vedi","newborn":"neonatale","infant":"lattante","child":"bambino","weight":"peso","length":"lunghezza","height":"altezza","bmi":"IMC",
 "Add a child":"Aggiungi un figlio","No children yet.":"Ancora nessun figlio.","Birth":"Nascita","Minus 10 ml":"Meno 10 ml","Plus 10 ml":"Più 10 ml",
 "scroll →":"scorri →","License: PolyForm Noncommercial 1.0.0 ·":"Licenza: PolyForm Noncommercial 1.0.0 ·",
 "To share the log with another caregiver: send them the app link and the API address, then give them their own access code (in Apps Script run":"Per condividere il diario con un altro genitore o un'altra persona che se ne prende cura: manda il link dell'app e l'indirizzo API, poi dai a ciascuno il proprio codice di accesso (in Apps Script esegui",
@@ -820,7 +823,7 @@ const IT = {
 };
 // templates: {x} matches any text
 const IT_T = [
-["birth {x}","nascita {x}"],["Active · quiet {x}","Attive · silenzio {x}"],["{x} children","{x} figli"],["{x} on","{x} attive"],["threshold {x} h","soglia {x} h"],["last {x}","ultimo {x}"],["{x} ago","{x} fa"],["No measurements of {x} yet.","Ancora nessuna misura di {x}."],
+["birth {x}","nascita {x}"],["{x} entries are already here: they stay as they are.","{x} registrazioni ci sono già: restano come sono."],["{x} entries belong to a child that is not in the backup: they are left out.","{x} registrazioni sono di un figlio che non è nel backup: restano fuori."],["{x} entries are not valid: they are left out.","{x} registrazioni non sono valide: restano fuori."],["Restored: {x} entries","Ripristinate: {x} registrazioni"],["Active · quiet {x}","Attive · silenzio {x}"],["{x} children","{x} figli"],["{x} on","{x} attive"],["threshold {x} h","soglia {x} h"],["last {x}","ultimo {x}"],["{x} ago","{x} fa"],["No measurements of {x} yet.","Ancora nessuna misura di {x}."],
 ["{x} · {x} change not shared yet","{x} · {x} modifica non ancora condivisa"],["{x} · {x} changes not shared yet","{x} · {x} modifiche non ancora condivise"],
 ["{x} · {x} change waiting to be sent","{x} · {x} modifica in attesa di invio"],["{x} · {x} changes waiting to be sent","{x} · {x} modifiche in attesa di invio"],
 ["{x} for {x}: due now","{x} per {x}: da dare ora"],["{x}: {x} since the end of the last feed","{x}: {x} dalla fine dell'ultima poppata"],
@@ -2626,7 +2629,8 @@ ${remAddOk() ? `<button class="btn wide" id="remAdd">＋ Add reminder</button>` 
     <div class="two"><button class="btn ghost" id="shareApp">Share app link</button><button class="btn ghost" id="copyApi">Copy API address</button></div>
     <button class="btn del wide" id="discBtn">Disconnect this device</button>`}</div>
   <div class="sect"${featOn("export")?"":" hidden"}>${sh("Export", "export", "All entries, children and reminders on this device. The file contains personal data: keep it private.")}
-    <div class="two"><button class="btn ghost" id="expCsv">Spreadsheet (CSV)</button><button class="btn ghost" id="expJson">Full backup (JSON)</button></div></div>
+    <div class="two"><button class="btn ghost" id="expCsv">Spreadsheet (CSV)</button><button class="btn ghost" id="expJson">Full backup (JSON)</button></div>
+    <button class="btn ghost wide" id="restoreBtn">Restore from a backup (JSON)</button><input type="file" id="restoreFile" accept="application/json,.json" hidden></div>
 `)}
   ${P("about", `  ${changelogHtml()}
   <div class="sect">${sh("About", "about", "Growth references: WHO Child Growth Standards (2006); INTERGROWTH-21st Postnatal Growth Standards for Preterm Infants (Villar et al., Lancet Global Health 2015), reference tables via the open-source gigs package (LSHTM).")}
@@ -2652,6 +2656,8 @@ ${remAddOk() ? `<button class="btn wide" id="remAdd">＋ Add reminder</button>` 
   if ($("#connectBtn")) $("#connectBtn").onclick = connectShared;
   $("#expCsv").onclick = ()=>exportData("csv");
   $("#expJson").onclick = ()=>exportData("json");
+  $("#restoreBtn").onclick = ()=>{ if (isDemo()) return toast("Remove the sample data before restoring a backup", false); $("#restoreFile").value = ""; $("#restoreFile").click(); };
+  $("#restoreFile").onchange = async e=>{ const f = e.target.files && e.target.files[0]; if (f) openRestore(await f.text()); };
   if ($("#demoClear")) $("#demoClear").onclick = ()=>{ if (confirm("Remove all sample data from this device?")) clearDemo(); };
   if (isLocal()){ ["syncNow","shareApp","copyApi","discBtn"].forEach(id=>{ const b = $("#"+id); if (b) b.remove(); }); }
   if ($("#syncNow")) $("#syncNow").onclick = ()=>{ forceNext = true; refresh(); };
@@ -2787,6 +2793,68 @@ function download(name, text, type){
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
   setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
+
+/* ---------- restore from a JSON backup ----------
+   Adds what is missing, never overwrites: children, reminders and entries are matched by id. Address and
+   access code are never read from the file. Children come first (with their ids), so entries keep their child. */
+const RKIND = [["feed","Feeds"],["pee","Pee"],["poo","Poo"],["weight","Weights"],["len","Lengths"],["hc","Head circumferences"],
+               ["note","Notes"],["med","Reminder doses"],["pump","Pumping sessions"],["pmed","Doses for you"]];
+let restorePlan = null;
+function parseBackup(text){
+  let j; try { j = JSON.parse(text); } catch(e) { return {error:"This file is not a backup of the app."}; }
+  if (!j || j.app!=="baby-log" || !Array.isArray(j.events)) return {error:"This file is not a backup of the app."};
+  const okId = id => /^[A-Za-z0-9_-]{6,64}$/.test(String(id || ""));
+  const evs = j.events.filter(e=>e && okId(e.id) && typeof e.kind==="string" && Number(e.ts) > 0 && e.child);
+  const known = new Set(allEvents.map(e=>e.id));
+  const kidsIn = Array.isArray(j.children) ? j.children.filter(k=>k && /^c[a-z0-9]{6,20}$/.test(String(k.id)) && k.name) : null;
+  const medsIn = Array.isArray(j.reminders) ? j.reminders.filter(m=>m && /^m[a-z0-9]{6,20}$/.test(String(m.id)) && m.name) : null;
+  const plan = {exported: j.exported || "", version: j.version || "",
+    events: evs.filter(e=>!known.has(e.id)), dupEvents: evs.length - evs.filter(e=>!known.has(e.id)).length, skipped: j.events.length - evs.length,
+    kids: kidsIn && kidsIn.filter(k=>!kids.some(c=>c.id===k.id)), kidsIn,
+    meds: medsIn && medsIn.filter(m=>!meds.some(x=>x.id===m.id)), medsIn};
+  // entries of a child that is neither here nor in the file cannot be placed
+  const childOk = id => id==="parent" || id===FAMILY || kids.some(k=>k.id===id) || (plan.kids || []).some(k=>k.id===id);
+  plan.orphans = plan.events.filter(e=>!childOk(e.child)).length;
+  plan.events = plan.events.filter(e=>childOk(e.child));
+  return plan;
+}
+async function openRestore(text){
+  // compare with everything: send what is waiting, get the latest, and the earlier days
+  if (!isLocal()){ toast("Checking what is already here…", false); await refresh(); await loadHistory(); }
+  const p = restorePlan = parseBackup(text);
+  const li = (n, l) => `<li><span>${l}</span><b>${n}</b></li>`;
+  let h;
+  if (p.error) h = `<p class="note" style="color:var(--danger)">${p.error}</p>`;
+  else {
+    const byKind = RKIND.map(([k, l])=>[l, p.events.filter(e=>e.kind===k).length]).filter(x=>x[1]);
+    const other = p.events.filter(e=>!RKIND.some(([k])=>k===e.kind)).length;
+    h = `${p.exported ? `<p class="note notr" style="margin:0">${esc(fmtDate(new Date(p.exported).getTime()))} · ${esc(p.version)}</p>` : ""}
+      <p class="row2" style="margin:4px 0">To add</p>
+      <ul class="rcount">${p.kidsIn ? li(p.kids.length, "Children") : ""}${p.medsIn ? li(p.meds.length, "Children's reminders") : ""}
+        ${byKind.map(([l, n])=>li(n, l)).join("")}${other ? li(other, "Other entries") : ""}${!byKind.length && !other ? li(0, "Entries") : ""}</ul>
+      ${p.dupEvents ? `<p class="note" style="margin:0">${p.dupEvents} entries are already here: they stay as they are.</p>` : ""}
+      ${!p.kidsIn ? `<p class="note" style="margin:0">This backup has no children profile.</p>` : ""}
+      ${!p.medsIn ? `<p class="note" style="margin:0">This backup has no reminders.</p>` : ""}
+      ${p.orphans ? `<p class="note" style="margin:0">${p.orphans} entries belong to a child that is not in the backup: they are left out.</p>` : ""}
+      ${p.skipped ? `<p class="note" style="margin:0">${p.skipped} entries are not valid: they are left out.</p>` : ""}
+      <p class="note" style="margin:0">Nothing already here is changed or deleted. The address and access code are not touched.</p>`;
+  }
+  $("#restBody").innerHTML = h;
+  const n = p.error ? 0 : p.events.length + (p.kids || []).length + (p.meds || []).length;
+  $("#restOk").hidden = !n; $("#restCancel").textContent = n ? "Cancel" : "Close";
+  $("#restDlg").showModal();
+}
+async function applyRestore(){
+  const p = restorePlan; if (!p || p.error) return;
+  $("#restDlg").close();
+  if (p.kids && p.kids.length) await saveChildren(kids.concat(p.kids.map(k=>({...k}))));
+  if (p.meds && p.meds.length) await saveMeds(meds.concat(p.meds.filter(m=>kids.some(k=>k.id===m.child)).map(m=>({...m}))));
+  if (p.events.length) queue(p.events.map(e=>({op:"put", ev:{...e}})));
+  restorePlan = null;
+  toast(`Restored: ${p.events.length} entries`, false);
+}
+$("#restOk").onclick = applyRestore;
+$("#restCancel").onclick = ()=>$("#restDlg").close();
 
 /* ---------- reminder dialog ---------- */
 let medEditing = null;

@@ -18,7 +18,7 @@ function device(pre, setup){
   Object.defineProperty(w, 'crypto', {value: require('crypto').webcrypto});
   w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
   w.__imp = async p => w.eval(fs.readFileSync(path.join(__dirname, '..', p), 'utf8').replace(/^export /m, '') + ';({init})');
-  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID,initials,isNight};');
+  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID,initials,isNight,openRestore};');
   return w;
 }
 const sleep = ms => new Promise(r=>setTimeout(r, ms));
@@ -309,6 +309,23 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   sw(A, 'tmod').checked = false; sw(A, 'tmod').dispatchEvent(new A.Event('change')); await sleep(200);
   assert.ok(!d.querySelector('[data-tab="m-tmod"]') && !d.querySelector('#tab-m-tmod'), 'module tab removed when turned off');
   assert.ok(!d.querySelector('#tab-log').hidden && !d.querySelector('#fab').hidden, 'back to Day, ＋ shown');
+  // restore from a JSON backup: preview, then only what is missing is added (matched by id); codes untouched
+  await A.__t.exportData('json'); const bk = JSON.parse(csv);
+  const keysBefore = props.KEYS, rows0 = data.filter(r=>r[0]).length, nKids0 = JSON.parse(props.PROFILE).children.length;
+  bk.children.push({id:'cnewkid0001', name:'Baby C', sex:'f', birth:'2026-09-18', gaW:40, gaD:0});
+  bk.events.push({id:'restore-ev-0001', kind:'pee', child:'cnewkid0001', ts:Date.now()-36e5});
+  bk.events.push({id:'restore-ev-0002', kind:'pee', child:'cunknown0001', ts:Date.now()-36e5});
+  bk.key = 'EVIL'; bk.api = 'https://example.test/evil';
+  await A.__t.openRestore(JSON.stringify(bk)); await sleep(200);
+  assert.ok(d.querySelector('#restDlg').open && /1/.test(d.querySelector('#restBody').textContent), 'preview with the counts');
+  assert.ok(d.querySelector('#restBody').textContent.includes('already here'), 'preview says what is already here');
+  d.querySelector('#restOk').click(); await sleep(800); await A.__t.refresh(); await sleep(200);
+  assert.strictEqual(JSON.parse(props.PROFILE).children.length, nKids0 + 1, 'missing child added, with its id');
+  assert.strictEqual(data.filter(r=>r[0]).length, rows0 + 1, 'only the missing entry added, nothing duplicated');
+  assert.ok(data.some(r=>r[0]==='restore-ev-0001') && !data.some(r=>r[0]==='restore-ev-0002'), "an entry without its child is left out");
+  assert.ok(props.KEYS===keysBefore && A.localStorage.getItem('bl-key')==='GOOD', 'access codes untouched');
+  await A.__t.openRestore('{"app":"other"}'); await sleep(100);
+  assert.ok(d.querySelector('#restOk').hidden, 'not a backup: nothing to restore'); d.querySelector('#restCancel').click();
   console.log('smoke test passed');
   process.exit(0);
 })().catch(e=>{ console.error('FAILED:', e.stack); process.exit(1); });

@@ -134,6 +134,9 @@ data** (removable from *Settings*; never uploaded).
 - **Night**: between 0:00 and 6:00 *Today* also shows yesterday from 18:00; the app moves to the new day
   by itself at midnight.
 - **Export**: spreadsheet (CSV) or full backup (JSON) of everything on the device.
+- **Restore** from a JSON backup (*Settings → Data and backup*): a preview with what will be added, then only
+  what is missing is added (children, reminders and entries matched by id); nothing is overwritten or deleted, and the
+  address and access code are never read from the file.
 - Weight in grams for babies and kilograms from 1 year; a warning when a weight or length is outside
   the usual range for the child's age (WHO / INTERGROWTH −5…+5 SD).
 - Children profiles, title shown at the top (default *Baby log*, per device), **night mode** (off / on /
