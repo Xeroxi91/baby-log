@@ -39,12 +39,13 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
   **One reminder for several children** (same dose and times): choose more than one child; *Day* shows one
   card with a row per child and *Give to all*; editing or deleting applies to all of them.
 - **Parents' reminders** (off by default: *Settings → Features*): your own medicines or supplements, with the
-  same schedules, in *Day* after the children's reminders, marked **For you** in a colour no child uses, and a badge on the *Day* tab when something is due.
-  Each reminder is either kept **on this phone only** (default: neither the reminder nor its doses leave the
-  device) or **shared, encrypted** with the other parent: it is encrypted on the phone (AES-GCM, key derived
-  from a **family passphrase** with PBKDF2) and the server stores only unreadable text. Tell the passphrase in
-  person; it **cannot be recovered** (*Forgot it? Start over* removes the shared reminders). The app does not
-  check doses and gives no advice on medicines.
+  same schedules, in *Day* after the children's reminders, marked **For you** in a neutral style no child uses, and a badge on the *Day* tab when something is due.
+  They are **shared, encrypted** with the family: encrypted on the phone (AES-GCM, key derived from a **family
+  passphrase** with PBKDF2), readable by everyone who has the passphrase and never by the server, which stores only
+  unreadable text. Tell the passphrase in person; it **cannot be recovered** (*Forgot it? Start over* removes the shared
+  reminders). Reminders kept on one phone by earlier versions move to the shared list by themselves once the passphrase
+  is set and unlocked on that phone; until then a notice says so and nothing is lost. The app does not check doses and
+  gives no advice on medicines.
 
 **Features: the family chooses what the app shows**
 - *Settings → Features* switches modules on and off for **everyone using the log** (the choice is stored

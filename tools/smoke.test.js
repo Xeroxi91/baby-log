@@ -111,17 +111,22 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.ok(A.__t.featOn('signals') && !d.querySelector('#thrMode').closest('.sect').hidden, 'Signals section shown on the other phone');
   // parents' reminders: off by default; a module loaded only when switched on
   assert.ok(!A.__t.featOn('pmeds') && !d.querySelector('[data-pmunlock]'), "parents' reminders off by default");
+  // a reminder kept on this phone by an earlier version ("This phone only" is no longer offered)
+  const OLD = {id:'pold000001', name:'Iron', dose:'', times:1, due:0, every:0, until:'', notify:0, night:false, from:'2026-01-01'};
+  A.localStorage.setItem('bl-pmeds', JSON.stringify([OLD]));
   d.querySelector('[data-tab="settings"]').click();
   sw(A, 'pmeds').checked = true; sw(A, 'pmeds').dispatchEvent(new A.Event('change')); await sleep(300);
   assert.ok(d.querySelector('.spage[data-page="family"] [data-pmunlock]'), 'module loaded: family passphrase in Settings → Family');
-  const addPm = async (dev, name, shared) => { const q = s => dev.document.querySelector(s);
+  const addPm = async (dev, name) => { const q = s => dev.document.querySelector(s);
     q('#remAdd').click(); q('#forDlg [data-for="you"]').click(); q('#pmName').value = name; q('#pmDue').value = '0';
-    q(`#pmWhere [data-v="${shared ? 'shared' : 'local'}"]`).click();
     q('#pmForm').dispatchEvent(new dev.Event('submit', {cancelable:true})); await sleep(100); };
-  await addPm(A, 'Iron', false);
-  assert.strictEqual(JSON.parse(A.localStorage.getItem('bl-pmeds'))[0].name, 'Iron', 'kept on this phone');
+  d.querySelector('#remAdd').click(); d.querySelector('#forDlg [data-for="you"]').click();
+  assert.ok(d.querySelector('#pmWhere').closest('.lblc').hidden && /encrypted/.test(d.querySelector('#pmWhereNote').textContent), '"This phone only" not offered; shared, encrypted');
+  d.querySelector('#pmCancel').click();
+  assert.strictEqual(JSON.parse(A.localStorage.getItem('bl-pmeds'))[0].name, 'Iron', 'no passphrase: still kept on this phone');
   assert.ok(!props.PMEDS, 'nothing sent to the server');
   d.querySelector('[data-tab="log"]').click(); await sleep(50);
+  assert.ok(/once the family passphrase is set/.test(d.querySelector('#tab-log').textContent), 'notice: waiting for the passphrase');
   // badge on the Day tab = reminders due now (children's and parents'), the rows highlighted in Day
   const lateRows = () => d.querySelectorAll('#tab-log .remi.late').length;
   const badge = () => d.querySelector('#dayBadge').hidden ? 0 : Number(d.querySelector('#dayBadge').textContent);
@@ -140,14 +145,19 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.strictEqual(hhmm(JSON.parse(A.localStorage.getItem('bl-pmeds-given'))[0].ts), hhmm(earlier), 'dose time changed on this phone');
   // shared, encrypted: the passphrase is asked the first time
   d.querySelector('[data-tab="settings"]').click(); await sleep(20);
-  await addPm(A, 'Vitamin B12', true);
+  await addPm(A, 'Vitamin B12');
   assert.ok(d.querySelector('#ppDlg').open, 'passphrase asked');
   d.querySelector('#ppIn').value = 'correct horse'; d.querySelector('#ppRep').value = 'correct horse';
-  d.querySelector('#ppForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(4000);
+  d.querySelector('#ppForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(5000);
   const pm = JSON.parse(props.PMEDS);
-  assert.strictEqual(pm.items.length, 1, 'shared reminder stored');
+  assert.deepStrictEqual(pm.items.map(x=>x.id).sort().length, 2, 'new reminder shared, and the one kept on this phone moved to the shared list');
+  assert.ok(pm.items.some(x=>x.id===OLD.id) && JSON.parse(A.localStorage.getItem('bl-pmeds')).length === 0, 'local copy removed after the server confirmed it');
+  assert.strictEqual(JSON.parse(A.localStorage.getItem('bl-pmeds-given')).length, 1, 'doses already taken stay');
+  // idempotent: another run (sync, restart) changes nothing
+  await A.__t.refresh(); await A.__t.refresh(); await sleep(300);
+  assert.strictEqual(JSON.parse(props.PMEDS).items.length, 2, 'moved once');
   // the name must not be readable, neither as text nor inside the base64 (a random "B12" in base64 is fine)
-  const plain = s => s.includes('Vitamin');
+  const plain = s => s.includes('Vitamin') || s.includes('Iron');
   assert.ok(!plain(props.PMEDS) && !pm.items.some(x=>plain(Buffer.from(x.enc, 'base64').toString('latin1'))), 'server stores only encrypted text');
   // the other parent: locked until the passphrase is entered
   await B.__t.refresh(); await sleep(300);
@@ -161,7 +171,7 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   b.querySelector('#ppIn').value = 'correct horse';
   b.querySelector('#ppForm').dispatchEvent(new B.Event('submit', {cancelable:true})); await sleep(3000);
   const gv = b.querySelector('[data-pmgive]');
-  assert.ok(gv && gv.textContent.includes('Vitamin B12') && !b.body.textContent.includes('Iron'), 'device B sees the shared reminder only');
+  assert.ok(gv && b.body.textContent.includes('Vitamin B12') && b.body.textContent.includes('Iron'), 'device B sees both, the moved one too');
   gv.click(); await sleep(400);
   b.querySelector('[data-pmdose]').click(); await sleep(20);
   b.querySelector('#pdTs').value = hhmm(earlier);
@@ -328,16 +338,26 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.ok(props.KEYS===keysBefore && A.localStorage.getItem('bl-key')==='GOOD', 'access codes untouched');
   await A.__t.openRestore('{"app":"other"}'); await sleep(100);
   assert.ok(d.querySelector('#restOk').hidden, 'not a backup: nothing to restore'); d.querySelector('#restCancel').click();
-  // data kept only on the phone travel in the backup (not the encryption key), and come back on a new phone
-  await A.__t.exportData('json'); const bk2 = JSON.parse(csv);
-  assert.ok(bk2.local && bk2.local['bl-pmeds'] && bk2.local['bl-pmeds'].some(m=>m.name==='Iron') && !JSON.stringify(bk2).includes('bl-pkey'), "local parents' reminders in the backup, no key");
+  // migration: a backup from an earlier version holds reminders kept on that phone (never the encryption key);
+  // on the new phone they come back on the phone, then move to the shared list when it is unlocked
+  A.localStorage.setItem('bl-pmeds', JSON.stringify([{id:'pold000002', name:'Folic acid', dose:'', times:1, due:9, every:0, until:'', notify:0, night:false, from:'2026-01-01'}]));
+  await A.__t.exportData('json'); const bk2 = JSON.parse(csv); A.localStorage.setItem('bl-pmeds', '[]');
+  assert.ok(bk2.local && bk2.local['bl-pmeds'].some(m=>m.name==='Folic acid') && !JSON.stringify(bk2).includes('bl-pkey'), "local parents' reminders in the backup, no key");
+  const nShared = JSON.parse(props.PMEDS).items.length;
   const N = device(); await sleep(500);
   await N.__t.openRestore(JSON.stringify(bk2)); await sleep(300);
   assert.ok(/kept on this phone/.test(N.document.querySelector('#restBody').textContent), 'preview lists the local data');
   N.document.querySelector('#restOk').click(); await sleep(400);
-  assert.ok(JSON.parse(N.localStorage.getItem('bl-pmeds')).some(m=>m.name==='Iron'), 'restored on the new phone');
+  assert.ok(JSON.parse(N.localStorage.getItem('bl-pmeds')).some(m=>m.name==='Folic acid'), 'restored on the new phone, kept there while locked');
   await N.__t.openRestore(JSON.stringify(bk2)); await sleep(300);
   assert.ok(N.document.querySelector('#restOk').hidden, 'restoring twice adds nothing'); N.document.querySelector('#restCancel').click();
+  const nd = N.document; nd.querySelector('[data-tab="log"]').click(); await sleep(50);
+  nd.querySelector('[data-pmunlock]').click(); await sleep(20);
+  nd.querySelector('#ppIn').value = 'correct horse';
+  nd.querySelector('#ppForm').dispatchEvent(new N.Event('submit', {cancelable:true})); await sleep(4500);
+  assert.ok(JSON.parse(props.PMEDS).items.length === nShared + 1 && JSON.parse(N.localStorage.getItem('bl-pmeds')).length === 0, 'unlocked: moved to the shared list');
+  await N.__t.refresh(); await N.__t.refresh(); await sleep(300);
+  assert.strictEqual(JSON.parse(props.PMEDS).items.length, nShared + 1, 'and only once');
   // extensions: loaded only when index.html names a file (meta "extensions"); otherwise nothing is requested
   const ext = (html.match(/<meta name="extensions" content="([^"]*)"/) || [])[1] || "";
   assert.strictEqual(A.__t.FEATURES.some(f=>f.extra), !!ext, ext ? 'extensions registered' : 'no extensions here');
