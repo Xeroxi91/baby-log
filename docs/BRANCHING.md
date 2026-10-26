@@ -8,21 +8,29 @@ Two remotes: `origin` is the public repository; `private` is a private copy used
 |---|---|---|
 | `main` | releases | `origin` and `private` (`git push-main`) |
 | `dev` | work that can become public | `private` |
-| `modules` | `dev` plus optional modules that stay private | `private` |
+| `family` | `dev` plus optional modules that stay private: the stable build used by one family, deployed separately | `private` |
 | `core/*` | a piece of work for `dev`, started from `dev` | `private` |
-| `mod/*` | a piece of work on optional modules, started from `modules` | `private` |
+| `mod/*` | a piece of work on optional modules, started from `family` | `private` |
 
 Flow:
 
 ```
 core/* ──► dev ──► main
             │
-            └──► modules ◄── mod/*
+            └──► family ◄── mod/*
 ```
 
-- `dev` is merged into `modules` regularly, so that the modules always run on the current core.
-- `modules` is **never** merged into `dev` or `main`. A change made on `modules` that belongs to the core is
+- `dev` is merged into `family` regularly, so that the modules always run on the current core.
+- `family` is **never** merged into `dev` or `main`. A change made on `family` that belongs to the core is
   redone on a `core/*` branch.
+- `family` is the production branch of its own deployment (static files, no build step); other branches
+  of the private remote may get preview deployments there.
+
+## Backups between copies of the app
+
+The JSON backup also carries what a feature keeps only on the phone (`localKeys` in the features list), never
+encryption keys or access codes; the restore adds it by id, like entries. A phone that moves to another
+address of the app (where the browser storage starts empty) exports from the old address and restores at the new one.
 
 ## Optional modules
 
@@ -38,7 +46,7 @@ push targets (`remote.pushDefault = private`, `branch.main.pushRemote = origin`,
 
 - `pre-push` refuses any branch other than `main` (and any tag) to `origin`, and refuses a `main` that contains
   `modules/private.js` or `docs/private/`, or any path listed in `docs/private/private-paths` on the local
-  `modules` branch.
+  `family` branch.
 - Before merging into `main`, run `tools/private-check.sh`: it lists the files that mention a term listed in
-  `docs/private/private-terms` on the local `modules` branch. `pre-merge-commit` prints the same list during a
+  `docs/private/private-terms` on the local `family` branch. `pre-merge-commit` prints the same list during a
   merge commit into `main` (fast-forward merges skip it).

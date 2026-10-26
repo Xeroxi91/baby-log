@@ -328,6 +328,16 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   assert.ok(props.KEYS===keysBefore && A.localStorage.getItem('bl-key')==='GOOD', 'access codes untouched');
   await A.__t.openRestore('{"app":"other"}'); await sleep(100);
   assert.ok(d.querySelector('#restOk').hidden, 'not a backup: nothing to restore'); d.querySelector('#restCancel').click();
+  // data kept only on the phone travel in the backup (not the encryption key), and come back on a new phone
+  await A.__t.exportData('json'); const bk2 = JSON.parse(csv);
+  assert.ok(bk2.local && bk2.local['bl-pmeds'] && bk2.local['bl-pmeds'].some(m=>m.name==='Iron') && !JSON.stringify(bk2).includes('bl-pkey'), "local parents' reminders in the backup, no key");
+  const N = device(); await sleep(500);
+  await N.__t.openRestore(JSON.stringify(bk2)); await sleep(300);
+  assert.ok(/kept on this phone/.test(N.document.querySelector('#restBody').textContent), 'preview lists the local data');
+  N.document.querySelector('#restOk').click(); await sleep(400);
+  assert.ok(JSON.parse(N.localStorage.getItem('bl-pmeds')).some(m=>m.name==='Iron'), 'restored on the new phone');
+  await N.__t.openRestore(JSON.stringify(bk2)); await sleep(300);
+  assert.ok(N.document.querySelector('#restOk').hidden, 'restoring twice adds nothing'); N.document.querySelector('#restCancel').click();
   // optional modules: registered by modules/private.js only where that file exists (a private branch)
   const hasPrivate = fs.existsSync(path.join(__dirname, '..', 'modules', 'private.js'));
   assert.strictEqual(A.__t.FEATURES.some(f=>f.extra), hasPrivate, hasPrivate ? 'private modules registered' : 'no private modules here, and no error');

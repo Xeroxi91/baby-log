@@ -390,6 +390,7 @@ export function init(app){
     // frequency chosen in each reminder: -1 none, 0 once, N every N min until taken
     notices: () => all().filter(m => late(m) && Number(m.notify) >= 0).map(m => ({key: "pmed:" + m.id + ":" + (Number(m.every) > 0 ? nextDose(m) : today() + ":" + givenOn(m, today()).length),
       repeat: Number(m.notify) || 0, night: !!m.night, text: app.tr(`${m.name} (for you): due now`)})),
-    synced: refresh
+    synced: refresh,
+    restored(){ local = store.get(LS.list, []); localGiven = store.get(LS.given, []); app.render(); app.renderSettings(); }
   };
 }
