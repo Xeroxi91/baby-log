@@ -44,7 +44,7 @@ Tests run on every branch: `cd tools && npm test`.
 Run `sh tools/setup-hooks.sh` once per clone. It installs the versioned hooks (`tools/hooks/`) and sets the
 push targets (`remote.pushDefault = private`, `branch.main.pushRemote = origin`, alias `git push-main`).
 
-- `pre-push` refuses any branch other than `main` (and any tag) to `origin`, and refuses a `main` that contains
+- `pre-push` refuses any branch other than `main` to `origin` (tags only of commits already in `main`), and refuses a `main` or tag that contains
   `modules/extensions.js`, whose `index.html` names an extensions file, or that contains a path listed in the local
   git config `privacy.paths` (space-separated; set in each clone that keeps private work, never versioned here).
 - Before merging into `main`, run `tools/private-check.sh`: it lists the files that mention a term of the local git
