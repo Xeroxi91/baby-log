@@ -3,7 +3,9 @@
  */
 /* ---------- children ---------- */
 // Each child has an opaque id (seen by the page) and a key (value of the "child" column, never sent).
-const CHILD_FIELDS = ['name', 'sex', 'birth', 'gaW', 'gaD', 'bw', 'bl', 'bh', 'stage'];
+const CHILD_FIELDS = ['name', 'sex', 'birth', 'gaW', 'gaD', 'bw', 'bl', 'bh', 'stage', 'color'];
+// color: name of a colour of the app (e.g. "blue"), chosen by the family; empty = the colour of the child's position
+const COLOR_NAME = /^[a-z][a-z0-9-]{0,15}$/;
 const newId_ = () => 'c' + Utilities.getUuid().replace(/-/g, '').slice(0, 10);
 
 let CHILDREN_CACHE_ = null;
@@ -42,6 +44,7 @@ function saveChildren_(list) {
       const c = prev ? Object.assign({}, prev) : { id: ok ? String(x.id) : newId_() };
       if (!prev) c.key = c.id;
       CHILD_FIELDS.forEach(f => { if (x[f] !== undefined) c[f] = String(x[f]).slice(0, 60); });
+      if (c.color && !COLOR_NAME.test(c.color)) c.color = '';
       return c;
     });
     // a child that already has events is never removed
@@ -58,6 +61,7 @@ function saveChildren_(list) {
 function toSheet_(e) {
   if (!e) return e;
   if (e.kind === 'pump' || e.kind === 'pmed') { const o = Object.assign({}, e, { kidKey: PARENT }); delete o.child; return o; }
+  if (e.child === FAMILY && !KINDS[e.kind]) { const o = Object.assign({}, e, { kidKey: FAMILY, data: cleanData_(e.data) }); delete o.child; return o; }
   const c = children_().find(x => x.id === e.child);
   if (!c) throw new Error('unknown child');
   const o = Object.assign({}, e, { kidKey: c.key });
@@ -67,7 +71,7 @@ function toSheet_(e) {
 
 function toClient_(e) {
   const c = children_().find(x => x.key === e.kidKey);
-  const o = Object.assign({}, e, { child: e.kidKey === PARENT ? PARENT : c ? c.id : null });
+  const o = Object.assign({}, e, { child: e.kidKey === PARENT || e.kidKey === FAMILY ? e.kidKey : c ? c.id : null });
   delete o.kidKey;
   return o;
 }

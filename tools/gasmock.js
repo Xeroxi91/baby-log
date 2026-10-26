@@ -2,7 +2,7 @@
 const fs=require('fs'), vm=require('vm'), crypto=require('crypto');
 module.exports=function(rows){
   const props={KEYS:'GOOD'};
-  const HEADER_LEN=21;
+  const HEADER_LEN=22;
   const data=[[]];             // row 0 = header (filled by sheet_())
   (rows||[]).forEach(r=>{ const x=r.slice(); while(x.length<HEADER_LEN) x.push(''); data.push(x); });
   const range=(r,c,nr,nc)=>({

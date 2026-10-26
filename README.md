@@ -55,7 +55,7 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Defaults: everything is on except pumping and test weighing, which start on only if the family already
   used them, and signals and parents' reminders (off).
 - Some features are separate files (`modules/*.js`) loaded only when they are on; the service worker keeps
-  them on the device, so they work offline too.
+  them on the device, so they work offline too. A module can add its own tab, shown only while it is on.
 
 **Notifications (on each phone)**
 - *Settings → Notifications*, off by default: a banner in the app and, if the phone allows them, phone
@@ -253,7 +253,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | Column | Content |
 |---|---|
 | `id` | unique id |
-| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med`, `pump` and `pmed` (`child` = `parent`) |
+| `kind` | `feed`, `pee`, `poo`, `weight`, `len`, `hc`, `note`, `med`, `pump` and `pmed` (`child` = `parent`); modules shared by the whole family use their own kinds (`child` = `family`) |
 | `child` | internal child key (mapped to the child in the profile) |
 | `ts` | timestamp (milliseconds since 1970, UTC) |
 | `feedType` | `breast` or `bottle` |
@@ -272,6 +272,7 @@ All data are in the `events` sheet of your Google Sheet, one row per event:
 | `temp` | temperature in °C |
 | `ref` | reminder id for a given reminder (`kind` = `med`, or `pmed` for a parent's shared reminder: id only) |
 | `pre` / `post` | test weighing before / after a breastfeed, in grams |
+| `data` | fields of a family-wide module entry, as JSON (`child` = `family`) |
 
 Children profiles and access codes are stored in the script's **Script Properties**
 (`PROFILE`, `KEYS`, `MEDS`, `PMEDS` (encrypted), `FEATURES`, `REV`). Parents' reminders kept on
@@ -302,6 +303,8 @@ one phone only are in that phone's local storage. **Backup**: *File → Download
 - **Backend**: if a file in `apps-script/` changed, paste it into the file with the same name in Apps Script
   (create the files that are missing), then *Deploy → Manage deployments → ✏️ → Version: New version → Deploy*.
   The URL stays the same. Update the backend **before** the page.
+  - **2.5.0**: `Code.gs` and `Children.gs` changed (new `data` column, created by itself on the next sync;
+    a colour can be stored with each child's profile).
   - **From 1.x to 2.0**: the backend is now split into several files. Replace `Code.gs` completely with the
     new one and add `Children.gs`, `Features.gs` and `Reminders.gs`; keeping old code in `Code.gs` would
     define the same functions twice and the script would not run.

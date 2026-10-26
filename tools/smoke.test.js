@@ -1,6 +1,6 @@
 // Smoke test: two devices on the same in-memory backend. Run: npm test (from tools/)
 const {JSDOM} = require('jsdom'), fs = require('fs'), path = require('path'), assert = require('assert');
-const {api, props} = require('./gasmock')([]);
+const {api, props, data} = require('./gasmock')([]);
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
 const calls = [];
 function device(pre, setup){
@@ -18,7 +18,7 @@ function device(pre, setup){
   Object.defineProperty(w, 'crypto', {value: require('crypto').webcrypto});
   w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
   w.__imp = async p => w.eval(fs.readFileSync(path.join(__dirname, '..', p), 'utf8').replace(/^export /m, '') + ';({init})');
-  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn};');
+  w.eval(html.split('<script>')[1].split('</script>')[0].replace('import(`./', '__imp(`') + ';window.__t={get events(){return events},get allEvents(){return allEvents},refresh,featOn,FEATURES,notices,exportData,KID};');
   return w;
 }
 const sleep = ms => new Promise(r=>setTimeout(r, ms));
@@ -30,6 +30,13 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   set(1,'name','Baby B'); set(1,'sex','f'); set(1,'birth','2026-09-18');
   d.querySelector('#profForm').dispatchEvent(new A.Event('submit', {cancelable:true})); await sleep(200);
   assert.strictEqual(JSON.parse(props.PROFILE).children.length, 2, 'children saved');
+  // a colour chosen for a child is shared with the profile; anything but a colour name is dropped
+  const ch0 = JSON.parse(props.PROFILE).children.map(c=>({id:c.id, name:c.name}));
+  const saved = JSON.parse(api.doPost({postData:{contents:JSON.stringify({key:'GOOD', action:'saveProfile', args:[{children:[{...ch0[0], color:'blue'}, {...ch0[1], color:'red;}'}]}]})}}).t).result.children;
+  assert.ok(saved[0].color==='blue' && saved[1].color==='' && saved[0].name==='Baby A', 'child colour saved and checked');
+  await A.__t.refresh(); await sleep(50);
+  assert.strictEqual(A.__t.KID(saved[0].id).c, 'var(--kid-blue, var(--k0))', 'chosen colour, with the position colour as fallback');
+  assert.strictEqual(A.__t.KID(saved[1].id).c, 'var(--k1)', 'no colour: the colour of the position');
 
   [...d.querySelectorAll('#who button')].forEach(b=>{ if (b.getAttribute('aria-pressed')!=='true') b.click(); });
   d.querySelector('[data-a="pee"]').click(); await sleep(400);
@@ -222,6 +229,44 @@ const sleep = ms => new Promise(r=>setTimeout(r, ms));
   const lives = di.querySelectorAll('#livebar .live').length, name = I.__t.events.find(e=>e.live && e.child===i1) && JSON.parse(props.PROFILE).children[0].name;
   assert.ok(lives >= 1 && di.querySelector('#livebar .endfeed').textContent === 'Termina poppata', 'feed in progress with "Termina poppata"');
   assert.ok(![...di.querySelectorAll('#sincebar .scard')].some(c=>c.textContent.includes(name)), 'no second card for the same feed');
+  // family rows (modules shared by the whole family): any module kind, fields in "data", never in the baby screens
+  const old = Date.now() - 10*864e5;
+  await A.addEvents([{kind:'tstock', child:'family', ts: old, data:{name:'Rice', qty:2, ok:true, 'bad key':1, nested:{x:1}, long:'x'.repeat(300)}},
+                     {kind:'feed', child:'family', ts: Date.now(), feedType:'bottle', ml:50}]); await sleep(400);
+  const fam = data.filter(r=>r[2]==='family');
+  assert.strictEqual(fam.length, 1, 'family row stored, a baby kind for the family refused');
+  const fd = JSON.parse(fam[0][21]);
+  assert.ok(fd.name==='Rice' && fd.qty===2 && fd.ok===true && !('bad key' in fd) && !fd.nested && fd.long.length===200, 'data cleaned on the server: ' + fam[0][21]);
+  assert.ok(!A.__t.events.some(e=>e.child==='family') && A.__t.allEvents.some(e=>e.child==='family'), 'family rows stay out of the baby screens');
+  const D = device(); await sleep(400);
+  const dr = D.__t.allEvents.find(e=>e.kind==='tstock');
+  assert.ok(dr && dr.child==='family' && dr.data.name==='Rice', 'first load brings family rows older than 48 h');
+  assert.ok(!D.__t.events.some(e=>e.kind==='tstock'), 'and keeps them out of the baby screens');
+  assert.ok(!JSON.parse(api.doPost({postData:{contents:JSON.stringify({key:'GOOD', action:'history', args:[{before: Date.now()}]})}}).t).result.events.some(e=>e.child==='family'), 'history skips family rows');
+  let csv = ''; A.Blob = class { constructor(p){ csv = p.join(''); } }; A.URL.createObjectURL = ()=>''; A.URL.revokeObjectURL = ()=>{};
+  await A.__t.exportData('csv');
+  assert.ok(csv.includes('feed') && !csv.includes('tstock'), 'the spreadsheet is about the children only');
+  // module hooks: its own tab before Settings, ＋ on that tab, notifications switched with its feature
+  A.__t.FEATURES.push({k:'tmod', name:'Test module', desc:'', def:true, file:'../tools/fixtures/tabmod'});
+  await A.__t.refresh(); await sleep(200);
+  const tb = d.querySelector('[data-tab="m-tmod"]');
+  assert.ok(tb && tb.nextElementSibling.dataset.tab==='settings', 'module tab added before Settings');
+  tb.click(); await sleep(20);
+  assert.ok(!d.querySelector('#tab-m-tmod').hidden && d.querySelector('#tab-log').hidden, 'module tab shown');
+  assert.ok(d.querySelector('#tmBody').dataset.bound==='1' && d.querySelector('#tmBody').textContent.startsWith('1 '), 'module tab rendered with the family rows');
+  d.querySelector('#fab').click(); await sleep(20);
+  assert.ok(A.__tmFab===1 && !d.querySelector('#sheet').open, '＋ runs the module action on its tab');
+  d.querySelector('[data-tab="log"]').click(); d.querySelector('#fab').click(); await sleep(20);
+  assert.ok(d.querySelector('#sheet').open, '＋ logs baby events on Day'); d.querySelector('#sheetClose').click();
+  assert.ok(A.__t.notices().some(n=>n.text==='test module notice'), 'module notices included');
+  d.querySelector('[data-tab="settings"]').click(); await sleep(20);
+  const nt = d.querySelector('[data-nt="tmod"]'); assert.ok(nt, 'module notification type listed in Settings');
+  nt.checked = false; nt.dispatchEvent(new A.Event('change'));
+  assert.ok(!A.__t.notices().some(n=>n.text==='test module notice'), 'module notices off with their switch');
+  tb.click(); await sleep(20);                                   // switched off (e.g. from another phone) while its tab is open
+  sw(A, 'tmod').checked = false; sw(A, 'tmod').dispatchEvent(new A.Event('change')); await sleep(200);
+  assert.ok(!d.querySelector('[data-tab="m-tmod"]') && !d.querySelector('#tab-m-tmod'), 'module tab removed when turned off');
+  assert.ok(!d.querySelector('#tab-log').hidden && !d.querySelector('#fab').hidden, 'back to Day, ＋ shown');
   console.log('smoke test passed');
   process.exit(0);
 })().catch(e=>{ console.error('FAILED:', e.stack); process.exit(1); });

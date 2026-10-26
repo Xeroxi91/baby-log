@@ -3,8 +3,10 @@
  * Exposes a small JSON API, protected by access codes, for the static page (e.g. GitHub Pages).
  *
  * Sheet "events": id | kind | child | ts | feedType | grams | dateTime | ml | duration | running | cm
- *                 | side | milk | updatedAt | deleted | tags | text | temp | ref | pre | post
+ *                 | side | milk | updatedAt | deleted | tags | text | temp | ref | pre | post | data
  * The "child" column holds an internal child key; the page only ever sees opaque child ids.
+ * Rows of modules shared by the whole family (not about one child) have child = "family" and keep
+ * their fields as JSON in "data".
  * Sync model: the page keeps a local copy and an outbox of changes; one "sync" call sends the
  * outbox and receives everything changed since the last sync (deletions are kept as tombstones).
  *
@@ -20,7 +22,7 @@
 const SHEET = 'events';
 const LEGACY_SHEETS = ['eventi'];   // older versions of this project used this sheet name
 const HEADER = ['id', 'kind', 'child', 'ts', 'feedType', 'grams', 'dateTime', 'ml', 'duration', 'running', 'cm',
-                'side', 'milk', 'updatedAt', 'deleted', 'tags', 'text', 'temp', 'ref', 'pre', 'post'];
+                'side', 'milk', 'updatedAt', 'deleted', 'tags', 'text', 'temp', 'ref', 'pre', 'post', 'data'];
 const COL = {}; HEADER.forEach((h, i) => COL[h] = i);
 const FEED_TYPES = { seno: 'breast', art: 'bottle', breast: 'breast', bottle: 'bottle' }; // legacy values are normalised
 
@@ -105,7 +107,7 @@ function row_(id, e, updatedAt, deleted) {
   return [id, e.kind, e.kidKey, Number(e.ts), e.feedType || '', e.grams || '', new Date(Number(e.ts)),
           e.ml || '', e.dur || '', e.live ? 1 : '', e.cm || '', e.side || '', e.milk || '',
           updatedAt || '', deleted ? 1 : '', e.tags || '', e.text ? String(e.text).slice(0, 500) : '',
-          e.temp || '', e.ref || '', e.pre || '', e.post || ''];
+          e.temp || '', e.ref || '', e.pre || '', e.post || '', e.kidKey === FAMILY && e.data ? JSON.stringify(e.data) : ''];
 }
 
 function withLock_(fn) {
@@ -131,12 +133,30 @@ function rowToEvent_(r) {
   if (r[COL.ref]) e.ref = String(r[COL.ref]);
   if (r[COL.pre]) e.pre = Number(r[COL.pre]);
   if (r[COL.post]) e.post = Number(r[COL.post]);
+  if (r[COL.data]) { try { e.data = JSON.parse(r[COL.data]); } catch (err) {} }
   return e;
 }
 
 const validId_ = id => /^[A-Za-z0-9_-]{6,64}$/.test(String(id || ''));
 const KINDS = { feed: 1, pee: 1, poo: 1, weight: 1, len: 1, hc: 1, note: 1, med: 1, pump: 1, pmed: 1 };
 const PARENT = 'parent';   // pumping sessions belong to the parent, not to a child
+const FAMILY = 'family';   // rows of modules shared by the whole family (any kind not in KINDS)
+const FAMILY_KIND = /^[a-z][a-z0-9]{1,11}$/;
+const validKind_ = e => KINDS[e.kind] || (e.child === FAMILY && FAMILY_KIND.test(String(e.kind)));
+
+/** Fields of a family row: a flat object of short values, checked here because the sheet keeps it as text. */
+function cleanData_(d) {
+  if (!d || typeof d !== 'object' || Array.isArray(d)) return null;
+  const out = {};
+  Object.keys(d).slice(0, 30).forEach(k => {
+    const v = d[k];
+    if (!/^[A-Za-z][A-Za-z0-9]{0,23}$/.test(k)) return;
+    if (typeof v === 'number' && isFinite(v)) out[k] = v;
+    else if (typeof v === 'boolean') out[k] = v;
+    else if (typeof v === 'string') out[k] = v.slice(0, k === 'enc' ? 8000 : 200);   // enc: encrypted, opaque
+  });
+  return Object.keys(out).length ? out : null;
+}
 
 /* Revision: time of the last write (events, children, reminders or features). Lets a sync with nothing to
    send answer without opening the spreadsheet when nothing changed. Edits made by hand in the
@@ -146,7 +166,8 @@ function bump_(t) { PropertiesService.getScriptProperties().setProperty('REV', S
 
 /**
  * Applies the client's outbox and returns what changed since `since`, plus children and reminders.
- * First load (since = 0): only events from `from` on (older ones via the "history" action).
+ * First load (since = 0): only events from `from` on (older ones via the "history" action);
+ * family rows always (they are stock and lists, not a diary: their time says when they were added).
  * Nothing to send and nothing changed: quick answer, no lock, no sheet access, `since` kept.
  */
 function sync_(p) {
@@ -164,7 +185,7 @@ function sync_(p) {
     const dirty = {}, firstNew = data.length;
     (p.ops || []).slice(0, 500).forEach(o => {
       try {
-        if (o.op === 'put' && o.ev && validId_(o.ev.id) && KINDS[o.ev.kind]) {
+        if (o.op === 'put' && o.ev && validId_(o.ev.id) && validKind_(o.ev)) {
           const row = row_(String(o.ev.id), toSheet_(o.ev), now, false);
           const i = idx[o.ev.id];
           if (i != null) { data[i] = row; dirty[i] = 1; }
@@ -186,7 +207,7 @@ function sync_(p) {
       if (!r[0]) continue;
       if (since === 0) {
         if (r[COL.deleted]) continue;
-        if (from && (Number(r[COL.ts]) || 0) < from) { older = true; continue; }
+        if (from && r[COL.child] !== FAMILY && (Number(r[COL.ts]) || 0) < from) { older = true; continue; }
       } else if ((Number(r[COL.updatedAt]) || 0) < since) continue;
       const e = toClient_(rowToEvent_(r));
       if (e.child) events.push(e);
@@ -195,14 +216,14 @@ function sync_(p) {
   });
 }
 
-/** Events that happened before `before` (loaded on request: earlier days, Progress, export). */
+/** Events that happened before `before` (loaded on request: earlier days, Progress, export). Family rows come with the first load. */
 function history_(p) {
   const before = Number(p.before) || 0;
   const s = sheet_(), data = s.getRange(1, 1, Math.max(1, s.getLastRow()), HEADER.length).getValues();
   const events = [];
   for (let i = 1; i < data.length; i++) {
     const r = data[i];
-    if (!r[0] || r[COL.deleted] || (before && (Number(r[COL.ts]) || 0) >= before)) continue;
+    if (!r[0] || r[COL.deleted] || r[COL.child] === FAMILY || (before && (Number(r[COL.ts]) || 0) >= before)) continue;
     const e = toClient_(rowToEvent_(r));
     if (e.child) events.push(e);
   }
