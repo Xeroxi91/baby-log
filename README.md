@@ -57,6 +57,13 @@ based on the **INTERGROWTH-21st** preterm standards and the **WHO Child Growth S
 - Some features are separate files (`modules/*.js`) loaded only when they are on; the service worker keeps
   them on the device, so they work offline too. A module can add its own tab, shown only while it is on.
 
+**Extensions (for forks)**
+- A fork can add its own features without touching the core: set `<meta name="extensions" content="modules/extensions.js">`
+  in `index.html` and create that file with `export function register(app){ app.addFeatures([...]); app.addIT({...}); }`.
+  Each feature names a module file (`file`), loaded only when the feature is switched on; see the module section of
+  `index.html` for its hooks (tab, ＋, Settings, notifications, backup of data kept on the phone).
+- With the meta empty (the default) nothing is requested.
+
 **Notifications (on each phone)**
 - *Settings → Notifications*, off by default: a banner in the app and, if the phone allows them, phone
   notifications for reminders due (children's and parents'), a feed gap over the threshold set in *Feeds*,

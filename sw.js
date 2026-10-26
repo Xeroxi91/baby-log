@@ -6,12 +6,9 @@ const CACHE = "baby-log-v44";
 const SHELL = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png", "favicon.png",
                "modules/pmeds.js"];
 
-// files that exist only in some copies of the app: cached when present, never a reason to fail
-const OPTIONAL = ["modules/private.js"];
-
+// an extensions file (index.html, meta "extensions") is cached when the page loads it, like any same-origin file
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL).then(() => Promise.all(OPTIONAL.map(u => c.add(u).catch(() => {})))))
-    .then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener("activate", e => {

@@ -14,6 +14,8 @@
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <title>Baby log</title>
+<!-- optional extension point: path of a module file that registers more features (empty = none, nothing is requested) -->
+<meta name="extensions" content="">
 <style>
 :root{
   /* design tokens (design review, phase 3): Light; Dark and Night below. No accent colour:
@@ -1164,10 +1166,12 @@ function loadModules(){
 }
 const modFeats = () => FEATURES.filter(f=>f.file && featOn(f.k) && mods[f.k] && mods[f.k]!=="loading");
 const modsOn = () => modFeats().map(f=>mods[f.k]);
-/* optional modules kept outside this repository: modules/private.js, if present, registers them
-   (features, strings) through appApi; where the file does not exist the import fails quietly */
-function loadPrivate(){
-  import(`./modules/private.js`).then(m=>{ if (m && m.register){ m.register(appApi); applyFeatures(); renderSettings(); } }).catch(()=>{});
+/* extension point (e.g. for a fork): <meta name="extensions" content="modules/extensions.js"> names a module
+   file whose register(app) adds features and strings through appApi. Empty: nothing is requested. */
+function loadExtensions(){
+  const m = document.querySelector('meta[name="extensions"]'), src = m && m.content.trim();
+  if (!src || !/^[\w./-]+\.js$/.test(src)) return;
+  import(`./${src}`).then(x=>{ if (x && x.register){ x.register(appApi); applyFeatures(); renderSettings(); } }).catch(e=>console.warn("extensions not loaded", e));
 }
 /* module tabs: a button before Settings and a section, only while the module is on */
 const modTabs = () => modFeats().filter(f=>mods[f.k].tab);
@@ -1219,7 +1223,7 @@ const appApi = {
   toast(msg, undo){ toast(msg, !!undo); undoFn = undo || null; },
   addIT(dict, templates){ Object.assign(IT, dict); if (templates){ IT_T.push(...templates); IT_RE = compileT(IT_T); } },
   FAMILY, download: (name, text, type) => download(name, text, type), showTab: name => showTab(name),
-  // more features, from modules/private.js: same fields as FEATURES (k, name, desc, def, kinds, file)
+  // more features, from the extensions file: same fields as FEATURES (k, name, desc, def, kinds, file, localKeys)
   addFeatures(list){ (list || []).forEach(f=>{ if (!f || FEATURES.some(x=>x.k===f.k)) return;
     FEATURES.push({...f, extra:true}); (f.kinds || []).forEach(k=>{ KIND_FEAT[k] = f.k; }); }); },
   tip: (key, ...ps) => tip(key, ...ps), sh: (title, key, ...ps) => sh(title, key, ...ps)
@@ -3114,7 +3118,7 @@ loadCache();
 // up to 2.1: signals were turned on per phone. A phone that had them on switches them on for the family
 // (unless the family already chose), once: the old per-phone setting is then cleared.
 if (thr.on){ thr.on = false; saveThr(); if (!("signals" in feats.on) && !("signals" in featPending)){ if (isLocal()) feats.on.signals = true; else featPending.signals = true; saveCache(); } }
-applyKids(); render(); setStatus(); translateTree(document.body); refresh(); loadPrivate();
+applyKids(); render(); setStatus(); translateTree(document.body); refresh(); loadExtensions();
 // ask the browser to keep this site's storage (address, code and local data) even under storage pressure
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 $("#sync").onclick = ()=>{ if (isLocal()) showTab("settings"); else { forceNext = true; refresh(); } };

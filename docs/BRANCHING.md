@@ -32,11 +32,12 @@ The JSON backup also carries what a feature keeps only on the phone (`localKeys`
 encryption keys or access codes; the restore adds it by id, like entries. A phone that moves to another
 address of the app (where the browser storage starts empty) exports from the old address and restores at the new one.
 
-## Optional modules
+## Extensions
 
-The app looks for `modules/private.js` at start-up. Where the file exists it registers more features
-(through `addFeatures`, the same fields as the built-in features) and their strings; where it does not,
-the import fails quietly and nothing changes. The service worker caches it only when it is there.
+`index.html` has `<meta name="extensions" content="">`. On `main` and `dev` it is empty and nothing is
+requested. The private build sets it to `modules/extensions.js`, which registers more features (through
+`addFeatures`, the same fields as the built-in features) and their strings. It is one line, so merging
+`dev` into `family` does not conflict as long as `dev` leaves that line alone.
 Tests run on every branch: `cd tools && npm test`.
 
 ## Guards
@@ -45,8 +46,8 @@ Run `sh tools/setup-hooks.sh` once per clone. It installs the versioned hooks (`
 push targets (`remote.pushDefault = private`, `branch.main.pushRemote = origin`, alias `git push-main`).
 
 - `pre-push` refuses any branch other than `main` (and any tag) to `origin`, and refuses a `main` that contains
-  `modules/private.js` or `docs/private/`, or any path listed in `docs/private/private-paths` on the local
-  `family` branch.
+  `modules/extensions.js` or `docs/private/`, whose `index.html` names an extensions file, or that contains any
+  path listed in `docs/private/private-paths` on the local `family` branch.
 - Before merging into `main`, run `tools/private-check.sh`: it lists the files that mention a term listed in
   `docs/private/private-terms` on the local `family` branch. `pre-merge-commit` prints the same list during a
   merge commit into `main` (fast-forward merges skip it).
